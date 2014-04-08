@@ -18,7 +18,7 @@ public class Chunkserver {
 	
 	public void connectToMaster() {
 		try {
-			s = new Socket("dblab-18.vlab.usc.edu", portNumber);
+			s = new Socket("dblab-05.vlab.usc.edu", portNumber);
 		} catch(Exception e) {
 			System.out.println("failure");
 			e.printStackTrace();
