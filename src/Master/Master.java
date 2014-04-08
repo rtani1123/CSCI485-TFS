@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import Utilities.BPTree;
 
@@ -20,10 +21,12 @@ public class Master {
 	ClientThreadHandler cth;
 	
 	BPTree bpt;
+	HashMap<String,String> filePaths;
 	
 	public Master() {
 		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		bpt = new BPTree();
+		filePaths = new HashMap<String,String>();
 		setupServer();
 		System.out.println("here");
 	}
