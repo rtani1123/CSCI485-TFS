@@ -6,6 +6,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import Utilities.BPTree;
+
 public class Master {
 
 	ServerSocket ss; //CLARIFICATION - this SocketServer is only for chunkservers.
@@ -17,8 +19,11 @@ public class Master {
 	
 	ClientThreadHandler cth;
 	
+	BPTree bpt;
+	
 	public Master() {
 		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
+		bpt = new BPTree();
 		setupServer();
 		System.out.println("here");
 	}
@@ -149,4 +154,6 @@ public class Master {
 			}
 		}
 	}
+	
+	
 }
