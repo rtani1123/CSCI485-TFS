@@ -33,7 +33,7 @@ public class Chunkserver {
 			System.exit(0);
 		}
 		
-		HandleServerInput hsin = new HandleServerInput(s);
+		HandleMasterInput hsin = new HandleMasterInput(s);
 		new Thread(hsin).start();
 	}
 	
@@ -42,10 +42,10 @@ public class Chunkserver {
 
 	}
 
-	class HandleServerInput implements Runnable {
+	class HandleMasterInput implements Runnable {
 		Socket mySocket;
 		
-		HandleServerInput(Socket s) {
+		HandleMasterInput(Socket s) {
 			mySocket = s;
 		}
 		public void run() {
