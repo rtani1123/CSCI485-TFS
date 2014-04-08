@@ -26,6 +26,7 @@ public class Master {
 	public Master() {
 		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		bpt = new BPTree();
+		
 		filePaths = new HashMap<String,String>();
 		setupServer();
 		System.out.println("here");
