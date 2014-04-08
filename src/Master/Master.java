@@ -20,7 +20,7 @@ public class Master {
 	public Master() {
 		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		setupServer();
-		
+		System.out.println("here");
 	}
 	
 	public void setupServer() {
