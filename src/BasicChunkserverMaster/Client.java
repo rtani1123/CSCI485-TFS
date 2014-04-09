@@ -27,10 +27,12 @@ public class Client {
 			e.printStackTrace();
 		}
 		
-		HandleServerInput hsi = new HandleServerInput(masterSocket);
+		HandleServerInput hsi = new HandleServerInput(masterSocket, output, input);
 		new Thread(hsi).start();
 		
 		try {
+			//byte[] test = {1,2};
+			//output.write(test);
 			output.writeObject(new String("I am a client"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -44,9 +46,13 @@ public class Client {
 	class HandleServerInput implements Runnable {
 
 		Socket mySocket;
+		ObjectOutputStream output;
+		ObjectInputStream input;
 		
-		public HandleServerInput(Socket s) {
+		public HandleServerInput(Socket s, ObjectOutputStream output, ObjectInputStream input) {
 			mySocket = s;
+			this.output = output;
+			this.input = input;
 		}
 		
 		public void run() {
@@ -54,7 +60,7 @@ public class Client {
 			
 			while(true) {
 				try {
-					message = receiveString();
+					message = receiveString(input);
 					System.out.println("message is: " + message);
 				}
 				catch(Exception e) {
@@ -64,7 +70,7 @@ public class Client {
 			}//end while
 		}//end run
 		
-		public String receiveString() {
+		public String receiveString(ObjectInputStream input) {
 			Object obj = null;
 			try {
 				while((obj = input.readObject()) != null) {

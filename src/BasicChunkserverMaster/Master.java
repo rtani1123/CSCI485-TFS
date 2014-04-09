@@ -165,6 +165,7 @@ public class Master {
 				try {
 					message = receiveString(input);
 					System.out.println("client message = " + message);
+					//byte[] test = receiveBytes(input);
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -262,5 +263,16 @@ public class Master {
 		}
 		return 0;
 	}//end receive int
-	
+	public byte[] receiveBytes(ObjectInputStream input) {
+		byte[] inBytes = null;
+		try {
+			input.read(inBytes);
+		} catch(Exception e) {
+			System.out.println("Unable to receive byte array");
+		}
+		System.out.println("asdfasd");
+		for(int i = 0; i < inBytes.length; i++)
+			System.out.println(inBytes[i]);
+		return inBytes;
+	}
 }

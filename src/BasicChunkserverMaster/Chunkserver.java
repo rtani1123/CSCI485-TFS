@@ -28,7 +28,7 @@ public class Chunkserver {
 			e.printStackTrace();
 		}
 		
-		HandleServerInput hsi = new HandleServerInput(masterSocket);
+		HandleServerInput hsi = new HandleServerInput(masterSocket, output, input);
 		new Thread(hsi).start();
 		
 		try {
@@ -45,9 +45,13 @@ public class Chunkserver {
 	class HandleServerInput implements Runnable {
 
 		Socket mySocket;
+		ObjectOutputStream output;
+		ObjectInputStream input;
 		
-		public HandleServerInput(Socket s) {
+		public HandleServerInput(Socket s, ObjectOutputStream output, ObjectInputStream input) {
 			mySocket = s;
+			this.output = output;
+			this.input = input;
 		}
 		
 		public void run() {
@@ -55,7 +59,7 @@ public class Chunkserver {
 			
 			while(true) {
 				try {
-					message = receiveString();
+					message = receiveString(input);
 					System.out.println("message is: " + message);
 				}
 				catch(Exception e) {
@@ -65,7 +69,7 @@ public class Chunkserver {
 			}//end while
 		}//end run
 		
-		public String receiveString() {
+		public String receiveString(ObjectInputStream input) {
 			Object obj = null;
 			try {
 				while((obj = input.readObject()) != null) {
