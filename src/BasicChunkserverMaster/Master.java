@@ -30,9 +30,9 @@ public class Master {
 		
 		//expect incoming chunkservers.
 		new Thread(new HandleIncomingChunkservers(incomingChunkserverSS)).start();
-		System.out.println("handle 1");
+		System.out.println("Accepting Chunkservers");
 		new Thread(new HandleIncomingClients(incomingClientSS)).start();
-		System.out.println("handle 2");
+		System.out.println("Accepting Clients");
 	}
 	
 	public void createServerSocket() {
@@ -59,14 +59,13 @@ public class Master {
 			while(true) {
 				try {
 					Socket tempSocket = ss.accept();
-					System.out.println("accepted socket at " + tempSocket.getLocalPort());
 					MyChunkserver temp = new MyChunkserver(tempSocket);
 					chunkservers.add(temp);
 					HandleChunkserverInput hci = new HandleChunkserverInput(temp);
 					HandleChunkserverOutput hco = new HandleChunkserverOutput(temp);
 					new Thread(hci).start();
 					new Thread(hco).start();
-					System.out.println("supd");
+					System.out.println("Successfully connected Chunkserver");
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -90,7 +89,7 @@ public class Master {
 					HandleClientOutput hco = new HandleClientOutput(temp);
 					new Thread(hci).start();
 					new Thread(hco).start();
-					System.out.println("sup");
+					System.out.println("Successfully connected Client");
 				} catch(Exception e) {
 					System.out.println("Problem creating HandleIncomingClients");
 					e.printStackTrace();

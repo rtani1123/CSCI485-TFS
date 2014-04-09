@@ -6,8 +6,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import BasicChunkserverMaster.Chunkserver.HandleServerInput;
-
 public class Client {
 	Socket masterSocket;
 	ObjectOutputStream output;
@@ -40,7 +38,7 @@ public class Client {
 		}
 	}
 	public static void main(String args[]) {
-		Chunkserver cs = new Chunkserver();
+		Client cs = new Client();
 	}
 	
 	class HandleServerInput implements Runnable {
