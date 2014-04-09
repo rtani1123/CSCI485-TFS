@@ -6,18 +6,19 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Chunkserver {
-	
+import BasicChunkserverMaster.Chunkserver.HandleServerInput;
+
+public class Client {
 	Socket masterSocket;
 	ObjectOutputStream output;
 	ObjectInputStream input;
-	public Chunkserver() {
+	public Client() {
 		connectToMaster();
 	}
 	
 	public void connectToMaster() {
 		try {
-			masterSocket = new Socket("localhost", 45454);
+			masterSocket = new Socket("localhost", 56565);
 			output = new ObjectOutputStream(masterSocket.getOutputStream());
 			input = new ObjectInputStream(masterSocket.getInputStream());
 		} catch (UnknownHostException e) {
@@ -32,7 +33,7 @@ public class Chunkserver {
 		new Thread(hsi).start();
 		
 		try {
-			output.writeObject(new String("I am a chunkserver"));
+			output.writeObject(new String("I am a client"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
