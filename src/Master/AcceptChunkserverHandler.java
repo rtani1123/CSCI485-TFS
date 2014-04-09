@@ -20,7 +20,6 @@ class AcceptChunkserverHandler implements Runnable {
 		AcceptChunkserverHandler(Master parent, ServerSocket getClientsSS) {
 			this.parent = parent;
 			this.getClientsSS = getClientsSS;
-			
 			getConnection();
 			
 		}

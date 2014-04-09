@@ -21,6 +21,8 @@ public class Master {
 	ArrayList<Socket> chunkservers; //line 67-ish
 	ArrayList<ServerSocket> serversockets; //line 61-ish
 	ArrayList<ChunkserverHandler> threadHandlers; // line 70-ish
+	Map<Integer, ObjectOutputStream> portToOutput;
+	Map<Integer, ObjectInputStream> portToInput;
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	
@@ -39,6 +41,9 @@ public class Master {
 		
 		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
+		//System.out.println("1");
+		//setupMasterClientServer();
+		//System.out.println("2");
 	}
 	public void setupStreams(Socket s) {
 		try {

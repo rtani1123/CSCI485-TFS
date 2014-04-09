@@ -44,7 +44,7 @@ public class Tree {
 		root.chunkServersNum.add(3);
 	}
 	
-	boolean addElement(ArrayList<String> paths, ArrayList<Integer> chunckServersNum){
+	public boolean addElement(ArrayList<String> paths, ArrayList<Integer> chunckServersNum){
 		ArrayList<String >tempPaths = new ArrayList<String>();
 		for (int j = 0; j <paths.size()-1; j++)
 			tempPaths.add( paths.get(j));
@@ -61,7 +61,7 @@ public class Tree {
 
 		return false;
 	}
-	boolean removeElement(ArrayList<String> paths){
+	public boolean removeElement(ArrayList<String> paths){
 		Node x = root.find(paths, 1);
 		if (x==null)
 			return false;

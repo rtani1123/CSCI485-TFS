@@ -35,9 +35,11 @@ public class AcceptClientHandler implements Runnable{
 		this.s = s;
 	}
 	public void run() {
+		String message;
 		while(true) {
 			try {
-				
+				message = receiveString();
+				System.out.println("got " + message);
 			} catch(Exception e) {
 				
 			}

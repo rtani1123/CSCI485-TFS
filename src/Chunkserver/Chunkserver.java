@@ -63,7 +63,8 @@ public class Chunkserver {
 		// update directory structure
 	}
 	
-	public boolean append(String chunkhandle, int offset, int length, byte[] data){
+	//**currently not checking for stale writes using timestamps
+	public void append(String chunkhandle, int offset, int length, byte[] data){
 		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
 		StringBuffer message = new StringBuffer();
 		try {
@@ -87,9 +88,71 @@ public class Chunkserver {
 		}catch(Exception e){
 			
 		}
-		return true;
+	}
+	
+	//**currently not checking for stale writes using timestamps
+	public void atomicAppend(String chunkhandle, int length, byte[] data){
+		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		StringBuffer message = new StringBuffer();
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f,"rws");
+			raf.seek(raf.length());
+			// **before writing, this offset will need to be saved and sent to the secondaries
+			// **it should be the getFilePointer()
+			raf.write(data);
+			// change write timestamp
+			files.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// message success
+		message.append("$append$");
+		message.append(chunkhandle);
+		message.append("$");
+		message.append(files.get(chunkhandle).getWriteTime());
+		message.append("$");
+		
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
 	}
 		
+	public void read(String chunkhandle, int offset, int length){
+		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		StringBuffer message = new StringBuffer();
+		byte[] b = new byte[length];
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f,"r");
+			raf.seek(raf.length());
+			// **before writing, this offset will need to be saved and sent to the secondaries
+			// **it should be the getFilePointer()
+			raf.readFully(b,offset,length);
+			// change write timestamp
+			files.get(chunkhandle).setReadTime(System.currentTimeMillis());
+		} catch (Exception e) {
+			e.printStackTrace();
+			// might want to send a message with some error
+			return;
+		}
+		// message success
+		message.append("$");
+		message.append(chunkhandle);
+		message.append("$");
+		message.append(length);
+		message.append("$");
+		
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+			output.write(b);
+		}catch(Exception e){
+			
+		}
+	}
+	
 	public static boolean deleteFileChunk(String path) {
 		 String parsedPath = path.replace("$", "");
 		try {
