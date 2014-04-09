@@ -7,7 +7,7 @@ import java.net.Socket;
 public class Client {
 
 	Socket s;
-	int masterClientPort = 55501; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
+	int masterClientInitPort = 46946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
 	
 	ObjectInputStream input;
 	ObjectOutputStream output;
@@ -24,7 +24,7 @@ public class Client {
 	}
 	public void connectToMaster() {
 		try {
-			s = new Socket("dblab-05.vlab.usc.edu", masterClientPort);
+			s = new Socket("localhost", masterClientInitPort);
 		} catch(Exception e) {
 			System.out.println("failure");
 			e.printStackTrace();
