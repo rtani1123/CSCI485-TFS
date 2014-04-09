@@ -11,10 +11,13 @@ import java.nio.file.Files;
 public class Chunkserver {
 
 	Socket s;
-	int portNumber = 46344;
-
+	Socket connection;
+	int initPort = 46344;
+	int masterPort;
 	ObjectInputStream input;
 	ObjectOutputStream output;
+	
+	Thread initialConnection;
 
 	public Chunkserver() {
 		connectToMaster();
@@ -73,7 +76,7 @@ public class Chunkserver {
 
 	public void connectToMaster() {
 		try {
-			s = new Socket("dblab-05.vlab.usc.edu", portNumber);
+			s = new Socket("localhost", initPort);
 		} catch (Exception e) {
 			System.out.println("failure");
 			e.printStackTrace();
@@ -89,12 +92,39 @@ public class Chunkserver {
 		}
 
 		HandleMasterInput hsin = new HandleMasterInput(s);
-		new Thread(hsin).start();
+		initialConnection = new Thread(hsin);
+		initialConnection.start();
+	}
+	
+	private void establishMasterConnection(int masterPort) {
+		// TODO Auto-generated method stub
+		this.masterPort = masterPort;
+		try {
+			s.close();
+			connection = new Socket("localhost", masterPort);
+		} catch (Exception e) {
+			System.out.println("failure");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		System.out.println("successfully connected");
+		try {
+			// Create the 2 streams for talking to the server
+			output = null;
+			input = null;
+			output = new ObjectOutputStream(connection.getOutputStream());
+			input = new ObjectInputStream(connection.getInputStream());
+			initialConnection.destroy();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
+		
 	}
 
 	public static void main(String[] args) {
-		// Chunkserver cs = new Chunkserver();
-		deleteFileChunk("C:/Users/boghrati/Downloads/del");
+		Chunkserver cs = new Chunkserver();
+		//deleteFileChunk("C:/Users/boghrati/Downloads/del");
 
 	}
 
@@ -107,16 +137,28 @@ public class Chunkserver {
 
 		public void run() {
 			String message;
-			while (true) {
+			boolean run = true;
+			while (run) {
 				try {
 					message = receiveString();
 					System.out.println("message is: " + message);
+					
+					if(message.equals("port")) {
+						output.writeObject(new String("accept port"));
+						masterPort = receiveInt();
+						System.out.println("Received port " + masterPort);
+						establishMasterConnection(masterPort);
+						run = false;
+					}
+						
 				} catch (Exception e) {
 					e.printStackTrace();
 					System.out.println("Problem receiving message");
 				}
 			}// end while
 		}
+
+		
 
 		public String receiveString() {
 			Object obj = null;
@@ -132,5 +174,19 @@ public class Chunkserver {
 			}
 			return "error";
 		}
+		
+		public int receiveInt() {
+			Object obj = null;
+			try {
+				while ((obj = input.readObject()) != null) {
+					if (obj instanceof Integer) {
+						return (Integer) obj;
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("Unable to retrieve int info");
+			}
+			return 0;
+		}//end receive int
 	}
 }

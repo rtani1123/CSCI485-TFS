@@ -56,6 +56,7 @@ public class Client {
 				try {
 					message = receiveString();
 					System.out.println("message is: " + message);
+					
 				}
 				catch(Exception e) {
 					e.printStackTrace();
@@ -77,7 +78,21 @@ public class Client {
 				e.printStackTrace();
 			}
 			return "error";
-		}
+		}//end receive string
+		
+		public int receiveInt(ObjectInputStream input) {
+			Object obj = null;
+			try {
+				while ((obj = input.readObject()) != null) {
+					if (obj instanceof Integer) {
+						return (Integer) obj;
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("Unable to retrieve int info");
+			}
+			return 0;
+		}//end receive int
 	}
 	
 }
