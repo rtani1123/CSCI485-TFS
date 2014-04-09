@@ -74,10 +74,26 @@ public class Master {
 	}
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
+		if(files.containsKey(path+"/"+fileName) /*|| !bpt.isValidPath()*/){
+			return false;
+		}
 		
 		// generate unique chunkhandle
-		    // add file to B tree
-		    // generate a file metadata object and store it in the metadata hashtable
+		String newChunkhandle = path+"/"+fileName;
+		
+		// randomly choose chunkservers to store the file
+		int[] replicaIDs = new int[numReplicas];
+		for(int i = 0; i < numReplicas; i++){
+			// add chunkserverID to array randomly
+			// replicaIDs[i] = ;
+		}
+		
+		// add file to B tree
+		bpt.put(newChunkhandle, replicaIDs);
+		
+		// generate a file metadata object and store it in the metadata hashtable
+		files.put(newChunkhandle, new Metadata(newChunkhandle));
+		
 		    // message chunkservers and tell them to create the file (handshake only)
 		//for(int i = 0; i < numReplicas; i++) {
 		//            int x = new Random(0, numReplicas).nextInt();
@@ -99,7 +115,7 @@ public class Master {
 		return false;
 		
 	}
-	public boolean deleteFileMaster(long chunkhandle, String deleteMsg) {
+	public boolean deleteFileMaster(String chunkhandle, String deleteMsg) {
 		String parsedDeleteMsg = deleteMsg.replace("$", "");
 		String replicaNum = myBPTree.get(parsedDeleteMsg);
 		if (replicaNum==null){
@@ -246,7 +262,8 @@ public class Master {
 		Map<Integer,Long> replicas;
 		
 		
-		protected Metadata(){
+		protected Metadata(String fullPath){
+			this.fullPath = fullPath;
 			replicas = new HashMap<Integer,Long>();
 		}
 		
