@@ -7,7 +7,7 @@ import java.net.Socket;
 public class Client {
 
 	Socket s;
-	int masterClientPort = 56946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
+	int masterClientPort = 55501; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
 	
 	ObjectInputStream input;
 	ObjectOutputStream output;

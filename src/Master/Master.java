@@ -11,30 +11,33 @@ import Utilities.BPTree;
 
 public class Master {
 
-	ServerSocket ss; //CLARIFICATION - this SocketServer is only for chunkservers.
-	int chunkserverMasterPort = 46344;	//chunkserver port
+	ServerSocket getClientsSS; //CLARIFICATION - this SocketServer is only for chunkservers.
+	int masterClientPort = 56946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
+	int masterChunkserverPortStart = 55501;
 	ArrayList<Socket> chunkServers;
 	BPTree<String, String> myBPTree = new BPTree<String, String>();
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	
-	ClientThreadHandler cth;
+	ChunkserverThreadHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	BPTree bpt;
 	HashMap<String,String> filePaths;
 	
 	public Master() {
 		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
+		
 		bpt = new BPTree();
 		
 		filePaths = new HashMap<String,String>();
-		setupServer();
+		setupMasterChunkserverServer();
 		System.out.println("here");
 	}
 	
-	public void setupServer() {
+	public void setupMasterChunkserverServer() {
+		
 		try {
-			ss = new ServerSocket(chunkserverMasterPort);	//establish ServerSocket
+			getClientsSS = new ServerSocket(49584);	//establish ServerSocket
 		} catch (Exception e) {
 			System.out.println("Port unavailable");
 			e.printStackTrace();
@@ -42,8 +45,11 @@ public class Master {
 		}
 		
 		System.out.println("Server Created");
-		cth = new ClientThreadHandler();	//new Thread to handle new or rebooting chunkservers
+		cth = new ChunkserverThreadHandler();	//new Thread to handle new or rebooting chunkservers
 		new Thread(cth).start();
+		
+	}
+	public void connectToClient() {
 		
 	}
 	public boolean createFile(String path, String fileName, int numReplicas) {
@@ -139,12 +145,12 @@ public class Master {
 		Master master = new Master();
 	}
 	
-	class ClientThreadHandler implements Runnable {
+	class ChunkserverThreadHandler implements Runnable {
 		
 		public void run() {
 			while(true) {
 				try {
-					Socket s = ss.accept();  //waits for client protocol to connect
+					Socket s = getClientsSS.accept();  //waits for client protocol to connect
 					chunkServers.add(s);  //list of master's chunkservers
 					createClientThread(s);	//connect input/output streams
 				} catch(Exception e) {
