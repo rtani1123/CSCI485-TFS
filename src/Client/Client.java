@@ -15,7 +15,13 @@ public class Client {
 	public Client() {
 		connectToMaster();
 	}
-	
+	public boolean deleteFileClient(String filePath, String fileName){
+		String deleteFileMsg = "$"+filePath+"$/"+fileName;
+		connectToMaster();
+		// connectToMaster should receive a message to pass to the master
+		return false;
+		
+	}
 	public void connectToMaster() {
 		try {
 			s = new Socket("dblab-05.vlab.usc.edu", masterClientPort);

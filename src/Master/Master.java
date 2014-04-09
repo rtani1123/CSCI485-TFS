@@ -14,12 +14,12 @@ public class Master {
 	ServerSocket ss; //CLARIFICATION - this SocketServer is only for chunkservers.
 	int chunkserverMasterPort = 46344;	//chunkserver port
 	ArrayList<Socket> chunkServers;
-	
+	BPTree<String, String> myBPTree = new BPTree<String, String>();
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	
 	ClientThreadHandler cth;
-	
+	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	BPTree bpt;
 	HashMap<String,String> filePaths;
 	
@@ -61,8 +61,35 @@ public class Master {
 		    // return true if successful
 		return false;
 	}
-	
-	public boolean deleteFile(long chunkhandle) {
+	public boolean connectToClient(Object msg){
+		return false;
+		
+	}
+	public boolean connectToChunkServer(Object msg, String replicaNum){
+		return false;
+		
+	}
+	public boolean getXLock(String filePath){
+		return false;
+		
+	}
+	public boolean deleteFileMaster(long chunkhandle, String deleteMsg) {
+		String parsedDeleteMsg = deleteMsg.replace("$", "");
+		String replicaNum = myBPTree.get(parsedDeleteMsg);
+		if (replicaNum==null){
+			connectToClient(NOT_FOUND);
+		}
+		else {
+			getXLock(parsedDeleteMsg);
+			makeLogRecord(deleteMsg, false, false); // what are the inputs to this func?
+			boolean b = connectToChunkServer(deleteMsg, replicaNum);
+			if (b){//means that it has been deleted successfully
+				//add delete function to BPTree
+				// delete this from BPTree
+			}
+			
+		}
+			
 		// check to see if file exists
 	    //if doesn’t exist, notify client
 	    //add delete timestamp to logs
