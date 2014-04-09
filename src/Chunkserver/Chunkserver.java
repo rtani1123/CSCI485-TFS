@@ -107,19 +107,20 @@ public class Chunkserver {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		System.out.println("successfully connected");
+		
 		try {
 			// Create the 2 streams for talking to the server
 			output = null;
 			input = null;
 			output = new ObjectOutputStream(connection.getOutputStream());
 			input = new ObjectInputStream(connection.getInputStream());
-			initialConnection.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		
+		System.out.println("successfully connected");
+		HandleMasterInput hsin = new HandleMasterInput(connection);
+		new Thread(hsin).start();
 	}
 
 	public static void main(String[] args) {
@@ -140,6 +141,7 @@ public class Chunkserver {
 			boolean run = true;
 			while (run) {
 				try {
+					System.out.println("ima wait");
 					message = receiveString();
 					System.out.println("message is: " + message);
 					
