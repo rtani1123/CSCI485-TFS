@@ -5,7 +5,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+//import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import Utilities.BPTree;
 
@@ -14,40 +16,58 @@ public class Master {
 	ServerSocket getClientsSS; //CLARIFICATION - this SocketServer is only for chunkservers.
 	int masterClientPort = 56946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
 	int masterChunkserverPortStart = 55501;
-	ArrayList<Socket> chunkServers;
+	ArrayList<Socket> chunkservers;
+	ArrayList<ServerSocket> serversockets;
+	ArrayList<AcceptChunkserverHandler> threadHandlers;
 	BPTree<String, String> myBPTree = new BPTree<String, String>();
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	
-	ChunkserverThreadHandler cth;
+	AcceptChunkserverHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
+	final static long MINUTE = 60000;
 	BPTree bpt;
-	HashMap<String,String> filePaths;
+	HashMap<String,Metadata> files;
 	
 	public Master() {
-		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
+		chunkservers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
+		serversockets = new ArrayList<ServerSocket>();
+		threadHandlers = new ArrayList<AcceptChunkserverHandler>();
 		
 		bpt = new BPTree();
 		
-		filePaths = new HashMap<String,String>();
+		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
-		System.out.println("here");
 	}
 	
 	public void setupMasterChunkserverServer() {
 		
 		try {
-			getClientsSS = new ServerSocket(49584);	//establish ServerSocket
+			getClientsSS = new ServerSocket(46344);	//establish ServerSocket
 		} catch (Exception e) {
 			System.out.println("Port unavailable");
 			e.printStackTrace();
 			System.exit(0);
 		}
 		
-		System.out.println("Server Created");
-		cth = new ChunkserverThreadHandler();	//new Thread to handle new or rebooting chunkservers
-		new Thread(cth).start();
+		System.out.println("Acceptance Server Created");
+		AcceptChunkserverHandler newCTH = new AcceptChunkserverHandler(this, getClientsSS, output, input);
+		threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
+		new Thread(newCTH).start();
 		
+	}
+	public void setupCSMasterDataConnection(int port) {
+		try {
+			serversockets.add(new ServerSocket(port));	//establish ServerSocket
+		} catch (Exception e) {
+			System.out.println("Port unavailable");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		
+		System.out.println("New Chunkserver Port Connection Created");
+		//cth = new ChunkserverHandler(this, );	//new Thread to handle new or rebooting chunkservers
+		//new Thread(cth).start();
 	}
 	public void connectToClient() {
 		
@@ -131,11 +151,56 @@ public class Master {
 		// call delete file for each of the files
 		return false;
 	}
-	void getMetadata(long chunkhandle, int clientID){
-	    //send a message to the client at clientID with the appropriate metadata
+	void getMetadata(String chunkhandle, int port){
+		Metadata md = files.get(chunkhandle);
+		//output.write(new String("meta"));
+		StringBuffer message = new StringBuffer("$meta$");
+		Map<Integer, Long> replicas = md.getReplicas();
+		
+		message.append(md.getNumReplicas());
+		message.append("$");
+		
+		//this doesn't check for currentness of the timestamp
+		for(Map.Entry<Integer,Long> entry: replicas.entrySet()){
+			message.append(entry.getKey());
+			message.append("$");
+		}
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
 	}
-	boolean getPrimaryLease(long chunkhandle, int chunkserverID){
+	// **this will be a critical section of code for race conditions
+	boolean getPrimaryLease(long chunkhandle, int chunkserverID, int port){
 	    // check to see if a primary lease has been issued 
+		
+		StringBuffer message = new StringBuffer();
+		// check if lease has expired
+		if(files.get(chunkhandle).getPrimaryLeaseIssueTime() < System.currentTimeMillis() - MINUTE){
+			//give lease
+			files.get(chunkhandle).setPrimaryChunkserverLeaseID(chunkserverID);
+			message.append("$primary$");
+			message.append(chunkhandle);
+			message.append("$");
+			files.get(chunkhandle).setPrimaryLeaseIssueTime(System.currentTimeMillis());
+			message.append(files.get(chunkhandle).getPrimaryLeaseIssueTime());
+			message.append("$");
+		}
+		else{
+			// message back
+			message.append("$secondary$");
+			message.append(files.get(chunkhandle).getPrimaryChunkserverLeaseID());
+			message.append("$");
+		}
+		
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
 		return false;
 	}
 	void makeLogRecord(String fileOrDirectoryName, boolean type, boolean stage){
@@ -145,34 +210,7 @@ public class Master {
 		Master master = new Master();
 	}
 	
-	class ChunkserverThreadHandler implements Runnable {
-		
-		public void run() {
-			while(true) {
-				try {
-					Socket s = getClientsSS.accept();  //waits for client protocol to connect
-					chunkServers.add(s);  //list of master's chunkservers
-					createClientThread(s);	//connect input/output streams
-				} catch(Exception e) {
-					System.out.println("Socket wasn't able to add");
-					e.printStackTrace();
-				}
-			}
-		} //end run
-
-		private void createClientThread(Socket s) {
-			ObjectOutputStream out = null;
-			ObjectInputStream in = null;
-			try {
-				out = new ObjectOutputStream(s.getOutputStream());
-				in = new ObjectInputStream(s.getInputStream());
-			} catch (Exception e) {
-				System.out.println("Streams unable to connect to socket");
-				e.printStackTrace();
-				System.exit(0);
-			}
-		} //end createClientThread
-	} //end class ClientThreadHandler
+	
 
 	protected class HandleHeartbeat implements Runnable {
 		Socket mySocket;
@@ -192,5 +230,67 @@ public class Master {
 		}
 	}
 	
+	// One metadata instance per file
+	protected class Metadata {
+		/*
+		 * 
+		 * full path
+		 * location of replicas on chunkservers
+		 * int IDs of chunkservers with primary lease
+		 * most recent write timestamp on those replicas
+		 * */
+
+		int primaryChunkserverLeaseID;
+		long primaryLeaseIssueTime;
+		String fullPath;
+		Map<Integer,Long> replicas;
+		
+		
+		protected Metadata(){
+			replicas = new HashMap<Integer,Long>();
+		}
+		
+		// Getters
+		public String getFullPath() {
+			return fullPath;
+		}
+		public int getPrimaryChunkserverLeaseID() {
+			return primaryChunkserverLeaseID;
+		}
+		public long getPrimaryLeaseIssueTime() {
+			return primaryLeaseIssueTime;
+		}
+		
+		// Setters
+		public void setPrimaryChunkserverLeaseID(int primaryChunkserverLeaseID) {
+			this.primaryChunkserverLeaseID = primaryChunkserverLeaseID;
+		}
+		public void setPrimaryLeaseIssueTime(long l) {
+			this.primaryLeaseIssueTime = l;
+		}
+		public void setFullPath(String fullPath) {
+			this.fullPath = fullPath;
+		}
+		
+		public void addReplica(int ID){
+			replicas.put(ID,System.currentTimeMillis());
+		}
+		
+		public void removeReplica(int ID){
+			replicas.remove(ID);
+		}
+		
+		public void updateWriteTimestamp(int ID){
+			replicas.put(ID,System.currentTimeMillis());
+		}
+		
+		public int getNumReplicas(){
+			return replicas.size();
+		}
+		
+		public Map<Integer, Long> getReplicas() {
+			return replicas;
+		}
+	}
 	
 }
