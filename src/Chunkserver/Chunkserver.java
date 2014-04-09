@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
@@ -63,7 +64,29 @@ public class Chunkserver {
 	}
 	
 	public boolean append(String chunkhandle, int offset, int length, byte[] data){
-		//RandomAccessFile f = new RandomAccessFile()
+		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		StringBuffer message = new StringBuffer();
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f,"rws");
+			raf.write(data, offset, length);
+			// change write timestamp
+			files.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// message success
+		message.append("$append$");
+		message.append(chunkhandle);
+		message.append("$");
+		message.append(files.get(chunkhandle).getWriteTime());
+		message.append("$");
+		
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
 		return true;
 	}
 		
