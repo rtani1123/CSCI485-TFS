@@ -67,9 +67,7 @@ public class Master {
 		//cth = new ChunkserverHandler(this, );	//new Thread to handle new or rebooting chunkservers
 		//new Thread(cth).start();
 	}
-	public void connectToClient() {
-		
-	}
+	
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
 		if(files.containsKey(path+"/"+fileName) /*|| !bpt.isValidPath()*/){
@@ -100,14 +98,6 @@ public class Master {
 		
 		// return true if successful
 		return true;
-	}
-	public boolean connectToClient(Object msg){
-		return false;
-		
-	}
-	public boolean connectToChunkServer(Object msg, String replicaNum){
-		return false;
-		
 	}
 	public boolean getXLock(String filePath){
 		return false;

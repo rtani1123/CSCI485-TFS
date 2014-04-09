@@ -1,5 +1,6 @@
 package Client;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -34,10 +35,15 @@ public class Client {
 			// Create the 2 streams for talking to the server
 			output = new ObjectOutputStream(s.getOutputStream());
 			input = new ObjectInputStream(s.getInputStream());
+			
+			output.writeObject(new String("new client"));
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
+		
+		
 	}
 	public static void main(String[] args) {
 		Client client = new Client();

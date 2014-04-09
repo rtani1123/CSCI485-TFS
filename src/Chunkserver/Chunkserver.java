@@ -143,17 +143,11 @@ public class Chunkserver {
 				try {
 					message = receiveString();
 					
-					
-					System.out.println("Problem receiving message");
-					
 					if(message.equals("port")) {
 						output.writeObject(new String("accept port"));
 						masterPort = receiveInt();
 						System.out.println("Received port " + masterPort);
 						establishMasterConnection(masterPort);
-					}
-					if(message.equals("test")) {
-						System.out.println("supertest");
 					}
 						
 				} catch (Exception e) {
