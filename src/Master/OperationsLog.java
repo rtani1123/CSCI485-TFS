@@ -1,14 +1,37 @@
 package Master;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class OperationsLog implements Serializable{
 
-	ArrayList<String> log;
+	ArrayList<StringBuffer> log;
+	FileOutputStream fout;
+	ObjectOutputStream cos;
 	
 	OperationsLog() {
-		
+		try {
+			fout = new FileOutputStream("C:\\CS485\\transactionlog.ser");
+			cos = new ObjectOutputStream(fout);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void makeLogRecord(long startTime, int type, int stage, String chunkhandle){
+		StringBuffer newRecord = new StringBuffer("$");
+		newRecord.append(startTime);
+		newRecord.append("$");
+		newRecord.append(chunkhandle);
+		newRecord.append("$");
+		newRecord.append(type);
+		newRecord.append("$");
+		newRecord.append(stage);
+		newRecord.append("$");
+		log.add(newRecord);
 	}
 	
 	/*
