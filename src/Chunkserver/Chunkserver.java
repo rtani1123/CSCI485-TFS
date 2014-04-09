@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Chunkserver {
 
@@ -20,11 +22,50 @@ public class Chunkserver {
 	ObjectOutputStream output;
 	
 	Thread initialConnection;
+	Map<String,Metadata> files;
 
 	public Chunkserver() {
+		files = new HashMap<String,Metadata>();
 		connectToMaster();
 	}
 
+	public void createFileHandshake(String pathName){
+		File f = new File(pathName);
+		StringBuffer message = new StringBuffer();
+		try {
+			if(f.createNewFile()){
+				//message master to say file creation successful
+				message.append("$exists$");
+				message.append(pathName);
+				message.append("$");
+			}
+			else{
+				//message master to say file creation failed
+				message.append("$failed$");
+				message.append(pathName);
+				message.append("$");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
+		
+		// store metadata
+		files.put(pathName, new Metadata(pathName));
+
+		// update directory structure
+	}
+	
+	public boolean append(String chunkhandle, int offset, int length, byte[] data){
+		//RandomAccessFile f = new RandomAccessFile()
+		return true;
+	}
 		
 	public static boolean deleteFileChunk(String path) {
 		 String parsedPath = path.replace("$", "");
@@ -143,17 +184,11 @@ public class Chunkserver {
 				try {
 					message = receiveString();
 					
-					
-					System.out.println("Problem receiving message");
-					
 					if(message.equals("port")) {
 						output.writeObject(new String("accept port"));
 						masterPort = receiveInt();
 						System.out.println("Received port " + masterPort);
 						establishMasterConnection(masterPort);
-					}
-					if(message.equals("test")) {
-						System.out.println("supertest");
 					}
 						
 				} catch (Exception e) {
@@ -192,5 +227,40 @@ public class Chunkserver {
 			}
 			return 0;
 		}//end receive int
+	}
+	
+	class Metadata{
+		//filepath, read/write timestamps
+		String filePath;
+		long readTime;
+		long writeTime;
+		
+		public Metadata(String filePath){
+			this.filePath = filePath;
+			readTime = System.currentTimeMillis();
+			writeTime = System.currentTimeMillis();
+		}
+		
+		// getters
+		public String getFilePath() {
+			return filePath;
+		}
+		public long getReadTime() {
+			return readTime;
+		}
+		public long getWriteTime() {
+			return writeTime;
+		}
+		
+		// setters
+		public void setFilePath(String filePath) {
+			this.filePath = filePath;
+		}
+		public void setReadTime(long readTime) {
+			this.readTime = readTime;
+		}
+		public void setWriteTime(long writeTime) {
+			this.writeTime = writeTime;
+		}
 	}
 }
