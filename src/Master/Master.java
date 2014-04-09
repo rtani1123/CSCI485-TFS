@@ -9,24 +9,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import Utilities.BPTree;
-
 public class Master {
 
 	ServerSocket getClientsSS; //CLARIFICATION - this SocketServer is only for chunkservers.
-	int masterClientPort = 56946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
+	int masterClientPort = 46946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
 	int masterChunkserverPortStart = 55501;
-	ArrayList<Socket> chunkservers;
-	ArrayList<ServerSocket> serversockets;
-	ArrayList<ChunkserverHandler> threadHandlers;
-	BPTree<String, String> myBPTree = new BPTree<String, String>();
+	ArrayList<Socket> chunkservers; //line 67-ish
+	ArrayList<ServerSocket> serversockets; //line 61-ish
+	ArrayList<ChunkserverHandler> threadHandlers; // line 70-ish
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	
 	AcceptChunkserverHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	BPTree bpt;
 	HashMap<String,Metadata> files;
 	
 	public Master() {
@@ -34,7 +30,6 @@ public class Master {
 		serversockets = new ArrayList<ServerSocket>();
 		threadHandlers = new ArrayList<ChunkserverHandler>();
 		
-		bpt = new BPTree();
 		
 		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
@@ -67,6 +62,7 @@ public class Master {
 		chunkservers.add(s);
 		System.out.println("New Chunkserver Port Connection Created");
 		ChunkserverHandler ch = new ChunkserverHandler(this, serversockets.get(serversockets.size()-1));
+		threadHandlers.add(ch);
 		new Thread(ch).start();
 		//cth = new ChunkserverHandler(this, );	//new Thread to handle new or rebooting chunkservers
 		//new Thread(cth).start();
@@ -91,7 +87,6 @@ public class Master {
 		}
 		
 		// add file to B tree
-		bpt.put(newChunkhandle, replicaIDs);
 		
 		// generate a file metadata object and store it in the metadata hashtable
 		files.put(newChunkhandle, new Metadata(newChunkhandle));
@@ -120,7 +115,7 @@ public class Master {
 	}
 	public boolean deleteFileMaster(String chunkhandle, String deleteMsg) {
 		String parsedDeleteMsg = deleteMsg.replace("$", "");
-		String replicaNum = myBPTree.get(parsedDeleteMsg);
+		/*String replicaNum = myBPTree.get(parsedDeleteMsg);
 		if (replicaNum==null){
 			connectToClient(NOT_FOUND);
 		}
@@ -133,7 +128,7 @@ public class Master {
 				// delete this from BPTree
 			}
 			
-		}
+		}*/
 			
 		// check to see if file exists
 	    //if doesn’t exist, notify client
