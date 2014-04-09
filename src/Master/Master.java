@@ -11,14 +11,20 @@ import java.util.Map;
 
 public class Master {
 
-	ServerSocket getClientsSS; //CLARIFICATION - this SocketServer is only for chunkservers.
-	int masterClientPort = 46946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
-	int masterChunkserverPortStart = 55501;
+	ServerSocket getChunkserversSS; //CLARIFICATION - this SocketServer is only for chunkservers.
+	ServerSocket getClientsSS;
+	int masterClientPortConnect = 46946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
+	int masterChunkserverPortConnect = 46344;
+	
+	int masterChunkserverPortStart = 55501; //first port tried.
+	
 	ArrayList<Socket> chunkservers; //line 67-ish
 	ArrayList<ServerSocket> serversockets; //line 61-ish
 	ArrayList<ChunkserverHandler> threadHandlers; // line 70-ish
 	ObjectOutputStream output;
 	ObjectInputStream input;
+	
+	
 	
 	AcceptChunkserverHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
@@ -34,22 +40,44 @@ public class Master {
 		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
 	}
-	
+	public void setupStreams(Socket s) {
+		try {
+			output = new ObjectOutputStream(s.getOutputStream());
+			input = new ObjectInputStream(s.getInputStream());
+		} catch (Exception e) {
+			System.out.println("Streams unable to connect to socket");
+			System.exit(0);
+		}
+	}
 	public void setupMasterChunkserverServer() {
 		
 		try {
-			getClientsSS = new ServerSocket(46344);	//establish ServerSocket
+			getChunkserversSS = new ServerSocket(masterChunkserverPortConnect);	//establish ServerSocket
 		} catch (Exception e) {
 			System.out.println("Port unavailable");
 			e.printStackTrace();
 			System.exit(0);
 		}
 		
-		System.out.println("Acceptance Server Created");
-		AcceptChunkserverHandler newCTH = new AcceptChunkserverHandler(this, getClientsSS, output, input);
+		System.out.println("Acceptance Chunkserver Server Created");
+		AcceptChunkserverHandler newCTH = new AcceptChunkserverHandler(this, getChunkserversSS);
 		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
 		new Thread(newCTH).start();
 		
+	}
+	public void setupMasterClientServer() {
+		try {
+			getClientsSS = new ServerSocket(masterClientPortConnect);	//establish ServerSocket
+		} catch (Exception e) {
+			System.out.println("Port unavailable");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		
+		System.out.println("Acceptance Client Server Created");
+		AcceptClientHandler newCTH = new AcceptClientHandler(this, getClientsSS);
+		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
+		new Thread(newCTH).start();
 	}
 	public void setupCSMasterDataConnection(int port, Socket s) {
 		try {
@@ -213,9 +241,6 @@ public class Master {
 	public static void main(String[] args) {
 		Master master = new Master();
 	}
-	
-	
-
 	protected class HandleHeartbeat implements Runnable {
 		Socket mySocket;
 		HandleHeartbeat(Socket s) {
@@ -233,7 +258,7 @@ public class Master {
 			}
 		}
 	}
-	
+
 	// One metadata instance per file
 	protected class Metadata {
 		/*

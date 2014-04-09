@@ -1,6 +1,7 @@
 package Master;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
@@ -16,24 +17,29 @@ class AcceptChunkserverHandler implements Runnable {
 		
 		Master parent;
 		
-		AcceptChunkserverHandler(Master parent, ServerSocket getClientsSS, ObjectOutputStream output, ObjectInputStream input) {
+		AcceptChunkserverHandler(Master parent, ServerSocket getClientsSS) {
 			this.parent = parent;
 			this.getClientsSS = getClientsSS;
-			this.output = output;
-			this.input = input;
+			
+			getConnection();
+			
+		}
+		public void getConnection() {
+			Socket s;
+			try {
+				s = getClientsSS.accept();
+				output = new ObjectOutputStream(s.getOutputStream());
+				input = new ObjectInputStream(s.getInputStream());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  //waits for client protocol to connect
+			//chunkservers.add(s);  //list of master's chunkservers
 			
 		}
 		public void run() {
 			while(true) {
 				try {
-					Socket s = getClientsSS.accept();  //waits for client protocol to connect
-					//chunkservers.add(s);  //list of master's chunkservers
-					/*File f = new File("bump.txt");
-					PrintWriter pw = new PrintWriter(f);
-					pw.append("attempting new");
-					pw.append("attempting new2");
-					pw.close();
-					*/
 					sendClientPort(s);
 					//createClientThread(s);	//connect input/output streams
 				} catch(Exception e) {
@@ -46,8 +52,7 @@ class AcceptChunkserverHandler implements Runnable {
 		private void sendClientPort(Socket s) {
 			//sends the chunkserver new port to connect to master
 			try {
-				output = new ObjectOutputStream(s.getOutputStream());
-				input = new ObjectInputStream(s.getInputStream());
+				
 				output.writeObject(new String("port"));
 				
 				if(receiveString().equals("accept port")) {
