@@ -8,6 +8,9 @@ import java.util.ArrayList;
 //import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+
+import Utilities.Tree;
 
 public class Master {
 
@@ -30,12 +33,13 @@ public class Master {
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	HashMap<String,Metadata> files;
+	Tree directory;
 	
 	public Master() {
 		chunkservers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		serversockets = new ArrayList<ServerSocket>();
 		threadHandlers = new ArrayList<ChunkserverHandler>();
-		
+		directory = new Tree();
 		
 		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
@@ -106,23 +110,30 @@ public class Master {
 		String newChunkhandle = path+"/"+fileName;
 		
 		// randomly choose chunkservers to store the file
-		int[] replicaIDs = new int[numReplicas];
+		ArrayList<Integer> replicaIDs = new ArrayList<Integer>();
+		//int[] replicaIDs = new int[numReplicas];
 		for(int i = 0; i < numReplicas; i++){
 			// add chunkserverID to array randomly
+			//int x = new Random(0, numReplicas).nextInt();
 			// replicaIDs[i] = ;
 		}
-		
+
 		// add file to B tree
+		if(directory.addElement(directory.pathTokenizer(path),replicaIDs)){
+			// successful add to tree
+		}
+		else{
+			return false;
+		}
 		
 		// generate a file metadata object and store it in the metadata hashtable
 		files.put(newChunkhandle, new Metadata(newChunkhandle));
 		
-		    // message chunkservers and tell them to create the file (handshake only)
+		// message chunkservers and tell them to create the file (handshake only)
 		//for(int i = 0; i < numReplicas; i++) {
 		//            int x = new Random(0, numReplicas).nextInt();
 		//ChunkserverSocket[x].writeObject(new String(path+”/”+fileName));
 		//}
-		    // set current write timestamp
 		
 		// return true if successful
 		return true;
