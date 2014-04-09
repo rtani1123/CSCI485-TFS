@@ -15,13 +15,28 @@ public class ChunkserverHandler implements Runnable{
 	ObjectOutputStream output;
 	ObjectInputStream input;
 	
-	public ChunkserverHandler(Master parent, ObjectOutputStream output, ObjectInputStream input) {
+	public ChunkserverHandler(Master parent, ServerSocket server) {
 		this.parent = parent;
-		this.output = output;
-		this.input = input;
+		this.ss = server;
+		
+		getChunkserver();
+	}
+	
+	public void getChunkserver() {
+		
 	}
 	public void run() {
-		
+		while(true) {
+			try {
+				Socket s = ss.accept();  //waits for client protocol to connect
+				output = new ObjectOutputStream(s.getOutputStream());
+				input = new ObjectInputStream(s.getInputStream());
+				
+			} catch(Exception e) {
+				System.out.println("Socket wasn't able to add");
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public String receiveString() {

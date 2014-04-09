@@ -18,7 +18,7 @@ public class Master {
 	int masterChunkserverPortStart = 55501;
 	ArrayList<Socket> chunkservers;
 	ArrayList<ServerSocket> serversockets;
-	ArrayList<AcceptChunkserverHandler> threadHandlers;
+	ArrayList<ChunkserverHandler> threadHandlers;
 	BPTree<String, String> myBPTree = new BPTree<String, String>();
 	ObjectOutputStream output;
 	ObjectInputStream input;
@@ -32,7 +32,7 @@ public class Master {
 	public Master() {
 		chunkservers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		serversockets = new ArrayList<ServerSocket>();
-		threadHandlers = new ArrayList<AcceptChunkserverHandler>();
+		threadHandlers = new ArrayList<ChunkserverHandler>();
 		
 		bpt = new BPTree();
 		
@@ -52,7 +52,7 @@ public class Master {
 		
 		System.out.println("Acceptance Server Created");
 		AcceptChunkserverHandler newCTH = new AcceptChunkserverHandler(this, getClientsSS, output, input);
-		threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
+		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
 		new Thread(newCTH).start();
 		
 	}
@@ -66,6 +66,8 @@ public class Master {
 		}
 		
 		System.out.println("New Chunkserver Port Connection Created");
+		ChunkserverHandler ch = new ChunkserverHandler(this, serversockets.get(serversockets.size()-1));
+		new Thread(ch).start();
 		//cth = new ChunkserverHandler(this, );	//new Thread to handle new or rebooting chunkservers
 		//new Thread(cth).start();
 	}
