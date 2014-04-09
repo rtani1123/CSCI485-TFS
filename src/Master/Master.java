@@ -5,7 +5,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+//import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import Utilities.BPTree;
 
@@ -21,15 +23,16 @@ public class Master {
 	
 	ChunkserverThreadHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
+	final static long MINUTE = 60000;
 	BPTree bpt;
-	HashMap<String,String> filePaths;
+	HashMap<String,Metadata> files;
 	
 	public Master() {
 		chunkServers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		
 		bpt = new BPTree();
 		
-		filePaths = new HashMap<String,String>();
+		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
 		System.out.println("here");
 	}
@@ -131,11 +134,56 @@ public class Master {
 		// call delete file for each of the files
 		return false;
 	}
-	void getMetadata(long chunkhandle, int clientID){
-	    //send a message to the client at clientID with the appropriate metadata
+	void getMetadata(String chunkhandle, int port){
+		Metadata md = files.get(chunkhandle);
+		//output.write(new String("meta"));
+		StringBuffer message = new StringBuffer("$meta$");
+		Map<Integer, Long> replicas = md.getReplicas();
+		
+		message.append(md.getNumReplicas());
+		message.append("$");
+		
+		//this doesn't check for currentness of the timestamp
+		for(Map.Entry<Integer,Long> entry: replicas.entrySet()){
+			message.append(entry.getKey());
+			message.append("$");
+		}
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
 	}
-	boolean getPrimaryLease(long chunkhandle, int chunkserverID){
+	// **this will be a critical section of code for race conditions
+	boolean getPrimaryLease(long chunkhandle, int chunkserverID, int port){
 	    // check to see if a primary lease has been issued 
+		
+		StringBuffer message = new StringBuffer();
+		// check if lease has expired
+		if(files.get(chunkhandle).getPrimaryLeaseIssueTime() < System.currentTimeMillis() - MINUTE){
+			//give lease
+			files.get(chunkhandle).setPrimaryChunkserverLeaseID(chunkserverID);
+			message.append("$primary$");
+			message.append(chunkhandle);
+			message.append("$");
+			files.get(chunkhandle).setPrimaryLeaseIssueTime(System.currentTimeMillis());
+			message.append(files.get(chunkhandle).getPrimaryLeaseIssueTime());
+			message.append("$");
+		}
+		else{
+			// message back
+			message.append("$secondary$");
+			message.append(files.get(chunkhandle).getPrimaryChunkserverLeaseID());
+			message.append("$");
+		}
+		
+		try{
+			// **look up output stream for this port
+			output.write(String.valueOf(message).getBytes());
+		}catch(Exception e){
+			
+		}
 		return false;
 	}
 	void makeLogRecord(String fileOrDirectoryName, boolean type, boolean stage){
@@ -192,5 +240,67 @@ public class Master {
 		}
 	}
 	
+	// One metadata instance per file
+	protected class Metadata {
+		/*
+		 * 
+		 * full path
+		 * location of replicas on chunkservers
+		 * int IDs of chunkservers with primary lease
+		 * most recent write timestamp on those replicas
+		 * */
+
+		int primaryChunkserverLeaseID;
+		long primaryLeaseIssueTime;
+		String fullPath;
+		Map<Integer,Long> replicas;
+		
+		
+		protected Metadata(){
+			replicas = new HashMap<Integer,Long>();
+		}
+		
+		// Getters
+		public String getFullPath() {
+			return fullPath;
+		}
+		public int getPrimaryChunkserverLeaseID() {
+			return primaryChunkserverLeaseID;
+		}
+		public long getPrimaryLeaseIssueTime() {
+			return primaryLeaseIssueTime;
+		}
+		
+		// Setters
+		public void setPrimaryChunkserverLeaseID(int primaryChunkserverLeaseID) {
+			this.primaryChunkserverLeaseID = primaryChunkserverLeaseID;
+		}
+		public void setPrimaryLeaseIssueTime(long l) {
+			this.primaryLeaseIssueTime = l;
+		}
+		public void setFullPath(String fullPath) {
+			this.fullPath = fullPath;
+		}
+		
+		public void addReplica(int ID){
+			replicas.put(ID,System.currentTimeMillis());
+		}
+		
+		public void removeReplica(int ID){
+			replicas.remove(ID);
+		}
+		
+		public void updateWriteTimestamp(int ID){
+			replicas.put(ID,System.currentTimeMillis());
+		}
+		
+		public int getNumReplicas(){
+			return replicas.size();
+		}
+		
+		public Map<Integer, Long> getReplicas() {
+			return replicas;
+		}
+	}
 	
 }
