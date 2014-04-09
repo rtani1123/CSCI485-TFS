@@ -56,7 +56,7 @@ public class Master {
 		new Thread(newCTH).start();
 		
 	}
-	public void setupCSMasterDataConnection(int port) {
+	public void setupCSMasterDataConnection(int port, Socket s) {
 		try {
 			serversockets.add(new ServerSocket(port));	//establish ServerSocket
 		} catch (Exception e) {
@@ -64,7 +64,7 @@ public class Master {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		
+		chunkservers.add(s);
 		System.out.println("New Chunkserver Port Connection Created");
 		ChunkserverHandler ch = new ChunkserverHandler(this, serversockets.get(serversockets.size()-1));
 		new Thread(ch).start();

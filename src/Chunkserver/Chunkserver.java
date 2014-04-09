@@ -1,9 +1,11 @@
 package Chunkserver;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
@@ -110,15 +112,13 @@ public class Chunkserver {
 		
 		try {
 			// Create the 2 streams for talking to the server
-			output = null;
-			input = null;
 			output = new ObjectOutputStream(connection.getOutputStream());
 			input = new ObjectInputStream(connection.getInputStream());
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		System.out.println("successfully connected");
+		System.out.println("Successfully created socket connection over master port " + masterPort + " and created I/O streams");
 		HandleMasterInput hsin = new HandleMasterInput(connection);
 		new Thread(hsin).start();
 	}
@@ -141,21 +141,23 @@ public class Chunkserver {
 			boolean run = true;
 			while (run) {
 				try {
-					System.out.println("ima wait");
 					message = receiveString();
-					System.out.println("message is: " + message);
+					
+					
+					System.out.println("Problem receiving message");
 					
 					if(message.equals("port")) {
 						output.writeObject(new String("accept port"));
 						masterPort = receiveInt();
 						System.out.println("Received port " + masterPort);
 						establishMasterConnection(masterPort);
-						run = false;
+					}
+					if(message.equals("test")) {
+						System.out.println("supertest");
 					}
 						
 				} catch (Exception e) {
-					e.printStackTrace();
-					System.out.println("Problem receiving message");
+					
 				}
 			}// end while
 		}
@@ -172,7 +174,7 @@ public class Chunkserver {
 				}
 			} catch (Exception e) {
 				System.out.println("Unable to retrieve string info");
-				e.printStackTrace();
+				
 			}
 			return "error";
 		}
