@@ -32,7 +32,7 @@ public class ChunkserverHandler implements Runnable{
 				output = new ObjectOutputStream(s.getOutputStream());
 				input = new ObjectInputStream(s.getInputStream());
 				System.out.println("hi");
-				parent.output.writeObject(new String("test"));
+				output.writeObject(new String("test"));
 				
 			} catch(Exception e) {
 				System.out.println("Socket wasn't able to add");
