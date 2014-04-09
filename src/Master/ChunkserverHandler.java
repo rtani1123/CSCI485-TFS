@@ -31,10 +31,13 @@ public class ChunkserverHandler implements Runnable{
 				Socket s = ss.accept();  //waits for client protocol to connect
 				output = new ObjectOutputStream(s.getOutputStream());
 				input = new ObjectInputStream(s.getInputStream());
+				System.out.println("hi");
+				parent.output.writeObject(new String("test"));
 				
 			} catch(Exception e) {
 				System.out.println("Socket wasn't able to add");
 				e.printStackTrace();
+				
 			}
 		}
 	}

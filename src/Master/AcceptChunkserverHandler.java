@@ -1,7 +1,9 @@
 package Master;
 
+import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -26,6 +28,12 @@ class AcceptChunkserverHandler implements Runnable {
 				try {
 					Socket s = getClientsSS.accept();  //waits for client protocol to connect
 					//chunkservers.add(s);  //list of master's chunkservers
+					/*File f = new File("bump.txt");
+					PrintWriter pw = new PrintWriter(f);
+					pw.append("attempting new");
+					pw.append("attempting new2");
+					pw.close();
+					*/
 					sendClientPort(s);
 					//createClientThread(s);	//connect input/output streams
 				} catch(Exception e) {
@@ -46,12 +54,12 @@ class AcceptChunkserverHandler implements Runnable {
 					Integer i;
 					if(parent.chunkservers.isEmpty()) {
 						i = new Integer(55501);
-						parent.setupCSMasterDataConnection(i);
+						parent.setupCSMasterDataConnection(i, s);
 						output.writeObject(i);
 					}
 					else {
 						i = parent.chunkservers.get((parent.chunkservers.size()-1)).getPort() +1;
-						parent.setupCSMasterDataConnection(i);
+						parent.setupCSMasterDataConnection(i, s);
 						output.writeObject(new Integer(i));
 						
 					}
