@@ -1,10 +1,17 @@
 package Part1;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.print.event.PrintJobAdapter;
 
 import Master.OperationsLog;
 import Utilities.Tree;
@@ -116,11 +123,10 @@ public class Part1FS {
 		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
-			raf.write(data, offset, length);
-			// change write timestamp
-			//files.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+			raf.seek(offset);
+			raf.write(data);
 			raf.close();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -132,8 +138,6 @@ public class Part1FS {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(raf.length());
 			raf.write(data);
-			// change write timestamp
-			//files.get(chunkhandle).setWriteTime(System.currentTimeMillis());
 			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
