@@ -1,5 +1,6 @@
 package Utilities;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,13 +12,22 @@ static public Tree getTree(){
 	String filename = "tree.txt";
 	Tree myTree = null;
 //	List pDetails = null;
+	File f = new File (filename);
+	if(!f.exists())
+	{
+		System.out.println("No stored tree file exists.");
+		return null;
+	}
 	FileInputStream fis = null;
 	ObjectInputStream oin = null;
 	try {
-		fis = new FileInputStream(filename);
-		oin = new ObjectInputStream(fis);
-		myTree = (Tree) oin.readObject();
-		oin.close();
+		if(f.length() > 0)
+		{
+			fis = new FileInputStream(filename);
+			oin = new ObjectInputStream(fis);
+			myTree = (Tree) oin.readObject();
+			oin.close();
+		}
 	} catch (IOException ex) {
 		ex.printStackTrace();
 	} catch (ClassNotFoundException ex) {
@@ -34,7 +44,7 @@ static public void storeTree(Tree inTree){
 		out = new ObjectOutputStream(fos);
 		out.writeObject(inTree);
 		out.close();
-		System.out.println("Object Persisted");
+		System.out.println("Namespace Tree Persisted");
 	} catch (IOException ex) {
 		ex.printStackTrace();
 	}

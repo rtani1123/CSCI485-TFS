@@ -27,13 +27,20 @@ public class Part1FS {
 		directory = new Tree();
 	}
 	public Part1FS(Tree inTree){
-		directory = inTree;
+		if(inTree != null)
+		{
+			directory = inTree;
+		}
+		else
+		{
+			directory = new Tree();
+		}
 	}
 
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
 		if(directory.root.find(directory.pathTokenizer(path+"/"+fileName),1) != null){
-			System.err.println("File already exists" + path+"/"+fileName);
+			System.err.println("File already exists " + path+"/"+fileName);
 			return false;
 		}
 
@@ -94,6 +101,7 @@ public class Part1FS {
 	public boolean createDirectory(String path){
 		// check for name collision and valid path
 		if(directory.root.find(directory.pathTokenizer(path),1) != null){
+			System.err.println("Directory already exists " + path);
 			return false;
 		}
 

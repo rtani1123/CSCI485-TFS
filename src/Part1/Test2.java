@@ -60,6 +60,8 @@ public class Test2 {
 				tfs.createFile(s, "File" + (i+1) + ".txt", 1);
 			}
 		}
+		System.out.println("Existing tree structure: ");
+		tfs.directory.getAllPath(tfs.directory.root);
 		TreeStorage.storeTree(tfs.directory);
 	}
 }
