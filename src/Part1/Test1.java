@@ -38,7 +38,7 @@ public class Test1 {
 		Part1FS tfs = new Part1FS();
 		int numFolders = Integer.parseInt(args[0]);
 		// create root'
-		tfs.directory.root.name="C:/1";
+		tfs.directory.root.name="C:";
 		tfs.createDirectory("C:/1");
 		for(int i = 2; i <= numFolders; i++){
 			int k = i;
@@ -53,6 +53,7 @@ public class Test1 {
 			path.insert(0, "C:/");
 			tfs.createDirectory(path.toString());
 		}
+		tfs.directory.getAllPath(tfs.directory.root);
 		TreeStorage.storeTree(tfs.directory);
 	}
 }
