@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import javax.swing.JTree;
 
 public class Tree {
-	Node root;
+	public Node root;
 	public static void main(String[] args) {
 		ArrayList<String> paths = new ArrayList<String>();
 		Tree myTree= new Tree();

@@ -9,9 +9,9 @@ public class Node {
 	Node parent = null;
 	String name="";
 	
-	ArrayList<Integer> chunkServersNum = new ArrayList<>();
+	public ArrayList<Integer> chunkServersNum = new ArrayList<>();
 	
-	Node find (ArrayList<String> paths, int i){
+	public Node find (ArrayList<String> paths, int i){
 		if (paths.size() == i)
 			return this;
 		if (this.children.containsKey(paths.get(i)))

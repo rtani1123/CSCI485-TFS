@@ -18,9 +18,9 @@ public class Master {
 	ServerSocket getClientsSS;
 	int masterClientPortConnect = 46946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
 	int masterChunkserverPortConnect = 46344;
-	
+
 	int masterChunkserverPortStart = 55501; //first port tried.
-	
+
 	ArrayList<Socket> chunkservers; //line 67-ish
 	ArrayList<ServerSocket> serversockets; //line 61-ish
 	ArrayList<ChunkserverHandler> threadHandlers; // line 70-ish
@@ -28,21 +28,21 @@ public class Master {
 	Map<Integer, ObjectInputStream> portToInput;
 	ObjectOutputStream output;
 	ObjectInputStream input;
-	
-	
-	
+
+
+
 	AcceptChunkserverHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	HashMap<String,Metadata> files;
 	Tree directory;
-	
+
 	public Master() {
 		chunkservers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
 		serversockets = new ArrayList<ServerSocket>();
 		threadHandlers = new ArrayList<ChunkserverHandler>();
 		directory = new Tree();
-		
+
 		files = new HashMap<String,Metadata>();
 		setupMasterChunkserverServer();
 		//System.out.println("1");
@@ -59,7 +59,7 @@ public class Master {
 		}
 	}
 	public void setupMasterChunkserverServer() {
-		
+
 		try {
 			getChunkserversSS = new ServerSocket(masterChunkserverPortConnect);	//establish ServerSocket
 		} catch (Exception e) {
@@ -67,12 +67,12 @@ public class Master {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		
+
 		System.out.println("Acceptance Chunkserver Server Created");
 		AcceptChunkserverHandler newCTH = new AcceptChunkserverHandler(this, getChunkserversSS);
 		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
 		new Thread(newCTH).start();
-		
+
 	}
 	public void setupMasterClientServer() {
 		try {
@@ -82,7 +82,7 @@ public class Master {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		
+
 		System.out.println("Acceptance Client Server Created");
 		AcceptClientHandler newCTH = new AcceptClientHandler(this, getClientsSS);
 		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
@@ -104,16 +104,16 @@ public class Master {
 		//cth = new ChunkserverHandler(this, );	//new Thread to handle new or rebooting chunkservers
 		//new Thread(cth).start();
 	}
-	
+
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
 		if(files.containsKey(path+"/"+fileName) /*|| !bpt.isValidPath()*/){
 			return false;
 		}
-		
+
 		// generate unique chunkhandle
 		String newChunkhandle = path+"/"+fileName;
-		
+
 		// randomly choose chunkservers to store the file
 		ArrayList<Integer> replicaIDs = new ArrayList<Integer>();
 		//int[] replicaIDs = new int[numReplicas];
@@ -130,52 +130,52 @@ public class Master {
 		else{
 			return false;
 		}
-		
+
 		// generate a file metadata object and store it in the metadata hashtable
 		files.put(newChunkhandle, new Metadata(newChunkhandle));
-		
+
 		// message chunkservers and tell them to create the file (handshake only)
 		//for(int i = 0; i < numReplicas; i++) {
 		//            int x = new Random(0, numReplicas).nextInt();
 		//ChunkserverSocket[x].writeObject(new String(path+”/”+fileName));
 		//}
-		
+
 		// return true if successful
 		return true;
 	}
 	public boolean getXLock(String filePath){
 		return false;
-		
+
 	}
 	public boolean deleteFileMaster(String chunkhandle, String deleteMsg) {
 		String parsedDeleteMsg = deleteMsg.replace("$", "");
-		/*String replicaNum = myBPTree.get(parsedDeleteMsg);
+		ArrayList<String> tokenedMsg = directory.pathTokenizer(parsedDeleteMsg);
+		ArrayList<Integer> replicaNum =(directory.root.find(tokenedMsg, 0)).chunkServersNum;
 		if (replicaNum==null){
-			connectToClient(NOT_FOUND);
+			// send not found message to the client
 		}
 		else {
-			getXLock(parsedDeleteMsg);
-			makeLogRecord(deleteMsg, false, false); // what are the inputs to this func?
-			boolean b = connectToChunkServer(deleteMsg, replicaNum);
-			if (b){//means that it has been deleted successfully
-				//add delete function to BPTree
-				// delete this from BPTree
-			}
-			
-		}*/
-			
+			// getXLock(parsedDeleteMsg);
+			makeLogRecord(deleteMsg, false, true);
+			directory.removeElement(tokenedMsg);
+			StringBuffer message = new StringBuffer();
+			message.append("$delete$" + deleteMsg);
+			//output.write(String.valueOf(message).getBytes());
+			//connectToChunkServer();
+		}
+
 		// check to see if file exists
-	    //if doesn’t exist, notify client
-	    //add delete timestamp to logs
-	    //search B Tree to find replicas with this file
-		//rename files (tag for deletion)    
+		//if doesn’t exist, notify client
+		//add delete timestamp to logs
+		//search B Tree to find replicas with this file
+		//rename files (tag for deletion)   
 		//message chunkservers:
-	    //Chunkservers.write(“delete absoluteFileName”);
-	    //delete entry from metadata.
-	    //(if chunkserver down, at next heartbeat, the existence of file will conflict with delete entry in the log.)
+		//Chunkservers.write(“delete absoluteFileName”);
+		//delete entry from metadata.
+		//(if chunkserver down, at next heartbeat, the existence of file will conflict with delete entry in the log.)
 		return false;
 	}
-	
+
 	boolean createDirectory(String path){
 		// check for name collision and valid path
 		// add directory to B tree
@@ -204,10 +204,10 @@ public class Master {
 		//output.write(new String("meta"));
 		StringBuffer message = new StringBuffer("$meta$");
 		Map<Integer, Long> replicas = md.getReplicas();
-		
+
 		message.append(md.getNumReplicas());
 		message.append("$");
-		
+
 		//this doesn't check for currentness of the timestamp
 		for(Map.Entry<Integer,Long> entry: replicas.entrySet()){
 			message.append(entry.getKey());
@@ -217,13 +217,13 @@ public class Master {
 			// **look up output stream for this port
 			output.write(String.valueOf(message).getBytes());
 		}catch(Exception e){
-			
+
 		}
 	}
 	// **this will be a critical section of code for race conditions
 	boolean getPrimaryLease(long chunkhandle, int chunkserverID, int port){
-	    // check to see if a primary lease has been issued 
-		
+		// check to see if a primary lease has been issued 
+
 		StringBuffer message = new StringBuffer();
 		// check if lease has expired
 		if(files.get(chunkhandle).getPrimaryLeaseIssueTime() < System.currentTimeMillis() - MINUTE){
@@ -242,12 +242,12 @@ public class Master {
 			message.append(files.get(chunkhandle).getPrimaryChunkserverLeaseID());
 			message.append("$");
 		}
-		
+
 		try{
 			// **look up output stream for this port
 			output.write(String.valueOf(message).getBytes());
 		}catch(Exception e){
-			
+
 		}
 		return false;
 	}
@@ -263,14 +263,14 @@ public class Master {
 			mySocket = s;
 		}
 		public void run() {
-			
+
 		}
 		void parseHeartbeat(Heartbeat hb) {
-			
+
 		}
 		protected class Heartbeat {
 			Heartbeat() {
-				
+
 			}
 		}
 	}
@@ -289,13 +289,13 @@ public class Master {
 		long primaryLeaseIssueTime;
 		String fullPath;
 		Map<Integer,Long> replicas;
-		
-		
+
+
 		protected Metadata(String fullPath){
 			this.fullPath = fullPath;
 			replicas = new HashMap<Integer,Long>();
 		}
-		
+
 		// Getters
 		public String getFullPath() {
 			return fullPath;
@@ -306,7 +306,7 @@ public class Master {
 		public long getPrimaryLeaseIssueTime() {
 			return primaryLeaseIssueTime;
 		}
-		
+
 		// Setters
 		public void setPrimaryChunkserverLeaseID(int primaryChunkserverLeaseID) {
 			this.primaryChunkserverLeaseID = primaryChunkserverLeaseID;
@@ -317,26 +317,26 @@ public class Master {
 		public void setFullPath(String fullPath) {
 			this.fullPath = fullPath;
 		}
-		
+
 		public void addReplica(int ID){
 			replicas.put(ID,System.currentTimeMillis());
 		}
-		
+
 		public void removeReplica(int ID){
 			replicas.remove(ID);
 		}
-		
+
 		public void updateWriteTimestamp(int ID){
 			replicas.put(ID,System.currentTimeMillis());
 		}
-		
+
 		public int getNumReplicas(){
 			return replicas.size();
 		}
-		
+
 		public Map<Integer, Long> getReplicas() {
 			return replicas;
 		}
 	}
-	
+
 }

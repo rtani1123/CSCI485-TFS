@@ -17,12 +17,18 @@ public class Client {
 		connectToMaster();
 	}
 	public boolean deleteFileClient(String filePath, String fileName){
-		String deleteFileMsg = "$"+filePath+"$/"+fileName;
+		try {
+		String deleteFileMsg = "$delete$"+filePath+"/"+fileName+"$";
+		StringBuffer message = new StringBuffer();
+		message.append(deleteFileMsg);
+		output.write(String.valueOf(message).getBytes());
 		connectToMaster();
-		// connectToMaster should receive a message to pass to the master
-		return false;
-		
-	}
+		} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+		}
+		return true;
+		}
 	public void connectToMaster() {
 		try {
 			s = new Socket("localhost", masterClientInitPort);
