@@ -1,5 +1,6 @@
 package Part1;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import Utilities.Node;
@@ -24,7 +25,40 @@ directory 1\2, 1\2\4 and 1\2\5.  The files in each directory would be named File
 public class Test2 {
 	public static void main(String args[]){
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
-		
-		
+		String startingPath = args[0];
+		int numFiles = Integer.parseInt(args[1]);
+		ArrayList<String> directories = new ArrayList<String>();
+		ArrayList<String> contents = new ArrayList<String>();
+		directories.add(startingPath);
+		File sp = new File(startingPath);
+		if(!sp.isDirectory())
+		{
+			System.err.println("Error. Not a valid directory.");
+		}
+		for (int i = 0; i < sp.list().length; i++)
+		{
+			contents.add(startingPath + "/" + sp.list()[i]);
+		}
+		while(contents.size() != 0)
+		{
+			File f = new File(contents.get(0));
+			if (f.isDirectory())
+			{
+				for (int i = 0; i < f.list().length; i++)
+				{
+					contents.add(contents.get(0) + "/" + f.list()[i]);
+				}
+				directories.add(contents.get(0));
+			}
+			contents.remove(0);
+		}
+		//iterate through the directories and create the files
+		for (String s : directories)
+		{
+			for(int i = 0; i < numFiles; i++)
+			{
+				tfs.createFile(s, "File" + (i+1) + ".txt", 1);
+			}
+		}
 	}
 }
