@@ -18,4 +18,12 @@ public class Node {
 			return children.get(paths.get(i)).find(paths, i+1);
 		return null;
 	}
+	public String getPath(){
+		String fullPath="";
+		if(this.parent!=null)
+			fullPath = this.parent.getPath()+"/"+this.name;
+		else 
+			fullPath =this.name;
+		return fullPath;
+	}
 }

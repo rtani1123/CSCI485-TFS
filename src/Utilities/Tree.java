@@ -19,7 +19,7 @@ public class Tree {
 		myTree.addElement(paths, chunkServersNum);
 		paths = myTree.pathTokenizer("C:/Users");
 		Node x = myTree.root.find(paths, 1);
-		System.out.println(x.name);
+		System.out.println(x.getPath());
 		myTree.removeElement(paths);
 		
 		Node y = myTree.root.find(paths, 1);
