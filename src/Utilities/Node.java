@@ -1,10 +1,11 @@
 package Utilities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Node {
+public class Node implements Serializable{
 	Map<String, Node> children =new HashMap<>();
 	Node parent = null;
 	public String name="";

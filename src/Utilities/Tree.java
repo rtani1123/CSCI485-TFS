@@ -1,29 +1,36 @@
 package Utilities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import javax.swing.JTree;
 
-public class Tree {
+public class Tree implements Serializable {
 	public Node root;
 	public static void main(String[] args) {
 		ArrayList<String> paths = new ArrayList<String>();
 		Tree myTree= new Tree();
-		ArrayList<Integer> chunkServersNum = new ArrayList<>();
-		chunkServersNum.add(1);
-		paths = myTree.pathTokenizer("C:/Users");
-		myTree.addElement(paths,chunkServersNum );
-		paths = myTree.pathTokenizer("C:/Users/Download");
-		myTree.addElement(paths, chunkServersNum);
-		paths = myTree.pathTokenizer("C:/Program");
-		myTree.addElement(paths, chunkServersNum);
+//		ArrayList<Integer> chunkServersNum = new ArrayList<>();
+//		chunkServersNum.add(1);
+//		paths = myTree.pathTokenizer("C:/Users");
+//		myTree.addElement(paths,chunkServersNum );
+//		paths = myTree.pathTokenizer("C:/Users/Download");
+//		myTree.addElement(paths, chunkServersNum);
+//		paths = myTree.pathTokenizer("C:/Program");
+//		myTree.addElement(paths, chunkServersNum);
+//		paths = myTree.pathTokenizer("C:/Users");
+//		Node x = myTree.root.find(paths, 1);
+//		System.out.println(x.getPath());
+		TreeStorage ts = new TreeStorage();
+//		ts.storeTree(myTree);
+		myTree = ts.getTree();
 		paths = myTree.pathTokenizer("C:/Users");
 		Node x = myTree.root.find(paths, 1);
 		System.out.println(x.getPath());
-		myTree.removeElement(paths);
-		
-		Node y = myTree.root.find(paths, 1);
-		System.out.println(y==null);
+//		myTree.removeElement(paths);
+//		
+//		Node y = myTree.root.find(paths, 1);
+//		System.out.println(y==null);
 	}
 	public ArrayList<String> pathTokenizer(String path){
 		ArrayList<String> result = new ArrayList<String>();
