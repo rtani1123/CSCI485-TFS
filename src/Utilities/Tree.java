@@ -2,6 +2,8 @@ package Utilities;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
 
 import javax.swing.JTree;
 
@@ -10,23 +12,21 @@ public class Tree implements Serializable {
 	public static void main(String[] args) {
 		ArrayList<String> paths = new ArrayList<String>();
 		Tree myTree= new Tree();
-//		ArrayList<Integer> chunkServersNum = new ArrayList<>();
-//		chunkServersNum.add(1);
-//		paths = myTree.pathTokenizer("C:/Users");
-//		myTree.addElement(paths,chunkServersNum );
-//		paths = myTree.pathTokenizer("C:/Users/Download");
-//		myTree.addElement(paths, chunkServersNum);
-//		paths = myTree.pathTokenizer("C:/Program");
-//		myTree.addElement(paths, chunkServersNum);
-//		paths = myTree.pathTokenizer("C:/Users");
+		ArrayList<Integer> chunkServersNum = new ArrayList<>();
+		chunkServersNum.add(1);
+		paths = myTree.pathTokenizer("C:/Users");
+		myTree.addElement(paths,chunkServersNum );
+		paths = myTree.pathTokenizer("C:/Users/Download");
+		myTree.addElement(paths, chunkServersNum);
+		paths = myTree.pathTokenizer("C:/Program");
+		myTree.addElement(paths, chunkServersNum);
+//		System.out.println(x.getPath());
+//		TreeStorage ts = new TreeStorage();
+//		ts.storeTree(myTree);
+//		myTree = ts.getTree();
 //		Node x = myTree.root.find(paths, 1);
 //		System.out.println(x.getPath());
-		TreeStorage ts = new TreeStorage();
-//		ts.storeTree(myTree);
-		myTree = ts.getTree();
-		paths = myTree.pathTokenizer("C:/Users");
-		Node x = myTree.root.find(paths, 1);
-		System.out.println(x.getPath());
+		myTree.getAllPath(myTree.root);
 //		myTree.removeElement(paths);
 //		
 //		Node y = myTree.root.find(paths, 1);
@@ -77,5 +77,13 @@ public class Tree implements Serializable {
 			x.parent.children.remove(paths.get(paths.size()-1));
 		
 		return true;
+	}
+	public void getAllPath(Node node){
+		System.out.println(node.getPath());
+		Set<String> allKeys = node.children.keySet();
+		Iterator<String> it = allKeys.iterator();
+		while (it.hasNext()){
+			getAllPath(node.children.get(it.next()));
+		}
 	}
 }
