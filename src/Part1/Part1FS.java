@@ -14,16 +14,19 @@ public class Part1FS {
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	public Tree directory;
-	OperationsLog log = new OperationsLog();
+//	OperationsLog log = new OperationsLog();
 
 	public Part1FS() {
 		directory = new Tree();
+	}
+	public Part1FS(Tree inTree){
+		directory = inTree;
 	}
 
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
 		if(directory.root.find(directory.pathTokenizer(path+"/"+fileName),1) != null){
-			System.out.println("file already exists");
+			System.err.println("File already exists" + path+"/"+fileName);
 			return false;
 		}
 
@@ -36,10 +39,9 @@ public class Part1FS {
 		}
 
 		File f = new File(path+"/"+fileName);
-		System.out.println(path);
 		try {
 			if(!f.createNewFile()){
-				System.out.println("file creation failed");
+				System.err.println("File creation unsuccessful " + path+"/"+fileName);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
@@ -52,8 +54,7 @@ public class Part1FS {
 
 	}
 	public void deleteFileMaster(String chunkhandle) {
-		// getXLock(parsedDeleteMsg);
-		log.makeLogRecord(System.currentTimeMillis(),0, 1, chunkhandle);
+//		log.makeLogRecord(System.currentTimeMillis(),0, 1, chunkhandle);
 		directory.removeElement(directory.pathTokenizer(chunkhandle));
 		deleteFileChunk(chunkhandle);
 	}
@@ -94,11 +95,10 @@ public class Part1FS {
 		else{
 			return false;
 		}
-		System.out.println("in create dir");
 		File f = new File(path);
 		try {
 			if(!f.mkdir())
-				System.out.println("not successful");
+				System.err.println("Directory creation unsuccessful " + path);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -106,7 +106,7 @@ public class Part1FS {
 	}
 	public void deleteDirectory(String path){
 		// getXLock(parsedDeleteMsg);
-		log.makeLogRecord(System.currentTimeMillis(),0, 1, path);
+//		log.makeLogRecord(System.currentTimeMillis(),0, 1, path);
 		directory.removeElement(directory.pathTokenizer(path));
 		deleteFileChunk(path);
 	}

@@ -1,5 +1,10 @@
 package Part1;
 
+import java.util.ArrayList;
+
+import Utilities.Node;
+import Utilities.TreeStorage;
+
 /*Test2: Create N files in a directory and its subdirectories until the leaf subdirectories.  
  * Each file in a directory is named File1, File2, ..., FileN
 
@@ -18,8 +23,8 @@ directory 1\2, 1\2\4 and 1\2\5.  The files in each directory would be named File
 
 public class Test2 {
 	public static void main(String args[]){
-		Part1FS tfs = new Part1FS();
-		tfs.directory.root.name="C:";
-
+		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		
+		
 	}
 }

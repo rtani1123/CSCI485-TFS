@@ -7,8 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class TreeStorage {
-public Tree getTree(){
-	String filename = "C:/Users/boghrati/tree.txt";
+static public Tree getTree(){
+	String filename = "C:/Users/bquock/tree.txt";
 	Tree myTree = null;
 //	List pDetails = null;
 	FileInputStream fis = null;
@@ -25,8 +25,8 @@ public Tree getTree(){
 	}
 	return myTree;
 }
-public void storeTree(Tree inTree){
-	String filename = "C:/Users/boghrati/tree.txt";
+static public void storeTree(Tree inTree){
+	String filename = "C:/Users/bquock/tree.txt";
 	FileOutputStream fos = null;
 	ObjectOutputStream out = null;
 	try {

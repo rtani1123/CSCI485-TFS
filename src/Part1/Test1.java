@@ -1,6 +1,11 @@
 package Part1;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import Utilities.TreeStorage;
 
 /*
  * Test1:  Create a hierarchical directory structure.  
@@ -49,6 +54,18 @@ public class Test1 {
 			tfs.createDirectory(path.toString());
 			System.out.println(path);
 		}
-		tfs.createFile("C:/1/2", "bob.txt", 1);
+		tfs.createFile("C:/1/2", "bob.png", 1);
+		TreeStorage.storeTree(tfs.directory);
+//		File inputFile = new File("C:/Users/bquock/SAC.png");
+//		byte[] b = new byte[(int)inputFile.length()];
+//		try{
+//			FileInputStream
+//		}
+//		catch(FileNotFoundException fnfe){
+//			
+//		}
+//		catch(IOException ioe){
+//			
+//		}
 	}
 }
