@@ -21,7 +21,7 @@ public class Part1FS {
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	public Tree directory;
-//	OperationsLog log = new OperationsLog();
+	//	OperationsLog log = new OperationsLog();
 
 	public Part1FS() {
 		directory = new Tree();
@@ -61,9 +61,11 @@ public class Part1FS {
 
 	}
 	public void deleteFileMaster(String chunkhandle) {
-//		log.makeLogRecord(System.currentTimeMillis(),0, 1, chunkhandle);
-		directory.removeElement(directory.pathTokenizer(chunkhandle));
-		deleteFileChunk(chunkhandle);
+		//		log.makeLogRecord(System.currentTimeMillis(),0, 1, chunkhandle);
+		if (directory.removeElement(directory.pathTokenizer(chunkhandle)))
+		{
+			deleteFileChunk(chunkhandle);
+		}
 	}
 
 	public static boolean deleteFileChunk(String path) {
@@ -113,9 +115,11 @@ public class Part1FS {
 	}
 	public void deleteDirectory(String path){
 		// getXLock(parsedDeleteMsg);
-//		log.makeLogRecord(System.currentTimeMillis(),0, 1, path);
-		directory.removeElement(directory.pathTokenizer(path));
-		deleteFileChunk(path);
+		//	log.makeLogRecord(System.currentTimeMillis(),0, 1, path);
+		if(directory.removeElement(directory.pathTokenizer(path)))
+		{
+			deleteFileChunk(path);
+		}
 	}
 
 	//**currently not checking for stale writes using timestamps
@@ -161,7 +165,7 @@ public class Part1FS {
 		}
 		return b;
 	}
-	
+
 	public byte[] readCompletely(String chunkhandle){
 		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
 		byte[] b = new byte[(int)f.length()];
@@ -178,13 +182,13 @@ public class Part1FS {
 		}
 		return b;
 	}
-	
+
 	public long getFileSize(String chunkhandle){
 		long size = 0;
 		File f = new File(chunkhandle);
 		size = f.length();
 		return size;
 	}
-	
+
 }
 
