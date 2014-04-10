@@ -59,7 +59,7 @@ public class Tree {
 			x.chunkServersNum = chunckServersNum;
 		}
 
-		return false;
+		return true;
 	}
 	public boolean removeElement(ArrayList<String> paths){
 		Node x = root.find(paths, 1);

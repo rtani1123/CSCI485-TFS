@@ -1,5 +1,7 @@
 package Part1;
 
+import java.util.ArrayList;
+
 /*
  * Test1:  Create a hierarchical directory structure.  
  * Its input is the number of directories to create and is a value greater than 1.  
@@ -30,9 +32,22 @@ public class Test1 {
 	public static void main(String args[]){
 		Part1FS tfs = new Part1FS();
 		int numFolders = Integer.parseInt(args[0]);
-		String path;
-		for(int i = 1; i <= numFolders; i++){
-			
+		// create root'
+		tfs.directory.root.name="C:/1";
+		tfs.createDirectory("C:/1");
+		for(int i = 2; i <= numFolders; i++){
+			int k = i;
+			StringBuffer path = new StringBuffer(String.valueOf(k));
+			k = (int)Math.floor((double)k/2);
+			while (k > 0)
+			{
+				String addMe = k + "/";
+				path.insert(0, addMe);
+				k = (int)Math.floor((double)k/2);
+			}
+			path.insert(0, "C:/");
+			tfs.createDirectory(path.toString());
+			System.out.println(path);
 		}
 	}
 }

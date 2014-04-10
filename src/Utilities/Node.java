@@ -7,7 +7,7 @@ import java.util.Map;
 public class Node {
 	Map<String, Node> children =new HashMap<>();
 	Node parent = null;
-	String name="";
+	public String name="";
 	
 	public ArrayList<Integer> chunkServersNum = new ArrayList<>();
 	

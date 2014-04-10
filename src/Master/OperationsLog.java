@@ -13,12 +13,12 @@ public class OperationsLog implements Serializable{
 	ObjectOutputStream cos;
 
 	public OperationsLog() {
-		try {
-			fout = new FileOutputStream("C:\\CS485\\transactionlog.ser");
-			cos = new ObjectOutputStream(fout);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		try {
+//			fout = new FileOutputStream("C:\\CS485\\transactionlog.ser");
+//			cos = new ObjectOutputStream(fout);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	/*LOGGING FORMAT

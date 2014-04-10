@@ -13,7 +13,7 @@ public class Part1FS {
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	Tree directory;
+	public Tree directory;
 	OperationsLog log = new OperationsLog();
 
 	public Part1FS() {
@@ -79,7 +79,7 @@ public class Part1FS {
 		return false;
 	}
 
-	boolean createDirectory(String path){
+	public boolean createDirectory(String path){
 		// check for name collision and valid path
 		if(directory.root.find(directory.pathTokenizer(path),1) != null){
 			return false;
@@ -92,14 +92,13 @@ public class Part1FS {
 		else{
 			return false;
 		}
-
+		System.out.println("in create dir");
 		File f = new File(path);
 		try {
-			if(f.mkdir()){
-
-			}
+			if(!f.mkdir())
+				System.out.println("not successful");
 		}catch(Exception e){
-
+			e.printStackTrace();
 		}
 		return false;
 	}
