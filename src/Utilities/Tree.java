@@ -12,16 +12,17 @@ public class Tree implements Serializable {
 	public static void main(String[] args) {
 		ArrayList<String> paths = new ArrayList<String>();
 		Tree myTree= new Tree();
-		ArrayList<Integer> chunkServersNum = new ArrayList<>();
-		chunkServersNum.add(1);
-		paths = myTree.pathTokenizer("C:/Users");
-		myTree.addElement(paths,chunkServersNum );
-		paths = myTree.pathTokenizer("C:/Users/Download");
-		myTree.addElement(paths, chunkServersNum);
-		paths = myTree.pathTokenizer("C:/Program");
-		myTree.addElement(paths, chunkServersNum);
+//		ArrayList<Integer> chunkServersNum = new ArrayList<>();
+//		chunkServersNum.add(1);
+//		paths = myTree.pathTokenizer("C:/Users");
+//		myTree.addElement(paths,chunkServersNum );
+//		paths = myTree.pathTokenizer("C:/Users/Download");
+//		myTree.addElement(paths, chunkServersNum);
+//		paths = myTree.pathTokenizer("C:/Program");
+//		myTree.addElement(paths, chunkServersNum);
 //		System.out.println(x.getPath());
-//		TreeStorage ts = new TreeStorage();
+		TreeStorage ts = new TreeStorage();
+		myTree = ts.getTree();
 //		ts.storeTree(myTree);
 //		myTree = ts.getTree();
 //		Node x = myTree.root.find(paths, 1);
