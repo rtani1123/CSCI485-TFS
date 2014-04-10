@@ -157,5 +157,30 @@ public class Part1FS {
 		}
 		return b;
 	}
+	
+	public byte[] readCompletely(String chunkhandle){
+		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		byte[] b = new byte[(int)f.length()];
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f,"r");
+			raf.readFully(b);
+			// change write timestamp
+			//files.get(chunkhandle).setReadTime(System.currentTimeMillis());
+			raf.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("File read exception");
+			return new byte[0];
+		}
+		return b;
+	}
+	
+	public long getFileSize(String chunkhandle){
+		long size = 0;
+		File f = new File(chunkhandle);
+		size = f.length();
+		return size;
+	}
+	
 }
 
