@@ -1,5 +1,7 @@
 package Part1;
 
+import Utilities.TreeStorage;
+
 /*Test3:  Delete a hierarchical directory structure including the files in those directories.
 Input:  Path
 Functionality:  The input path identifies the directory whose content along with itself must be deleted.
@@ -24,6 +26,9 @@ The deleted directories are 1\2, 1\2\4 and 1\2\5.  The fires deleted are:
 
 public class Test3 {
 	public static void main(String args[]){
-		Part1FS tfs = new Part1FS();
+		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		String startingPath = args[0];
+		//maybe throw in some fail safe here?
+		tfs.deleteDirectory(startingPath);
 	}
 }
