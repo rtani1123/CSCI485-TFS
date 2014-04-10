@@ -11,8 +11,8 @@ public class OperationsLog implements Serializable{
 	ArrayList<StringBuffer> log;
 	FileOutputStream fout;
 	ObjectOutputStream cos;
-	
-	OperationsLog() {
+
+	public OperationsLog() {
 		try {
 			fout = new FileOutputStream("C:\\CS485\\transactionlog.ser");
 			cos = new ObjectOutputStream(fout);
@@ -20,7 +20,13 @@ public class OperationsLog implements Serializable{
 			e.printStackTrace();
 		}
 	}
-	
+
+	/*LOGGING FORMAT
+startTimestamp is the transactionID
+type = 1 for create and 0 for delete 
+stage = 0 for received and 1 for commit
+String: ($startTimestamp$fileOrDirectory$type$stage$)
+	 * */
 	public void makeLogRecord(long startTime, int type, int stage, String chunkhandle){
 		StringBuffer newRecord = new StringBuffer("$");
 		newRecord.append(startTime);
@@ -33,7 +39,7 @@ public class OperationsLog implements Serializable{
 		newRecord.append("$");
 		log.add(newRecord);
 	}
-	
+
 	/*
 	 * LOGGING FORMAT
 		startTimestamp is the transactionID
