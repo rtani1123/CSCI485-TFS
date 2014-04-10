@@ -30,5 +30,6 @@ public class Test3 {
 		String startingPath = args[0];
 		//maybe throw in some fail safe here?
 		tfs.deleteDirectory(startingPath);
+		TreeStorage.storeTree(tfs.directory);
 	}
 }

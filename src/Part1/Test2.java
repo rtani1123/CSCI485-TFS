@@ -60,5 +60,6 @@ public class Test2 {
 				tfs.createFile(s, "File" + (i+1) + ".txt", 1);
 			}
 		}
+		TreeStorage.storeTree(tfs.directory);
 	}
 }
