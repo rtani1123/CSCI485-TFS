@@ -19,6 +19,7 @@ directory 1\2, 1\2\4 and 1\2\5.  The files in each directory would be named File
 public class Test2 {
 	public static void main(String args[]){
 		Part1FS tfs = new Part1FS();
-		
+		tfs.directory.root.name="C:";
+
 	}
 }

@@ -23,24 +23,26 @@ public class Part1FS {
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
 		if(directory.root.find(directory.pathTokenizer(path+"/"+fileName),1) != null){
+			System.out.println("file already exists");
 			return false;
 		}
 
 		// add file to tree
-		if(directory.addElement(directory.pathTokenizer(path),new ArrayList<Integer>())){
+		if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),new ArrayList<Integer>())){
 			// successful add to tree
 		}
 		else{
 			return false;
 		}
 
-		File f = new File(path);
+		File f = new File(path+"/"+fileName);
+		System.out.println(path);
 		try {
-			if(f.createNewFile()){
-
+			if(!f.createNewFile()){
+				System.out.println("file creation failed");
 			}
 		}catch(Exception e){
-
+			e.printStackTrace();
 		}
 
 		return true;
