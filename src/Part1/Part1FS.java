@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,6 +150,25 @@ public class Part1FS {
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(raf.length());
+			raf.write(data);
+			raf.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void atomicAppendWithSize(String chunkhandle, int length, byte[] data){
+		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f,"rws");
+			raf.seek(raf.length());
+			//convert the int to a byte array
+			byte[] result = new byte[4];
+			result[0] = (byte) (length >> 24);
+			result[1] = (byte) (length >> 16);
+			result[2] = (byte) (length >> 8);
+			result[3] = (byte) (length /*>> 0*/);
+			raf.write(result);
 			raf.write(data);
 			raf.close();
 		} catch (Exception e) {

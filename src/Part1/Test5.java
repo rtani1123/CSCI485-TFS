@@ -28,9 +28,6 @@ public class Test5 {
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		String startingFullPath = args[0];
 		String destinationFullPath = args[1];
-		//		int lastSlash = startingFullPath.lastIndexOf("/", startingFullPath.length());
-		//		String startingFileName = startingFullPath.substring(lastSlash+1, startingFullPath.length());
-		//		String startingPath = startingFullPath.substring(0, lastSlash);
 		File localDest = new File(destinationFullPath);
 		try {
 			localDest.createNewFile();

@@ -1,5 +1,12 @@
 package Part1;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import Utilities.TreeStorage;
+
 /*Test6:  Append the size and content of a file stored on the local machine in a target TFS file 
 specified by its path.
 Input: local file path, TFS file
@@ -10,7 +17,7 @@ append a 4 byte integer pertaining to the image size, append the content in memo
 and close the TFS file.
 
 Example:  Test6 C:\MyDocuments\Image.png 1\File1.png
-If 1\File1.png exists then create the TFS file 1\File1.png.  Read the content of C:\MyDocument\Image.png 
+If 1\File1.png does not exist then create the TFS file 1\File1.png.  Read the content of C:\MyDocument\Image.png 
 into an array of bytes named B and perform the following steps: 
 1) Let s denote the number of bytes retrieved, i.e., size of B, 
 2) Let delta=0, 
@@ -27,6 +34,35 @@ Note:  Make sure the definition of seek is consistent with your design definitio
 
 public class Test6 {
 	public static void main(String args[]){
-		Part1FS tfs = new Part1FS();
+		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		String startingFullPath = args[0];
+		String destinationFullPath = args[1];
+		int lastSlash = destinationFullPath.lastIndexOf("/", destinationFullPath.length());
+		String destinationFileName = destinationFullPath.substring(lastSlash+1, destinationFullPath.length());
+		String destinationPath = destinationFullPath.substring(0, lastSlash);
+		if(tfs.directory.root.find(tfs.directory.pathTokenizer(destinationFullPath), 1) == null)
+		{
+			//if the file does not exist on the tfs
+			tfs.createFile(destinationPath, destinationFileName, 1);		
+		}
+		File inputFile = new File(startingFullPath);
+		byte[] b = new byte[(int)inputFile.length()];
+		//read in the input file
+		try{
+			FileInputStream fis = new FileInputStream(inputFile);
+			fis.read(b);
+		}
+		catch(FileNotFoundException fnfe){
+			System.err.println("File not found.");
+			fnfe.printStackTrace();
+		}
+		catch(IOException ioe){
+			System.err.println("Error reading the file.");
+			ioe.printStackTrace();			
+		}
+		//write to the output file
+		tfs.atomicAppendWithSize(destinationFullPath, b.length, b);
+		TreeStorage.storeTree(tfs.directory);
+		
 	}
 }
