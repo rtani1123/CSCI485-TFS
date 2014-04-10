@@ -118,6 +118,7 @@ public class Part1FS {
 			raf.write(data, offset, length);
 			// change write timestamp
 			//files.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -129,32 +130,31 @@ public class Part1FS {
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(raf.length());
-			// **before writing, this offset will need to be saved and sent to the secondaries
-			// **it should be the getFilePointer()
 			raf.write(data);
 			// change write timestamp
 			//files.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void read(String chunkhandle, int offset, int length){
+	public byte[] read(String chunkhandle, int offset, int length){
 		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
 		byte[] b = new byte[length];
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"r");
 			raf.seek(raf.length());
-			// **before writing, this offset will need to be saved and sent to the secondaries
-			// **it should be the getFilePointer()
 			raf.readFully(b,offset,length);
 			// change write timestamp
 			//files.get(chunkhandle).setReadTime(System.currentTimeMillis());
+			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			// might want to send a message with some error
-			return;
+			return new byte[0];
 		}
+		return b;
 	}
 }
 
