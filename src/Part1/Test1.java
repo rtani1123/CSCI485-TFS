@@ -49,5 +49,6 @@ public class Test1 {
 			tfs.createDirectory(path.toString());
 			System.out.println(path);
 		}
+		tfs.createFile("C:/1/2", "bob.txt", 1);
 	}
 }
