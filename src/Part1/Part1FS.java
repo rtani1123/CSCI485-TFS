@@ -74,6 +74,10 @@ public class Part1FS {
 	}
 	public void deleteFileMaster(String chunkhandle) {
 		//		log.makeLogRecord(System.currentTimeMillis(),0, 1, chunkhandle);
+		if(directory.root.find(directory.pathTokenizer(chunkhandle),1) != null){
+			System.err.println("Nonexistent path " + chunkhandle);
+			return;
+		}
 		if (directory.removeElement(directory.pathTokenizer(chunkhandle)))
 		{
 			deleteFileChunk(chunkhandle);
