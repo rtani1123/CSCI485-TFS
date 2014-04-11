@@ -23,7 +23,7 @@ public class Test4 {
 	public static void main(String args[]){
 		if (args.length != 2)
 		{
-			System.err.println("Error. Invalid number of arguments for Test2.");
+			System.err.println("Error. Invalid number of arguments for Test4.");
 			return;
 		}
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
