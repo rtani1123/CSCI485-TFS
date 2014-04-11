@@ -24,11 +24,26 @@ Create and open C:\MyDocument\Pic.png, write the retrieved content into it, and 
 
 public class Test5 {
 	public static void main(String args[]){
-		//return an error if destination file already exists or if starting file does not exist
+		if (args.length != 2)
+		{
+			System.err.println("Error. Invalid number of arguments for Test5.");
+			return;
+		}
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		String startingFullPath = args[0];
 		String destinationFullPath = args[1];
 		File localDest = new File(destinationFullPath);
+		File sourceFile = new File(startingFullPath);
+		if(localDest.exists())
+		{
+			System.out.println("Error. File already exists on local system.");
+			return;
+		}
+		if(!sourceFile.exists())
+		{
+			System.out.println("Error. Source file not found in TFS.");
+			return;
+		}
 		try {
 			localDest.createNewFile();
 		} catch (IOException e) {
@@ -45,6 +60,7 @@ public class Test5 {
 			fos.write(b);
 			fos.flush();
 			fos.close();
+			System.out.println("Successful local file creation " + destinationFullPath);
 		}
 		catch(FileNotFoundException fnfe){
 			System.err.println("File not found.");

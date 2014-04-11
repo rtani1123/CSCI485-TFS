@@ -32,9 +32,11 @@ public class Part1FS {
 		if(inTree != null)
 		{
 			directory = inTree;
+			System.out.println("Reading Existing TFS Tree.");
 		}
 		else
 		{
+			System.out.println("Creating a new Tree Structure.");
 			directory = new Tree();
 		}
 	}
@@ -51,6 +53,7 @@ public class Part1FS {
 			// successful add to tree
 		}
 		else{
+			System.out.println("Element addition to file system failed. Invalid path.");
 			return false;
 		}
 
@@ -75,13 +78,17 @@ public class Part1FS {
 		{
 			deleteFileChunk(chunkhandle);
 		}
+		else
+		{
+			System.out.println("Delete unsuccessful. Item not found.");
+		}
 	}
 
 	public static boolean deleteFileChunk(String path) {
 		String parsedPath = path;
 		try {
 			File dFile = new File(parsedPath);
-			System.out.println(parsedPath);
+			System.out.println("Now Deleting " + parsedPath);
 			String[] files =null;
 			if(dFile.isDirectory())
 				files= dFile.list();
@@ -112,6 +119,7 @@ public class Part1FS {
 			// successful add to tree
 		}
 		else{
+			System.out.println("Element addition to file system failed. Invalid path.");
 			return false;
 		}
 		File f = new File(path);
@@ -129,6 +137,10 @@ public class Part1FS {
 		if(directory.removeElement(directory.pathTokenizer(path)))
 		{
 			deleteFileChunk(path);
+		}
+		else
+		{
+			System.out.println("Delete unsuccessful. Item not found.");
 		}
 	}
 

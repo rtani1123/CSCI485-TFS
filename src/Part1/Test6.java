@@ -34,6 +34,11 @@ Note:  Make sure the definition of seek is consistent with your design definitio
 
 public class Test6 {
 	public static void main(String args[]){
+		if (args.length != 2)
+		{
+			System.err.println("Error. Invalid number of arguments for Test6.");
+			return;
+		}
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		String startingFullPath = args[0];
 		String destinationFullPath = args[1];
@@ -51,6 +56,7 @@ public class Test6 {
 		try{
 			FileInputStream fis = new FileInputStream(inputFile);
 			fis.read(b);
+			fis.close();
 		}
 		catch(FileNotFoundException fnfe){
 			System.err.println("File not found.");
@@ -62,6 +68,7 @@ public class Test6 {
 		}
 		//write to the output file
 		tfs.atomicAppendWithSize(destinationFullPath, b.length, b);
+		System.out.println("Successful append of " + b.length + " bytes of payload to " + destinationFullPath);
 		TreeStorage.storeTree(tfs.directory);
 		
 	}

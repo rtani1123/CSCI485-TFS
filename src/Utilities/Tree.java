@@ -56,7 +56,6 @@ public class Tree implements Serializable {
 		ArrayList<String >tempPaths = new ArrayList<String>();
 		for (int j = 0; j <paths.size()-1; j++)
 			tempPaths.add( paths.get(j));
-		System.out.println("tempPath " + tempPaths);
 		Node x = root.find(tempPaths, 1);
 		if(x==null)
 			return false;

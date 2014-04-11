@@ -30,14 +30,16 @@ With the input value 7, the resulting directory structure would be
 1\3\7
 */
 
-public class Test1 {
-
-	
-	
+public class Test1 {	
 	public static void main(String args[]){
+		if (args.length != 1)
+		{
+			System.err.println("Error. Invalid number of arguments for Test1.");
+			return;
+		}
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		int numFolders = Integer.parseInt(args[0]);
-		// create root'
+		// set the root directory name
 		tfs.directory.root.name="C:";
 		tfs.createDirectory("C:/1");
 		for(int i = 2; i <= numFolders; i++){

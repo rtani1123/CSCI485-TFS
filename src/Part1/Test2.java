@@ -24,6 +24,11 @@ directory 1\2, 1\2\4 and 1\2\5.  The files in each directory would be named File
 
 public class Test2 {
 	public static void main(String args[]){
+		if (args.length != 2)
+		{
+			System.err.println("Error. Invalid number of arguments for Test2.");
+			return;
+		}
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		String startingPath = args[0];
 		int numFiles = Integer.parseInt(args[1]);

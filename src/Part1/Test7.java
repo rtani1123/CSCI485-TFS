@@ -21,17 +21,20 @@ Assumption:  Input file, 1/File1.haystack, is generated using Test6.
 
 public class Test7 {
 	public static void main(String args[]){
+		if (args.length != 1)
+		{
+			System.err.println("Error. Invalid number of arguments for Test7.");
+			return;
+		}
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		String fullPath = args[0];
-		//Node x = tfs.directory.root.find(tfs.directory.pathTokenizer(fullPath), 1);
-		//if(x == null)
-		//{
-		//the file does not exist
-		//System.out.println("Specified TFS File Does Not Exist");
-		//}
-		//read in the first four bytes 
 		File f = new File(fullPath);
-		if(f.length() <4)
+		if (!f.exists())
+		{
+			System.out.println("Specified file does not exist on TFS server");
+			return;			
+		}			
+		else if(f.length() <4)
 		{
 			System.out.println("File too small to contain a size");
 			return;
@@ -43,7 +46,7 @@ public class Test7 {
 		int count = 1;
 		while(offset < f.length())
 		{
-			System.out.println("Size of file " + count + " is " + sz);
+			System.out.println("Size of file " + count + " is " + sz + " bytes");
 			//byte[] payload = tfs.read(fullPath, offset, sz);
 			offset += sz;
 			//read the next file size in
@@ -57,8 +60,6 @@ public class Test7 {
 			}
 		}
 		System.out.println(fullPath + " contains " + count + " separate files");
-		System.out.println("Existing tree structure: ");
-		tfs.directory.getAllPath(tfs.directory.root);
 		TreeStorage.storeTree(tfs.directory);
 	}
 }
