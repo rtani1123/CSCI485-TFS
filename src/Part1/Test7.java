@@ -1,6 +1,7 @@
 package Part1;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 import Utilities.Node;
 import Utilities.TreeStorage;
@@ -22,12 +23,12 @@ public class Test7 {
 	public static void main(String args[]){
 		Part1FS tfs = new Part1FS(TreeStorage.getTree());
 		String fullPath = args[0];
-//		Node x = tfs.directory.root.find(tfs.directory.pathTokenizer(fullPath), 1);
-//		if(x == null)
-//		{
-//			//the file does not exist
-//			System.out.println("Specified TFS File Does Not Exist");
-//		}
+		//Node x = tfs.directory.root.find(tfs.directory.pathTokenizer(fullPath), 1);
+		//if(x == null)
+		//{
+		//the file does not exist
+		//System.out.println("Specified TFS File Does Not Exist");
+		//}
 		//read in the first four bytes 
 		File f = new File(fullPath);
 		if(f.length() <4)
@@ -36,27 +37,21 @@ public class Test7 {
 			return;
 		}
 		byte[] szb = tfs.read(fullPath, 0, 4);
-		int sz = 0;
+		ByteBuffer wrapped = ByteBuffer.wrap(szb);
+		int sz = wrapped.getInt();
 		int offset = 4;
 		int count = 1;
-		for (int i = 0; i < szb.length; i++)
-		{
-		   sz += ((long) szb[i] & 0xffL) << (8 * i);
-		}
 		while(offset < f.length())
 		{
-			System.out.println(sz);
+			System.out.println("Size of file " + count + " is " + sz);
 			//byte[] payload = tfs.read(fullPath, offset, sz);
 			offset += sz;
 			//read the next file size in
 			if(offset < f.length())
 			{
 				szb = tfs.read(fullPath, offset, 4);
-				sz = 0;
-				for (int i = 0; i < szb.length; i++)
-				{
-				   sz += ((long) szb[i] & 0xffL) << (8 * i);
-				}
+				ByteBuffer wrapped2 = ByteBuffer.wrap(szb);
+				sz = wrapped2.getInt();
 				offset += 4;
 				count++;
 			}

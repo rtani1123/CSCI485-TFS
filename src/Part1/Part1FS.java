@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,7 +134,12 @@ public class Part1FS {
 
 	//**currently not checking for stale writes using timestamps
 	public void append(String chunkhandle, int offset, int length, byte[] data){
-		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		File f = new File(chunkhandle);	
+		if(directory.root.find(directory.pathTokenizer(chunkhandle), 1) == null)
+		{
+			System.out.println("Error. Invalid Path " + chunkhandle);
+			return;
+		}
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(offset);
@@ -146,7 +152,12 @@ public class Part1FS {
 
 	//**currently not checking for stale writes using timestamps
 	public void atomicAppend(String chunkhandle, int length, byte[] data){
-		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		File f = new File(chunkhandle);	
+		if(directory.root.find(directory.pathTokenizer(chunkhandle), 1) == null)
+		{
+			System.out.println("Error. Invalid Path " + chunkhandle);
+			return;
+		}
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(raf.length());
@@ -159,15 +170,17 @@ public class Part1FS {
 
 	public void atomicAppendWithSize(String chunkhandle, int length, byte[] data){
 		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		if(directory.root.find(directory.pathTokenizer(chunkhandle), 1) == null)
+		{
+			System.out.println("Error. Invalid Path " + chunkhandle);
+			return;
+		}
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(raf.length());
-			//convert the int to a byte array
-			byte[] result = new byte[4];
-			result[0] = (byte) (length >> 24);
-			result[1] = (byte) (length >> 16);
-			result[2] = (byte) (length >> 8);
-			result[3] = (byte) (length /*>> 0*/);
+			ByteBuffer bb = ByteBuffer.allocate(4);
+			bb.putInt(length);
+			byte[] result = bb.array();
 			raf.write(result);
 			raf.write(data);
 			raf.close();
@@ -178,30 +191,36 @@ public class Part1FS {
 
 	public byte[] read(String chunkhandle, int offset, int length){
 		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		if(directory.root.find(directory.pathTokenizer(chunkhandle), 1) == null)
+		{
+			System.out.println("Error. Invalid Path " + chunkhandle);
+			return new byte[0];
+		}
 		byte[] b = new byte[length];
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"r");
-			raf.seek(raf.length());
-			raf.readFully(b,offset,length);
-			// change write timestamp
-			//files.get(chunkhandle).setReadTime(System.currentTimeMillis());
+			raf.seek(offset);
+			raf.readFully(b);
 			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			// might want to send a message with some error
+			System.out.println("Error in creating RandomAccessFule in read. Returning byte array of 0 size.");
 			return new byte[0];
 		}
 		return b;
 	}
 
 	public byte[] readCompletely(String chunkhandle){
-		File f = new File(chunkhandle);	// might have to parse chunkhandle into path
+		File f = new File(chunkhandle);	
+		if(directory.root.find(directory.pathTokenizer(chunkhandle), 1) == null)
+		{
+			System.out.println("Error. Invalid Path " + chunkhandle);
+			return new byte[0];
+		}
 		byte[] b = new byte[(int)f.length()];
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f,"r");
 			raf.readFully(b);
-			// change write timestamp
-			//files.get(chunkhandle).setReadTime(System.currentTimeMillis());
 			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
