@@ -39,6 +39,7 @@ public class Test2 {
 		if(!sp.isDirectory())
 		{
 			System.err.println("Error. Not a valid directory.");
+			return;
 		}
 		for (int i = 0; i < sp.list().length; i++)
 		{
