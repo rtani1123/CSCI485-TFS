@@ -1,13 +1,17 @@
 package RMIClient_Test;
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
-public class AdditionClient{
+import Interfaces.TestInterface;
 
-	AdditionInterface ai;
-	public AdditionClient() {
+public class TestClient{
+
+	TestInterface ai;
+	public TestClient() {
 		setupServerConnection();
 		Scanner in = new Scanner(System.in);
 		String input = in.nextLine();
@@ -28,10 +32,16 @@ public class AdditionClient{
 		// TODO Auto-generated method stub
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			ai = (AdditionInterface)Naming.lookup("rmi://localhost/ABC");
+			ai = (TestInterface)Naming.lookup("rmi://localhost:1099/ABC");
 			
-		} catch(Exception e) {
+		} catch(RemoteException e) {
 			System.out.println("server unavailable");
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			System.out.println("server unavailable 2");
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("server unavailable 3");
 		}
 
 	}
@@ -39,7 +49,7 @@ public class AdditionClient{
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		AdditionClient ac = new AdditionClient();
+		TestClient ac = new TestClient();
 	}
 
 }

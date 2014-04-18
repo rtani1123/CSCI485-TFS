@@ -5,9 +5,9 @@ import java.rmi.registry.Registry;
 import java.rmi.server.*;
 
 
-public class AdditionServer {
+public class TestServer {
 
-	public AdditionServer() {
+	public TestServer() {
 		
 	}
 	
@@ -21,7 +21,7 @@ public class AdditionServer {
 			System.setSecurityManager(new RMISecurityManager());
 			
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Addition A = new Addition();
+			Test A = new Test();
 			Naming.rebind("rmi://localhost/ABC", A);
 			
 			System.out.println("ready!");

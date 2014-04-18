@@ -5,11 +5,13 @@ import java.io.PrintWriter;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
+import Interfaces.TestInterface;
 
-public class Addition extends UnicastRemoteObject 
-		implements AdditionInterface {
 
-	public Addition() throws RemoteException {	}
+public class Test extends UnicastRemoteObject 
+		implements TestInterface {
+
+	public Test() throws RemoteException {	}
 
 	public int Add(int a, int b) throws RemoteException {
 		return a+b;
