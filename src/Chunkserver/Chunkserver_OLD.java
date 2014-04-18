@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Chunkserver {
+public class Chunkserver_OLD {
 
 	Socket s;
 	Socket connection;
@@ -25,7 +25,7 @@ public class Chunkserver {
 	Thread initialConnection;
 	Map<String,Metadata> files;
 
-	public Chunkserver() {
+	public Chunkserver_OLD() {
 		files = new HashMap<String,Metadata>();
 		connectToMaster();
 	}
@@ -251,7 +251,7 @@ public class Chunkserver {
 	}
 
 	public static void main(String[] args) {
-		Chunkserver cs = new Chunkserver();
+		Chunkserver_OLD cs = new Chunkserver_OLD();
 		//deleteFileChunk("C:/Users/boghrati/Downloads/del");
 
 	}

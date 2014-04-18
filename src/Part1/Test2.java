@@ -2,8 +2,6 @@ package Part1;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import Utilities.Node;
 import Utilities.TreeStorage;
 
 /*Test2: Create N files in a directory and its subdirectories until the leaf subdirectories.  

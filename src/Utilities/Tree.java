@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.swing.JTree;
-
 public class Tree implements Serializable {
 	public Node root;
 	public static void main(String[] args) {

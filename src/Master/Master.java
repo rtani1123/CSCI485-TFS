@@ -14,96 +14,21 @@ import Utilities.Tree;
 
 public class Master {
 
-	ServerSocket getChunkserversSS; //CLARIFICATION - this SocketServer is only for chunkservers.
-	ServerSocket getClientsSS;
-	int masterClientPortConnect = 46946; //DIFFERENT FROM MASTER/CHUNKSERVER PORT
-	int masterChunkserverPortConnect = 46344;
-
-	int masterChunkserverPortStart = 55501; //first port tried.
-
-	ArrayList<Socket> chunkservers; //line 67-ish
-	ArrayList<ServerSocket> serversockets; //line 61-ish
-	ArrayList<ChunkserverHandler> threadHandlers; // line 70-ish
-	Map<Integer, ObjectOutputStream> portToOutput;
-	Map<Integer, ObjectInputStream> portToInput;
-	ObjectOutputStream output;
-	ObjectInputStream input;
-
-
-
-	AcceptChunkserverHandler cth;
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	HashMap<String,Metadata> files;
 	Tree directory;
 
 	public Master() {
-		chunkservers = new ArrayList<Socket>(); //initially empty list of at-some-point-connected chunkservers.
-		serversockets = new ArrayList<ServerSocket>();
-		threadHandlers = new ArrayList<ChunkserverHandler>();
 		directory = new Tree();
 
 		files = new HashMap<String,Metadata>();
-		setupMasterChunkserverServer();
+
 		//System.out.println("1");
 		//setupMasterClientServer();
 		//System.out.println("2");
 	}
-	public void setupStreams(Socket s) {
-		try {
-			output = new ObjectOutputStream(s.getOutputStream());
-			input = new ObjectInputStream(s.getInputStream());
-		} catch (Exception e) {
-			System.out.println("Streams unable to connect to socket");
-			System.exit(0);
-		}
-	}
-	public void setupMasterChunkserverServer() {
-
-		try {
-			getChunkserversSS = new ServerSocket(masterChunkserverPortConnect);	//establish ServerSocket
-		} catch (Exception e) {
-			System.out.println("Port unavailable");
-			e.printStackTrace();
-			System.exit(0);
-		}
-
-		System.out.println("Acceptance Chunkserver Server Created");
-		AcceptChunkserverHandler newCTH = new AcceptChunkserverHandler(this, getChunkserversSS);
-		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
-		new Thread(newCTH).start();
-
-	}
-	public void setupMasterClientServer() {
-		try {
-			getClientsSS = new ServerSocket(masterClientPortConnect);	//establish ServerSocket
-		} catch (Exception e) {
-			System.out.println("Port unavailable");
-			e.printStackTrace();
-			System.exit(0);
-		}
-
-		System.out.println("Acceptance Client Server Created");
-		AcceptClientHandler newCTH = new AcceptClientHandler(this, getClientsSS);
-		//threadHandlers.add(newCTH);	//new Thread to handle new or rebooting chunkservers
-		new Thread(newCTH).start();
-	}
-	public void setupCSMasterDataConnection(int port, Socket s) {
-		try {
-			serversockets.add(new ServerSocket(port));	//establish ServerSocket
-		} catch (Exception e) {
-			System.out.println("Port unavailable");
-			e.printStackTrace();
-			System.exit(0);
-		}
-		chunkservers.add(s);
-		System.out.println("New Chunkserver Port Connection Created");
-		ChunkserverHandler ch = new ChunkserverHandler(this, serversockets.get(serversockets.size()-1));
-		threadHandlers.add(ch);
-		new Thread(ch).start();
-		//cth = new ChunkserverHandler(this, );	//new Thread to handle new or rebooting chunkservers
-		//new Thread(cth).start();
-	}
+	
 
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
@@ -213,12 +138,6 @@ public class Master {
 			message.append(entry.getKey());
 			message.append("$");
 		}
-		try{
-			// **look up output stream for this port
-			output.write(String.valueOf(message).getBytes());
-		}catch(Exception e){
-
-		}
 	}
 	// **this will be a critical section of code for race conditions
 	boolean getPrimaryLease(long chunkhandle, int chunkserverID, int port){
@@ -243,12 +162,6 @@ public class Master {
 			message.append("$");
 		}
 
-		try{
-			// **look up output stream for this port
-			output.write(String.valueOf(message).getBytes());
-		}catch(Exception e){
-
-		}
 		return false;
 	}
 	void makeLogRecord(String fileOrDirectoryName, boolean type, boolean stage){

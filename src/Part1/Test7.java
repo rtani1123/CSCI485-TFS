@@ -2,8 +2,6 @@ package Part1;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-
-import Utilities.Node;
 import Utilities.TreeStorage;
 
 /*Test 7:  Count the number of logical files stored in a TFS file using Test6 and printout the results.
