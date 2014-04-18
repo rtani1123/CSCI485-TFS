@@ -12,6 +12,7 @@ public interface ChunkserverInterface extends Remote{
 	public ArrayList<CSMetadata> refreshMetadata() throws RemoteException;
 	public void primaryLease(String chunkhandle) throws RemoteException;
 	public boolean createFile(String chunkhandle) throws RemoteException;
+	public boolean createDirectory(String chunkhandle) throws RemoteException;
 	public boolean deleteFile(String chunkhandle) throws RemoteException;
 	public boolean deleteDirectory(String chunkhandle) throws RemoteException;
 	//functions called by the client
