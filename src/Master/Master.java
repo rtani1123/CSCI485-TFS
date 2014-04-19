@@ -5,8 +5,10 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 //import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
@@ -21,6 +23,7 @@ public class Master {
 	Tree directory;
 	Semaphore stateChange;
     private MasterThread masterThread;
+    List<String> tasks;
 
 	public Master() {
 		directory = new Tree();
@@ -30,8 +33,12 @@ public class Master {
 		//setupMasterClientServer();
 		//System.out.println("2");
 		stateChange = new Semaphore(1, true); // binary semaphore
+		tasks = Collections.synchronizedList(new ArrayList<String>());
 	}
 	
+	/*
+	 * Threading code 
+	 * */
     protected void stateChanged() {
     	stateChange.release();
     }
@@ -230,7 +237,6 @@ public class Master {
 		String fullPath;
 		Map<Integer,Long> replicas;
 
-
 		protected Metadata(String fullPath){
 			this.fullPath = fullPath;
 			replicas = new HashMap<Integer,Long>();
@@ -295,13 +301,8 @@ public class Master {
 			while (goOn) {
 				try {
 	                    stateChange.acquire();
-	                    //The next while clause is the key to the control flow.
-	                    //When the agent wakes up it will call respondToStateChange()
-	                    //repeatedly until it returns FALSE.
-	                    //You will see that pickAndExecuteAnAction() is the agent scheduler.
 	                    while (pickAndExecuteAnAction()) ;
 				} catch (InterruptedException e) {
-				// no action - expected when stopping or when deadline changed
 				} catch (Exception e) {
 					System.out.println("Unexpected exception caught in Agent thread:" + e);
 				}
