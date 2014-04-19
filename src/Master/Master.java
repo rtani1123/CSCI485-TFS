@@ -22,8 +22,8 @@ public class Master {
 	HashMap<String,Metadata> files;
 	Tree directory;
 	Semaphore stateChange;
-    private MasterThread masterThread;
-    List<String> tasks;
+	private MasterThread masterThread;
+	List<String> tasks;
 
 	public Master() {
 		directory = new Tree();
@@ -35,34 +35,34 @@ public class Master {
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<String>());
 	}
-	
+
 	/*
-	 * Threading code 
+	 * Threading code
 	 * */
-    protected void stateChanged() {
-    	stateChange.release();
-    }
-	
-    public synchronized void startThread() {
+	protected void stateChanged() {
+		stateChange.release();
+	}
+
+	public synchronized void startThread() {
 		if (masterThread == null) {
 			masterThread = new MasterThread();
 			masterThread.start(); // initiates run method in masterThread
-	    } else {
-	    	masterThread.interrupt();
-	    }
+		} else {
+			masterThread.interrupt();
+		}
 	}
 
-    public void stopThread() {
+	public void stopThread() {
 		if (masterThread != null) {
 			masterThread.stopAgent();
 			masterThread = null;
-	    }
+		}
 	}
-    
-    protected boolean pickAndExecuteAnAction(){
-    	// scheduler checks, return true if something to do
-    	return false;
-    }
+
+	protected boolean pickAndExecuteAnAction(){
+		// scheduler checks, return true if something to do
+		return false;
+	}
 
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
@@ -127,7 +127,7 @@ public class Master {
 		//if doesn’t exist, notify client
 		//add delete timestamp to logs
 		//search B Tree to find replicas with this file
-		//rename files (tag for deletion)   
+		//rename files (tag for deletion)  
 		//message chunkservers:
 		//Chunkservers.write(“delete absoluteFileName”);
 		//delete entry from metadata.
@@ -175,7 +175,7 @@ public class Master {
 	}
 	// **this will be a critical section of code for race conditions
 	boolean getPrimaryLease(long chunkhandle, int chunkserverID, int port){
-		// check to see if a primary lease has been issued 
+		// check to see if a primary lease has been issued
 
 		StringBuffer message = new StringBuffer();
 		// check if lease has expired
@@ -225,7 +225,7 @@ public class Master {
 	// One metadata instance per file
 	protected class Metadata {
 		/*
-		 * 
+		 *
 		 * full path
 		 * location of replicas on chunkservers
 		 * int IDs of chunkservers with primary lease
@@ -285,23 +285,23 @@ public class Master {
 		}
 	}
 
-	
-	
-	
+
+
+
 	private class MasterThread extends Thread {
 		private volatile boolean goOn = false;
-		
+
 		private MasterThread() {
-			
+
 		}
 
 		public void run() {
 			goOn = true;
-			
+
 			while (goOn) {
 				try {
-	                    stateChange.acquire();
-	                    while (pickAndExecuteAnAction()) ;
+					stateChange.acquire();
+					while (pickAndExecuteAnAction()) ;
 				} catch (InterruptedException e) {
 				} catch (Exception e) {
 					System.out.println("Unexpected exception caught in Agent thread:" + e);
