@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 import Utilities.Tree;
 
@@ -18,17 +19,43 @@ public class Master {
 	final static long MINUTE = 60000;
 	HashMap<String,Metadata> files;
 	Tree directory;
+	Semaphore stateChange;
+    private MasterThread masterThread;
 
 	public Master() {
 		directory = new Tree();
-
 		files = new HashMap<String,Metadata>();
 
 		//System.out.println("1");
 		//setupMasterClientServer();
 		//System.out.println("2");
+		stateChange = new Semaphore(1, true); // binary semaphore
 	}
 	
+    protected void stateChanged() {
+    	stateChange.release();
+    }
+	
+    public synchronized void startThread() {
+		if (masterThread == null) {
+			masterThread = new MasterThread();
+			masterThread.start(); // initiates run method in masterThread
+	    } else {
+	    	masterThread.interrupt();
+	    }
+	}
+
+    public void stopThread() {
+		if (masterThread != null) {
+			masterThread.stopAgent();
+			masterThread = null;
+	    }
+	}
+    
+    protected boolean pickAndExecuteAnAction(){
+    	// scheduler checks, return true if something to do
+    	return false;
+    }
 
 	public boolean createFile(String path, String fileName, int numReplicas) {
 		// check for name collision and valid path
@@ -252,4 +279,38 @@ public class Master {
 		}
 	}
 
+	
+	
+	
+	private class MasterThread extends Thread {
+		private volatile boolean goOn = false;
+		
+		private MasterThread() {
+			
+		}
+
+		public void run() {
+			goOn = true;
+			
+			while (goOn) {
+				try {
+	                    stateChange.acquire();
+	                    //The next while clause is the key to the control flow.
+	                    //When the agent wakes up it will call respondToStateChange()
+	                    //repeatedly until it returns FALSE.
+	                    //You will see that pickAndExecuteAnAction() is the agent scheduler.
+	                    while (pickAndExecuteAnAction()) ;
+				} catch (InterruptedException e) {
+				// no action - expected when stopping or when deadline changed
+				} catch (Exception e) {
+					System.out.println("Unexpected exception caught in Agent thread:" + e);
+				}
+			}
+		}
+
+		private void stopAgent() {
+			goOn = false;
+			this.interrupt();
+		}
+	}
 }
