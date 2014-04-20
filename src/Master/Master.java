@@ -31,15 +31,12 @@ public class Master implements MasterInterface{
 	List<Task> tasks;
 	public enum TaskType {createF, deleteF, createD, deleteD, append, aAppend, heartbeat};
 	ClientInterface client;
-	ChunkserverInterface CS1;
+	HashMap<Integer, ChunkserverInterface> chunkservers;
 
 	public Master() {
 		directory = new Tree();
+		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		files = Collections.synchronizedMap(new HashMap<String,Metadata>());
-
-		//System.out.println("1");
-		//setupMasterClientServer();
-		//System.out.println("2");
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 	}
@@ -160,42 +157,118 @@ public class Master implements MasterInterface{
 	//functions called by the client
 	public void createFileA(String path, String fileName, int numReplicas, int clientID) throws RemoteException
 	{
-		
+		Node file = directory.root.find(directory.pathTokenizer(path), 1);	
+		if (file != null){
+			//if the file exists, we return an error
+			client.requestStatus("createFile", path + "/" + fileName, false, -1);
+		}
+		else{
+			//pick the number of replicas
+			ArrayList<Integer> CSLocations = new ArrayList<Integer>();
+			if (numReplicas == 3){
+				//all of the chunkservers get the file
+				CSLocations.add(1);
+				CSLocations.add(2);
+				CSLocations.add(3);
+			}
+			else{
+				//randomly pick the chunkservers to have the file
+				int count = 0;
+				Random rands = new Random();
+				while (count < numReplicas){
+					int CS = rands.nextInt() % chunkservers.size();
+					if (!CSLocations.contains(CS)){
+						count++;
+						CSLocations.add(CS);
+					}
+				}
+			}
+			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
+				System.out.println("Successful add to tree. Requesting file create from CS.");
+				for(Integer CS : CSLocations){
+					chunkservers.get(CS).createFile(path + "/" + fileName);
+				}
+				client.requestStatus("createFile", path + "/" + fileName, true, -1);
+			}
+			else{
+				System.out.println("Element addition to file system failed. Invalid path.");
+				client.requestStatus("createFile", path + "/" + fileName, false, -1);
+			}
+		}
+	
 	}
 	
 	public void deleteFileMasterA(String chunkhandle, int clientID) throws RemoteException
 	{
-		
+		Node file = directory.root.find(directory.pathTokenizer(chunkhandle),1);
+		if(file == null){
+			System.err.println("Nonexistent path " + chunkhandle);
+			client.requestStatus("deleteFile", chunkhandle, false, -1);
+		}
+		else if(directory.removeElement(directory.pathTokenizer(chunkhandle)))
+		{
+			for(Integer CS : file.chunkServersNum){
+				chunkservers.get(CS).deleteDirectory(chunkhandle);
+			}
+			client.requestStatus("deleteFile", chunkhandle, true, -1);
+		}
+		else
+		{
+			System.out.println("Delete unsuccessful. Item not found.");
+			client.requestStatus("deleteFile", chunkhandle, false, -1);
+		}
 	}
 	
-	public void createDirectoryA(String path, int clientID) throws RemoteException
-	{
-		
-
+	public void createDirectoryA(String path, int clientID) throws RemoteException{
+		Node newDir = directory.root.find(directory.pathTokenizer(path), 1);	
+		if (newDir != null){
+			//if the directory exists, we return an error
+			client.requestStatus("createDirectory", path, false, -1);
+		}
+		else{
+			for(int CS = 1; CS <= chunkservers.size(); CS++){
+				chunkservers.get(CS).createFile(path);
+			}
+			client.requestStatus("createDirectory", path, true, -1);
+		}
 	}
 	
 	public void deleteDirectoryA(String path, int clientID) throws RemoteException
 	{
-		
+		Node file = directory.root.find(directory.pathTokenizer(path),1);
+		if(file == null){
+			System.err.println("Nonexistent directory " + path);
+			client.requestStatus("deleteDirectory", path, false, -1);
+		}
+		else if(directory.removeElement(directory.pathTokenizer(path)))
+		{
+			for(Integer CS : file.chunkServersNum){
+				chunkservers.get(CS).deleteDirectory(path);
+			}
+			client.requestStatus("deleteFile", path, true, -1);
+		}
+		else
+		{
+			System.out.println("Delete unsuccessful. Item not found.");
+			client.requestStatus("deleteDirectory", path, false, -1);
+		}		
 	}
 	
 	public void appendA(String chunkhandle, int clientID) throws RemoteException
 	{
-		ArrayList<String> chunkhandles = new ArrayList<String>();
-		chunkhandles.add(chunkhandle);
-		Node file = directory.root.find(chunkhandles, 1);
+		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		if(file == null)
 		{
-			client.requestStatus("atomicAppend", chunkhandle, false, -1);
+			client.requestStatus("append", chunkhandle, false, -1);
 		}
-		client.passMetaData(chunkhandle, -1, file.chunkServersNum);
+		else{
+			client.passMetaData(chunkhandle, -1, file.chunkServersNum);
+		}
 	}
 	
 	public void atomicAppendA(String chunkhandle, int clientID) throws RemoteException
 	{
-		ArrayList<String> chunkhandles = new ArrayList<String>();
-		chunkhandles.add(chunkhandle);
-		Node file = directory.root.find(chunkhandles, 1);
+		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		if(file == null)
 		{
 			client.requestStatus("atomicAppend", chunkhandle, false, -1);
@@ -216,7 +289,7 @@ public class Master implements MasterInterface{
 	public void heartbeatA(int CSID) throws RemoteException
 	{
 		//this function is called when the chunkserver comes back online and an update is required
-		
+		chunkservers.get(CSID).refreshMetadata();
 	}
 
 	public static void main(String[] args) {
@@ -285,8 +358,6 @@ public class Master implements MasterInterface{
 			return replicas;
 		}
 	}
-
-
 
 
 	private class MasterThread extends Thread {
