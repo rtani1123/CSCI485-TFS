@@ -3,13 +3,12 @@ package Interfaces;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-
-import Chunkserver.CSMetadata;
+import java.util.Map;
 
 
 public interface ChunkserverInterface extends Remote{
 	//functions called by the master
-	public ArrayList<CSMetadata> refreshMetadata() throws RemoteException;
+	public Map<String, Long> refreshMetadata() throws RemoteException;
 	public void primaryLease(String chunkhandle) throws RemoteException;
 	public boolean createFile(String chunkhandle) throws RemoteException;
 	public boolean createDirectory(String chunkhandle) throws RemoteException;
