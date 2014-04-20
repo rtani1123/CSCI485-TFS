@@ -40,7 +40,7 @@ public class Client implements ClientInterface{
 
 
 	@Override
-	public void passMetaData(int chunkhandle, int ID,
+	public void passMetaData(String chunkhandle, int ID,
 			ArrayList<Integer> chunkservers) {
 		// TODO Auto-generated method stub
 		

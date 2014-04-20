@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
+import Interfaces.ChunkserverInterface;
+import Interfaces.ClientInterface;
 import Utilities.Node;
 import Utilities.Tree;
 
@@ -26,6 +28,8 @@ public class Master {
 	Semaphore stateChange;
 	private MasterThread masterThread;
 	List<String> tasks;
+	ClientInterface client;
+	ChunkserverInterface CS1;
 
 	public Master() {
 		directory = new Tree();
@@ -90,7 +94,14 @@ public class Master {
 	
 	public void appendA(String chunkhandle, int clientID) throws RemoteException
 	{
-
+		ArrayList<String> chunkhandles = new ArrayList<String>();
+		chunkhandles.add(chunkhandle);
+		Node file = directory.root.find(chunkhandles, 1);
+		if(file == null)
+		{
+			client.requestStatus("atomicAppend", chunkhandle, false, -1);
+		}
+		client.passMetaData(chunkhandle, -1, file.chunkServersNum);
 	}
 	
 	public void atomicAppendA(String chunkhandle, int clientID) throws RemoteException
@@ -100,18 +111,18 @@ public class Master {
 		Node file = directory.root.find(chunkhandles, 1);
 		if(file == null)
 		{
-			//message client with an error
+			client.requestStatus("atomicAppend", chunkhandle, false, -1);
 		}
 		else if (file.getPrimaryLeaseTime() < (System.currentTimeMillis() - MINUTE))
 		{
-			//return the existing primary chunkserver to the client
+			client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum);
 		}
 		else
 		{
 			Random randInt = new Random();
 			int randomCS = randInt.nextInt() % file.chunkServersNum.size();
 			file.issuePrimaryLease(file.chunkServersNum.get(randomCS), System.currentTimeMillis());
-			//message the client with the chunkservers
+			client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum);
 		}	
 	}
 
