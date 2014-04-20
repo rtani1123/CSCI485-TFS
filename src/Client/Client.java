@@ -36,9 +36,15 @@ public class Client implements ClientInterface{
 
 
 	@Override
+<<<<<<< HEAD
 	public void passMetaData(int chunkhandle, int ID,ArrayList<Integer> chunkservers) {
 		ClientMetaDataItem temp = new ClientMetaDataItem(chunkhandle, ID,chunkservers);
 		clientMetaDataArray.add(temp);
+=======
+	public void passMetaData(String chunkhandle, int ID,
+			ArrayList<Integer> chunkservers) {
+		// TODO Auto-generated method stub
+>>>>>>> 09192404747381cf90fa70b9f16e3bcf90ee0118
 		
 	}
 

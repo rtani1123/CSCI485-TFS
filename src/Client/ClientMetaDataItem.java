@@ -1,15 +1,15 @@
 package Client;
 
+import java.util.ArrayList;
+
 public class ClientMetaDataItem {
-	long timeStamp;
-	int type;
-	boolean succeeded; 
-	String chunkhandle;
+	int chunkhandle;
+	int ID;
+	ArrayList<Integer> chunkservers;
 	
-	public ClientMetaDataItem(long _timeStamp, int _type, boolean _succeeded, String _chunkhandle){
-		timeStamp = _timeStamp;
-		type = _type;
-		succeeded = _succeeded;
+	public ClientMetaDataItem(int _chunkhandle, int _ID, ArrayList<Integer> _chunkservers){
 		chunkhandle = _chunkhandle;
+		ID = _ID;
+		chunkservers = _chunkservers;
 	}
 }
