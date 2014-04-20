@@ -10,6 +10,7 @@ public interface MasterInterface extends Remote {
 	public void deleteDirectory(String path, int clientID) throws RemoteException;
 	public void append(String chunkhandle, int clientID) throws RemoteException;
 	public void atomicAppend(String chunkhandle, int clientID) throws RemoteException;
+	public void read(String chunkhandle, int clientID) throws RemoteException;
 	//functions called by the chunkserver
 	public void heartbeat(int CSID) throws RemoteException;
 }
