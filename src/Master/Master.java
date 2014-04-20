@@ -18,25 +18,27 @@ import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Utilities.Node;
 import Utilities.Tree;
+import Interfaces.MasterInterface;
 
-public class Master {
+public class Master implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	HashMap<String,Metadata> files;
+	Map<String,Metadata> files;
 	Tree directory;
 	Semaphore stateChange;
 	private MasterThread masterThread;
-	List<String> tasks;
+	List<Task> tasks;
+	public enum TaskType {createF, deleteF, createD, deleteD, append, aAppend, heartbeat};
 	ClientInterface client;
 	HashMap<Integer, ChunkserverInterface> chunkservers;
 
 	public Master() {
 		directory = new Tree();
-		files = new HashMap<String,Metadata>();
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
+		files = Collections.synchronizedMap(new HashMap<String,Metadata>());
 		stateChange = new Semaphore(1, true); // binary semaphore
-		tasks = Collections.synchronizedList(new ArrayList<String>());
+		tasks = Collections.synchronizedList(new ArrayList<Task>());
 	}
 
 	/*
@@ -61,9 +63,95 @@ public class Master {
 			masterThread = null;
 		}
 	}
+	
+	/*
+	 * Messages from Clients or Chunkservers
+	 * */
+	
+	public void createFile(String path, String fileName, int numReplicas,
+			int clientID) throws RemoteException {
+		tasks.add(new Task(TaskType.createF,path,fileName,numReplicas,clientID));
+		stateChanged();
+	}
+
+	public void deleteFileMaster(String chunkhandle, int clientID)
+			throws RemoteException {
+		tasks.add(new Task(TaskType.deleteF,chunkhandle,clientID));
+		stateChanged();
+	}
+
+	public void createDirectory(String path, int clientID)
+			throws RemoteException {
+		tasks.add(new Task(TaskType.createD,path,clientID));
+		stateChanged();
+	}
+	public void deleteDirectory(String path, int clientID)
+			throws RemoteException {
+		tasks.add(new Task(TaskType.deleteD,path,clientID));
+		stateChanged();
+	}
+
+	public void append(String chunkhandle, int clientID) throws RemoteException {
+		tasks.add(new Task(TaskType.append,chunkhandle,clientID));
+		stateChanged();
+	}
+
+	public void atomicAppend(String chunkhandle, int clientID)
+			throws RemoteException {
+		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID));
+		stateChanged();
+	}
+
+	public void heartbeat(int CSID) throws RemoteException {
+		tasks.add(new Task(TaskType.heartbeat,CSID));
+		stateChanged();
+	}
 
 	protected boolean pickAndExecuteAnAction(){
 		// scheduler checks, return true if something to do
+		if(tasks.size() != 0){
+			try{
+			if(tasks.get(0).getType() == TaskType.createF){
+				createFileA(tasks.get(0).getPath(), tasks.get(0).getFileName(), tasks.get(0).getNumReplicas(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.deleteF){
+				deleteFileMasterA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.createD){
+				createDirectoryA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.deleteD){
+				deleteDirectoryA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.append){
+				appendA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.aAppend){
+				atomicAppendA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.heartbeat){
+				heartbeatA(tasks.get(0).getCSID());
+				tasks.remove(0);
+				return true;
+			}
+			}catch (RemoteException e){
+				System.out.println("Remote Exception connecting from Master.");
+				e.printStackTrace();
+			}
+		}
+		
 		return false;
 	}
 	
@@ -297,6 +385,59 @@ public class Master {
 		private void stopAgent() {
 			goOn = false;
 			this.interrupt();
+		}
+	}
+	
+	// Master creates a Task when receiving a message from a client or CS
+	// Master queues Tasks and uses this class to call actions 
+	private class Task{
+		String path;	// same as chunkhandle for some calls
+		String fileName;
+		int numReplicas;
+		int CSID;
+		int clientID;
+		TaskType type;
+		
+		// called by createFile
+		public Task(TaskType type, String path, String fileName, int numReplicas, int clientID){
+			this.type = type;
+			this.path = path;
+			this.fileName = fileName;
+			this.numReplicas = numReplicas;
+			this.clientID = clientID;
+		}
+		
+		// called by deleteFile, append, createDirectory, deleteDirectory, and atomicAppend 
+		public Task(TaskType type, String path, int clientID){
+			this.type = type;
+			this.path = path;
+			this.clientID = clientID;
+		}
+		
+		// called by heartbeat
+		public Task(TaskType type, int CSID){
+			this.type = type;
+			this.CSID = CSID;
+		}
+
+		// Getters
+		public int getClientID() {
+			return clientID;
+		}
+		public int getCSID() {
+			return CSID;
+		}
+		public String getFileName() {
+			return fileName;
+		}
+		public int getNumReplicas() {
+			return numReplicas;
+		}
+		public String getPath() {
+			return path;
+		}
+		public TaskType getType() {
+			return type;
 		}
 	}
 }
