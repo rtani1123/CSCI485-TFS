@@ -33,16 +33,12 @@ public class Client implements ClientInterface{
 		
 	}
 	
-	public void addMetaData(long timeStamp, int type, boolean succeeded, String chunkhandle){
-		ClientMetaDataItem temp = new ClientMetaDataItem(timeStamp, type, succeeded, chunkhandle);
-		clientMetaDataArray.add(temp);
-	}
 
 
 	@Override
-	public void passMetaData(int chunkhandle, int ID,
-			ArrayList<Integer> chunkservers) {
-		// TODO Auto-generated method stub
+	public void passMetaData(int chunkhandle, int ID,ArrayList<Integer> chunkservers) {
+		ClientMetaDataItem temp = new ClientMetaDataItem(chunkhandle, ID,chunkservers);
+		clientMetaDataArray.add(temp);
 		
 	}
 
