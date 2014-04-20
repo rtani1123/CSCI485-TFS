@@ -9,6 +9,8 @@ public class Node implements Serializable{
 	Map<String, Node> children =new HashMap<>();
 	Node parent = null;
 	public String name="";
+	int primaryChunkserverID = -1;
+	long primaryLeaseIssueTime = -1;
 	
 	public ArrayList<Integer> chunkServersNum = new ArrayList<>();
 	
@@ -19,6 +21,7 @@ public class Node implements Serializable{
 			return children.get(paths.get(i)).find(paths, i+1);
 		return null;
 	}
+	
 	public String getPath(){
 		String fullPath="";
 		if(this.parent!=null)
@@ -26,5 +29,18 @@ public class Node implements Serializable{
 		else 
 			fullPath =this.name;
 		return fullPath;
+	}
+	
+	public void issuePrimaryLease(int CSID, long time){
+		primaryChunkserverID = CSID;
+		primaryLeaseIssueTime = time;
+	}
+	
+	public int getPrimaryChunkserver(){
+		return primaryChunkserverID;
+	}
+	
+	public long getPrimaryLeaseTime(){
+		return primaryLeaseIssueTime;
 	}
 }

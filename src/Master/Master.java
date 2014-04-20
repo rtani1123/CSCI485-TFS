@@ -4,6 +4,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 //import java.util.Date;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
+import Utilities.Node;
 import Utilities.Tree;
 
 public class Master {
@@ -62,6 +64,61 @@ public class Master {
 	protected boolean pickAndExecuteAnAction(){
 		// scheduler checks, return true if something to do
 		return false;
+	}
+	
+	//functions called by the client
+	public void createFileA(String path, String fileName, int numReplicas, int clientID) throws RemoteException
+	{
+		
+	}
+	
+	public void deleteFileMasterA(String chunkhandle, int clientID) throws RemoteException
+	{
+		
+	}
+	
+	public void createDirectoryA(String path, int clientID) throws RemoteException
+	{
+		
+
+	}
+	
+	public void deleteDirectoryA(String path, int clientID) throws RemoteException
+	{
+		
+	}
+	
+	public void appendA(String chunkhandle, int clientID) throws RemoteException
+	{
+
+	}
+	
+	public void atomicAppendA(String chunkhandle, int clientID) throws RemoteException
+	{
+		ArrayList<String> chunkhandles = new ArrayList<String>();
+		chunkhandles.add(chunkhandle);
+		Node file = directory.root.find(chunkhandles, 1);
+		if(file == null)
+		{
+			//message client with an error
+		}
+		else if (file.getPrimaryLeaseTime() < (System.currentTimeMillis() - MINUTE))
+		{
+			//return the existing primary chunkserver to the client
+		}
+		else
+		{
+			Random randInt = new Random();
+			int randomCS = randInt.nextInt() % file.chunkServersNum.size();
+			file.issuePrimaryLease(file.chunkServersNum.get(randomCS), System.currentTimeMillis());
+			//message the client with the chunkservers
+		}	
+	}
+
+	public void heartbeatA(int CSID) throws RemoteException
+	{
+		//this function is called when the chunkserver comes back online and an update is required
+		
 	}
 
 	public static void main(String[] args) {
