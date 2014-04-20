@@ -29,7 +29,7 @@ public class Master implements MasterInterface{
 	Semaphore stateChange;
 	private MasterThread masterThread;
 	List<Task> tasks;
-	public enum TaskType {createF, deleteF, createD, deleteD, append, aAppend, heartbeat};
+	public enum TaskType {createF, deleteF, createD, deleteD, append, aAppend, read, heartbeat};
 	ClientInterface client;
 	HashMap<Integer, ChunkserverInterface> chunkservers;
 
@@ -101,6 +101,11 @@ public class Master implements MasterInterface{
 		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID));
 		stateChanged();
 	}
+	
+	public void read(String chunkhandle, int clientID) throws RemoteException{
+		tasks.add(new Task(TaskType.read,chunkhandle,clientID));
+		stateChanged();
+	}
 
 	public void heartbeat(int CSID) throws RemoteException {
 		tasks.add(new Task(TaskType.heartbeat,CSID));
@@ -138,6 +143,11 @@ public class Master implements MasterInterface{
 			}
 			else if(tasks.get(0).getType() == TaskType.aAppend){
 				atomicAppendA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+				tasks.remove(0);
+				return true;
+			}
+			else if(tasks.get(0).getType() == TaskType.read){
+				readA(tasks.get(0).getPath(), tasks.get(0).getClientID());
 				tasks.remove(0);
 				return true;
 			}
@@ -286,6 +296,10 @@ public class Master implements MasterInterface{
 		}	
 	}
 
+	public void readA(String chunkhandle, int clientID) throws RemoteException{
+		
+	}
+	
 	public void heartbeatA(int CSID) throws RemoteException
 	{
 		//this function is called when the chunkserver comes back online and an update is required
