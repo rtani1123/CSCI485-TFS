@@ -154,7 +154,6 @@ public class Master implements MasterInterface{
 				e.printStackTrace();
 			}
 		}
-		
 		return false;
 	}
 	
