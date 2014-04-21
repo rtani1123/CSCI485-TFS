@@ -4,6 +4,8 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Scanner;
 
 import Interfaces.TestInterface;
@@ -32,7 +34,9 @@ public class TestClient{
 		// TODO Auto-generated method stub
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			ai = (TestInterface)Naming.lookup("rmi://localhost:1099/ABC");
+			
+			//Registry registry = LocateRegistry.createRegistry(1099);
+			ai = (TestInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/ABC");
 			
 		} catch(RemoteException e) {
 			System.out.println("server unavailable");
