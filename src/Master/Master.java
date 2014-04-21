@@ -100,6 +100,11 @@ public class Master implements MasterInterface{
 		stateChanged();
 	}
 
+	public void read(String chunkhandle, int clientID) throws RemoteException{
+		tasks.add(new Task(TaskType.read,chunkhandle,clientID));
+		stateChanged();
+	}
+
 	public void heartbeat(int CSID) throws RemoteException {
 		tasks.add(new Task(TaskType.heartbeat,CSID));
 		stateChanged();
@@ -149,12 +154,12 @@ public class Master implements MasterInterface{
 					tasks.remove(0);
 					return true;
 				}
-			}catch (RemoteException e){
+			}
+			catch (RemoteException e){
 				System.out.println("Remote Exception connecting from Master.");
 				e.printStackTrace();
 			}
 		}
-
 		return false;
 	}
 
@@ -480,13 +485,6 @@ public class Master implements MasterInterface{
 		}	
 	}
 
-	/**
-	 * The function heartbeatA is called when a chunkserver comes back online after
-	 * an absence. Master requests a list of the entire contents of the chunkserver
-	 * and uses this to handle updating the chunkserver data.
-	 * @param CSID
-	 * @throws RemoteException
-	 */
 	public void heartbeatA(int CSID) throws RemoteException
 	{
 		//this function is called when the chunkserver comes back online and an update is required
