@@ -89,19 +89,19 @@ public class Master implements MasterInterface{
 		stateChanged();
 	}
 
-	public void append(String chunkhandle, int clientID) throws RemoteException {
-		tasks.add(new Task(TaskType.append,chunkhandle,clientID));
+	public void append(String chunkhandle, int clientID, int reqID) throws RemoteException {
+		tasks.add(new Task(TaskType.append,chunkhandle,clientID, reqID));
 		stateChanged();
 	}
 
-	public void atomicAppend(String chunkhandle, int clientID)
+	public void atomicAppend(String chunkhandle, int clientID, int reqID)
 			throws RemoteException {
-		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID));
+		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID,reqID));
 		stateChanged();
 	}
 
-	public void read(String chunkhandle, int clientID) throws RemoteException{
-		tasks.add(new Task(TaskType.read,chunkhandle,clientID));
+	public void read(String chunkhandle, int clientID, int reqID) throws RemoteException{
+		tasks.add(new Task(TaskType.read,chunkhandle,clientID,reqID));
 		stateChanged();
 	}
 
@@ -135,17 +135,17 @@ public class Master implements MasterInterface{
 					return true;
 				}
 				else if(tasks.get(0).getType() == TaskType.append){
-					appendA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+					appendA(tasks.get(0).getPath(), tasks.get(0).getClientID(), tasks.get(0).getReqID());
 					tasks.remove(0);
 					return true;
 				}
 				else if(tasks.get(0).getType() == TaskType.aAppend){
-					atomicAppendA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+					atomicAppendA(tasks.get(0).getPath(), tasks.get(0).getClientID(), tasks.get(0).getReqID());
 					tasks.remove(0);
 					return true;
 				}
 				else if(tasks.get(0).getType() == TaskType.read){
-					readA(tasks.get(0).getPath(), tasks.get(0).getClientID());
+					readA(tasks.get(0).getPath(), tasks.get(0).getClientID(), tasks.get(0).getReqID());
 					tasks.remove(0);
 					return true;
 				}
@@ -382,7 +382,7 @@ public class Master implements MasterInterface{
 	 * @param clientID
 	 * @throws RemoteException
 	 */
-	public void appendA(String chunkhandle, int clientID) throws RemoteException
+	public void appendA(String chunkhandle, int clientID, int reqID) throws RemoteException
 	{
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		if(file == null)
@@ -396,7 +396,7 @@ public class Master implements MasterInterface{
 		}
 		else{
 			try{
-				client.passMetaData(chunkhandle, -1, file.chunkServersNum);
+				client.passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -412,7 +412,7 @@ public class Master implements MasterInterface{
 	 * @param clientID
 	 * @throws RemoteException
 	 */
-	public void readA(String chunkhandle, int clientID) throws RemoteException {
+	public void readA(String chunkhandle, int clientID, int reqID) throws RemoteException {
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		if(file == null)
 		{
@@ -425,7 +425,7 @@ public class Master implements MasterInterface{
 		}
 		else{
 			try{
-				client.passMetaData(chunkhandle, -1, file.chunkServersNum);
+				client.passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -443,7 +443,7 @@ public class Master implements MasterInterface{
 	 * @param clientID
 	 * @throws RemoteException
 	 */
-	public void atomicAppendA(String chunkhandle, int clientID) throws RemoteException
+	public void atomicAppendA(String chunkhandle, int clientID, int reqID) throws RemoteException
 	{
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		if(file == null)
@@ -458,7 +458,7 @@ public class Master implements MasterInterface{
 		else if (file.getPrimaryLeaseTime() < (System.currentTimeMillis() - MINUTE))
 		{
 			try{
-				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum);
+				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -470,7 +470,7 @@ public class Master implements MasterInterface{
 			int randomCS = randInt.nextInt() % file.chunkServersNum.size();
 			file.issuePrimaryLease(file.chunkServersNum.get(randomCS), System.currentTimeMillis());
 			try{
-				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum);
+				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -530,14 +530,20 @@ public class Master implements MasterInterface{
 			this.interrupt();
 		}
 	}
-
-	// Master creates a Task when receiving a message from a client or CS
-	// Master queues Tasks and uses this class to call actions 
+	
+/**
+ * The Task class is used for master to keep track of what is necessary
+ * to process a request.
+ * Master creates a Task when receiving a message from a client or CS
+ * Master queues Tasks and uses this class to call actions 
+ * 
+ */
 	private class Task{
 		String path;	// same as chunkhandle for some calls
 		String fileName;
 		int numReplicas;
 		int CSID;
+		int reqID;
 		int clientID;
 		TaskType type;
 
@@ -550,11 +556,20 @@ public class Master implements MasterInterface{
 			this.clientID = clientID;
 		}
 
-		// called by deleteFile, append, createDirectory, deleteDirectory, and atomicAppend 
+		// called by read, append, and atomicAppend 
+		public Task(TaskType type, String path, int clientID, int reqID){
+			this.type = type;
+			this.path = path;
+			this.clientID = clientID;
+			this.reqID = reqID;
+		}
+		
+		// called by deleteFile, createDirectory, deleteDirectory
 		public Task(TaskType type, String path, int clientID){
 			this.type = type;
 			this.path = path;
 			this.clientID = clientID;
+			this.reqID = -1;
 		}
 
 		// called by heartbeat
@@ -581,6 +596,9 @@ public class Master implements MasterInterface{
 		}
 		public TaskType getType() {
 			return type;
+		}
+		public int getReqID(){
+			return reqID;
 		}
 	}
 }
