@@ -6,14 +6,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Node implements Serializable{
-	Map<String, Node> children =new HashMap<>();
+	Map<String, Node> children;
 	Node parent = null;
 	public String name="";
 	int primaryChunkserverID = -1;
 	long primaryLeaseIssueTime = -1;
 	
-	public ArrayList<Integer> chunkServersNum = new ArrayList<>();
+	public ArrayList<Integer> chunkServersNum;
 	
+	public Node(){
+		chunkServersNum = new ArrayList<Integer>();
+		children = new HashMap<String, Node>();
+	}
+	
+	//i should be 1 always!
 	public Node find (ArrayList<String> paths, int i){
 		if (paths.size() == i)
 			return this;

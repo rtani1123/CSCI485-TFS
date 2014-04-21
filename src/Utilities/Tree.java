@@ -61,8 +61,11 @@ public class Tree implements Serializable {
 			Node newFile = new Node();
 			newFile.name = paths.get(paths.size()-1);
 			newFile.parent = x;
+			for(Integer CS: chunckServersNum){
+				Integer copiedInt = new Integer(CS);
+				newFile.chunkServersNum.add(copiedInt);
+			}
 			x.children.put(newFile.name, newFile);
-			x.chunkServersNum = chunckServersNum;
 		}
 
 		return true;
