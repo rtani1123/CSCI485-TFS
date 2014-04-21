@@ -26,6 +26,7 @@ public class Request {
 		fullPath = _fp;
 		ID = _id;
 		state = rState.SentToMaster;
+		chunkservers = new ArrayList<Integer>();
 	}
 	
 	// called by read method in Client if location already stored
@@ -34,16 +35,23 @@ public class Request {
 		fullPath = _fp;
 		ID = _id;
 		state = rState.ReceivedLocations;
+		chunkservers = new ArrayList<Integer>();
 		for (int i = 0; i < cs.size(); i++) {
-			int z = (int) cs.get(i);
-			chunkservers.add(z);
+			chunkservers.add(cs.get(i));
 		}
 	}
 	
+	// make deep copy of replicas
 	public void setCS (ArrayList<Integer> cs) {
+		// empty list of chunkservers if not empty
+		if(chunkservers.size() != 0){
+			for(int i = 0; i < chunkservers.size(); i++){
+				chunkservers.remove(i);
+			}
+		}
+		// deep copy into list of chunkservers
 		for (int i = 0; i < cs.size(); i++) {
-			int z = (int) cs.get(i);
-			chunkservers.add(z);
+			chunkservers.add(cs.get(i));
 		}
 	}
 	

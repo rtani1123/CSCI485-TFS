@@ -16,20 +16,21 @@ import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 
 public class Client implements ClientInterface{
-	ArrayList<ClientMetaDataItem> clientMetaDataArray;
-	List<ChunkserverInterface> chunkservers;
-	List<Request> pendingRequests;
-	int clientID;
-	MasterInterface master;
-	int count;
-	Semaphore countLock = new Semaphore (1, true);
+	ArrayList<ClientMetaDataItem> clientMetaDataArray;		// locations of replicas and primary lease
+	List<ChunkserverInterface> chunkservers;				// chunkservers to contact
+	List<Request> pendingRequests;							// application request info for append, atomic append, and read 
+	int clientID;											// ID of this client
+	MasterInterface master;									// master to contact
+	int count;												// used to create unique request IDs
+	Semaphore countLock = new Semaphore (1, true);			// semaphore for creating unique request IDs
 
+	// requestType strings
 	public static final String APPEND = "append";
 	public static final String ATOMIC_APPEND = "atomicAppend";
 	public static final String READ = "read";
 
 
-	// constructor takes an ID for the client
+	// constructor, takes an ID for the client
 	public Client(int ID) {
 		clientMetaDataArray = new ArrayList<ClientMetaDataItem>();	
 		pendingRequests = Collections.synchronizedList(new ArrayList<Request>());
