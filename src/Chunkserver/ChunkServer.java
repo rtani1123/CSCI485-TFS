@@ -60,7 +60,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			 * For this, the master is hosted on dblab-43.
 			 */
 			myMaster = (MasterInterface) Naming
-					.lookup("rmi://dblab-43.vlab.usc.edu/CSMaster");
+					.lookup("rmi://dblab-29.vlab.usc.edu/CSMaster");
 
 			/*
 			 * ChunkServer FUNCTION HOST implementation
