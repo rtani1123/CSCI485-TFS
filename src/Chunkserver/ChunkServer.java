@@ -20,14 +20,15 @@ import Interfaces.ChunkserverInterface;
 import Interfaces.MasterInterface;
 import Utilities.Tree;
 
-public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
-//	public CSMetadata csmd = new CSMetadata();
+public class ChunkServer extends UnicastRemoteObject implements
+		ChunkserverInterface {
+	// public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
 	MasterInterface myMaster;
-	
+
 	public ChunkServer() throws RemoteException {
 		setupHost();
-		
+
 	}
 
 	public void setupHost() {
@@ -35,37 +36,41 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
 			Naming.rebind("rmi://dblab-18.vlab.usc.edu/MasterCS", this);
-		} catch(MalformedURLException re) {
+		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
 		} catch (RemoteException e) {
 			System.out.println("Bad connection");
 			e.printStackTrace();
-		} catch(Exception e ) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void setupClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			/*format for connection should be "rmi:DOMAIN/ChunkserverID".  ChunkserverID will be different for each instance of Chunkserver
-			 *one detail to mention is that CSMaster will not be the same as MasterCS.  There's actually a completely different call
-			 *for master calling CS functions than CS calling master functions.
-			 *
-			 *For this, the master is hosted on dblab-43.
+			/*
+			 * format for connection should be "rmi:DOMAIN/ChunkserverID".
+			 * ChunkserverID will be different for each instance of Chunkserver
+			 * one detail to mention is that CSMaster will not be the same as
+			 * MasterCS. There's actually a completely different callfor master
+			 * calling CS functions than CS calling master functions.
+			 * 
+			 * For this, the master is hosted on dblab-43.
 			 */
-			myMaster = (MasterInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CSMaster");
-			
+			myMaster = (MasterInterface) Naming
+					.lookup("rmi://dblab-43.vlab.usc.edu/CSMaster");
+
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
-			
-			
-		} catch(Exception re) {
+
+		} catch (Exception re) {
 			re.printStackTrace();
 		}
 	}
+
 	@Override
 	public Map<String, Long> refreshMetadata() throws RemoteException {
 		// TODO Auto-generated method stub
@@ -120,20 +125,20 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			String[] files = null;
 			if (dFile.isDirectory())
 				files = dFile.list();
-			if (dFile.isFile() || (files.length == 0))
-				if (!dFile.delete()){
+			if (dFile.isFile() || (files.length == 0)) {
+				if (!dFile.delete()) {
 					System.out.println("Delete file unsuccessful");
 					return false;
 				}
-				else if (dFile.isDirectory()) {
-					for (int i = 0; i < files.length; i++) {
-						deleteFile(parsedPath + "/" + files[i]);
-					}
-					if (!dFile.delete()){
-						System.out.println("Delete file unsuccessful");
-						return false;
-					}
+			} else if (dFile.isDirectory()) {
+				for (int i = 0; i < files.length; i++) {
+					deleteFile(parsedPath + "/" + files[i]);
 				}
+				if (!dFile.delete()) {
+					System.out.println("Delete file unsuccessful");
+					return false;
+				}
+			}
 
 		} catch (Exception e) {
 			System.out.println("Delete file unsuccessful");
@@ -146,7 +151,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	@Override
 	public boolean deleteDirectory(String chunkhandle) throws RemoteException {
 		if (deleteFile(chunkhandle)) {
-			
+
 		} else {
 			System.out.println("Delete unsuccessful. Item not found.");
 			return false;
@@ -154,13 +159,12 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return true;
 	}
 
-
 	@Override
 	public byte[] read(String chunkhandle, int offset, int length)
 			throws RemoteException {
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
 										// path
-		
+
 		byte[] b = new byte[length];
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "r");
@@ -203,8 +207,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(raf.length());
-			if (withSize)
-			{
+			if (withSize) {
 				ByteBuffer bb = ByteBuffer.allocate(4);
 				bb.putInt(length);
 				byte[] result = bb.array();
@@ -221,6 +224,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		CSMetaData.put(chunkhandle, System.currentTimeMillis());
 		return true;
 	}
+
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
 			int length, boolean withSize, int offset) throws RemoteException {
@@ -236,5 +240,5 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			e.printStackTrace();
 		}
 	}
-	
+
 }
