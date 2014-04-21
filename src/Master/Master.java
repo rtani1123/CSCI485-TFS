@@ -5,11 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +62,21 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 *
 	 * For this, the chunkserver is hosted on dblab-18.
 	 */
+	public void setupHost() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			Registry registry = LocateRegistry.createRegistry(1099);
+			Naming.rebind("rmi://dblab-29.vlab.usc.edu/CSMaster", this);
+		} catch (MalformedURLException re) {
+			System.out.println("Bad connection");
+			re.printStackTrace();
+		} catch (RemoteException e) {
+			System.out.println("Bad connection");
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	public void setupClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
