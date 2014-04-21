@@ -4,18 +4,38 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import Interfaces.ChunkserverInterface;
+import Interfaces.MasterInterface;
 import Utilities.Tree;
 
 public class ChunkServer implements ChunkserverInterface {
 //	public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
+	MasterInterface myMaster;
+	
 	public ChunkServer() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			/*format for connection should be "rmi:DOMAIN/ChunkserverID".  ChunkserverID will be different for each instance of Chunkserver
+			 *one detail to mention is that CSMaster will not be the same as MasterCS.  There's actually a completely different call
+			 *for master calling CS functions than CS calling master functions.
+			 *
+			 *For this, the master is hosted on dblab-43.
+			*/
+			myMaster = (MasterInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/MASTERCS");
+			
+		} catch(Exception re) {
+			System.out.println("Bad connection");
+			re.printStackTrace();
+		}
+		
 	}
 
 	@Override
@@ -177,4 +197,7 @@ public class ChunkServer implements ChunkserverInterface {
 		return false;
 	}
 
+	public static void main(String args[]) {
+		ChunkServer cs = new ChunkServer();
+	}
 }
