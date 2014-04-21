@@ -28,6 +28,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 
 	public ChunkServer() throws RemoteException {
 		setupHost();
+		setupClient();
 
 	}
 
@@ -61,6 +62,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			 */
 			myMaster = (MasterInterface) Naming
 					.lookup("rmi://dblab-29.vlab.usc.edu/CSMaster");
+			myMaster.setupClient();
 
 			/*
 			 * ChunkServer FUNCTION HOST implementation

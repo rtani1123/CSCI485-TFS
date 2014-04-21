@@ -46,7 +46,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 
-		setupClient();
+		setupHost();
 
 	}
 
