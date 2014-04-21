@@ -2,6 +2,7 @@ package Master;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
@@ -45,6 +46,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
+
 
 		setupHost();
 
