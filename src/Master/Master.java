@@ -2,6 +2,7 @@ package Master;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -44,22 +45,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 
 		setupClient();
-//		chunkservers.get(1).createDirectory("C:/Users/rtani/MUAHAHA");
-//		chunkservers.get(1).createFile("C:/Users/rtani/MUAHAHA/killingit.jpg");
-//		chunkservers.get(1).createFile("C:/Users/rtani/MUAHAHA/everyday.jpg");
-//		File inputFile = new File("C:/1/bwp.jpg");
-//		byte [] bunny = new byte[(int)inputFile.length()];
-//		try{
-//			FileInputStream fis = new FileInputStream(inputFile);
-//			fis.read(bunny);
-//			fis.close();
-//		}
-//		catch(Exception e){
-//			e.printStackTrace();
-//		}
-//		chunkservers.get(1).atomicAppend("C:/Users/rtani/MUAHAHA/killingit.jpg", 
-//				bunny, bunny.length, false);
-		chunkservers.get(1).deleteDirectory("C:/Users/rtani/MUAHAHA");
 	}
 
 	/**
