@@ -59,12 +59,12 @@ public class Client implements ClientInterface{
 		}
 	}
 
-	public void append(String chunkhandle) throws RemoteException {
+	public void append(String chunkhandle) throws RemoteException { //if no metadata is stored on the chunkhandle, ask master for locations
 		try {
 			master.append(chunkhandle, clientID);
 			countLock.acquire();
-			Request r = new Request("append", chunkhandle, count);
 			count++;
+			Request r = new Request("append", chunkhandle, count);
 			pendingRequests.add(r);
 			countLock.release();	
 		}
@@ -80,8 +80,8 @@ public class Client implements ClientInterface{
 		try {
 			master.atomicAppend(chunkhandle, clientID);
 			countLock.acquire();
-			Request r = new Request("atomicAppend", chunkhandle, count);
 			count++;
+			Request r = new Request("atomicAppend", chunkhandle, count);
 			pendingRequests.add(r);
 			countLock.release();
 		}
@@ -94,19 +94,36 @@ public class Client implements ClientInterface{
 	}
 
 	public void read(String chunkhandle) throws RemoteException {
-		try {
-			master.read(chunkhandle, clientID);
-			countLock.acquire();
-			Request r = new Request("read", chunkhandle, count);
-			count++;
-			pendingRequests.add(r);
-			countLock.release();
+		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
+		if (index > -1) { //if the index is found, do not contact master.
+			try {
+				countLock.acquire();
+				count++;
+				//this constructor adds the request knowing that it already has the server locations
+				ClientMetaDataItem i = (ClientMetaDataItem) clientMetaDataArray.get(index);
+				Request r = new Request("append", chunkhandle, count, i.chunkservers);
+				pendingRequests.add(r);
+				countLock.release();	
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
-		catch(RemoteException e){
-			e.printStackTrace();
-		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
+		else {
+			try {
+				master.read(chunkhandle, clientID);
+				countLock.acquire();
+				count++;
+				Request r = new Request("read", chunkhandle, count);
+				pendingRequests.add(r);
+				countLock.release();
+			}
+			catch(RemoteException e){
+				e.printStackTrace();
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -121,13 +138,55 @@ public class Client implements ClientInterface{
 
 	}
 
-	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkservers) {
-		ClientMetaDataItem temp = new ClientMetaDataItem(chunkhandle, ID, chunkservers);
-		clientMetaDataArray.add(temp);
+	//Method called by master giving chunkhandle and chunkservers
+	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkservers, int reqID) {
+		//ClientMetaDataItem temp = new ClientMetaDataItem(chunkhandle, ID, chunkservers);
+		//clientMetaDataArray.add(temp);
+
+		//Go through the pendingRequests array to find request with the matching reqID.
+		for (int i = 0; i < pendingRequests.size(); i++) {
+			Request r = pendingRequests.get(i);
+			//if the reqID's are matching
+			if (reqID == r.ID) {
+				r.setCS(chunkservers);
+				r.setReceived();
+				boolean exists = false; //boolean to check if this chunkhandle already exists in the Client's metadata.
+				for (int j = 0; j < clientMetaDataArray.size(); j++) {
+					ClientMetaDataItem c = clientMetaDataArray.get(j);
+					//if the chunkhandle is found, exit the loop
+					if (c.chunkhandle.equals(chunkhandle)) {
+						exists = true;
+						c.setID(ID);  //Update the primary lease in case it is different/ has changed
+						break;
+					}
+				}
+				//if the chunkhandle was not already in the metadata, add it along with its chunkservers
+				if (!exists) {
+					ClientMetaDataItem cmdi = new ClientMetaDataItem(chunkhandle, ID, chunkservers);
+					clientMetaDataArray.add(cmdi);
+				}
+				//once the corresponding ReqID is found, break out of the outer loop.
+				break;
+
+			}
+		}
 
 
 	}
 	//check for chunkhandle
+
+	private int alreadyInClientMetaData(String chunkhandle) {
+		for (int i = 0; i < clientMetaDataArray.size(); i++) {
+			ClientMetaDataItem  c = (ClientMetaDataItem) clientMetaDataArray.get(i);
+			if (chunkhandle.equals(c.chunkhandle)) return i;
+		}
+		return -1;
+	}
+	
+	private void contactChunks(int rID) {
+		Request r;
+		
+	}
 
 
 }
