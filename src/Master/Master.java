@@ -4,7 +4,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
 //import java.util.Date;
@@ -20,7 +23,7 @@ import Utilities.Node;
 import Utilities.Tree;
 import Interfaces.MasterInterface;
 
-public class Master implements MasterInterface{
+public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
@@ -32,13 +35,44 @@ public class Master implements MasterInterface{
 	ClientInterface client;
 	HashMap<Integer, ChunkserverInterface> chunkservers;
 
-	public Master() {
+	public Master() throws RemoteException{
 		directory = new Tree();
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
+		
+		setupClient();
 	}
 
+	/**
+	 * RMI Connection Code
+	 */
+	
+	/**
+	 * The format for connection should be "rmi:DOMAIN/ChunkserverID".  
+	 * ChunkserverID will be different for each instance of Chunkserver.
+	 * MasterCS is NOT the same as CSMaster.  
+	 * MasterCS -> Master calls CS functions;  CS is host of functions.
+	 *
+	 * For this, the chunkserver is hosted on dblab-18.
+	 */
+	public void setupClient() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			ChunkserverInterface tempCS;
+			
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/MasterCS");
+			chunkservers.put(1, tempCS);
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
+			
+			
+		} catch(Exception re) {
+			re.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Threading code
 	 * */
@@ -497,7 +531,12 @@ public class Master implements MasterInterface{
 	}
 
 	public static void main(String[] args) {
-		Master master = new Master();
+		try {
+			Master master = new Master();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
