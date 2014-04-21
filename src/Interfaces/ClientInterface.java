@@ -9,5 +9,10 @@ public interface ClientInterface extends Remote {
 	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkservers, int reqID) throws RemoteException;//chunkhandle, int id of primary, list of chunkservers
 
 	// functions called by application
-	
+	public void createFile(String Path, String fileName, int numReplicas)throws RemoteException;
+	public void deleteFileMaster(String chunkhandle) throws RemoteException;
+	public void deleteDirectory(String path) throws RemoteException;
+	public void append(String chunkhandle, int offset, int length, byte[] data, boolean withSize) throws RemoteException;
+	public void atomicAppend(String chunkhandle, int length, byte[] data, boolean withSize) throws RemoteException;
+	public void read(String chunkhandle, int offset, int length) throws RemoteException;
 }
