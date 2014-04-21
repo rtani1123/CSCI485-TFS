@@ -10,37 +10,53 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import Chunkserver.ChunkServer;
+import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 
 public class Client implements ClientInterface{
-	ArrayList<ClientMetaDataItem> clientMetaDataArray;
-	List<Request> pendingRequests;
-	int clientID;
-	MasterInterface master;
-	int count;
-	Semaphore countLock = new Semaphore (1, true);
+	ArrayList<ClientMetaDataItem> clientMetaDataArray;		// locations of replicas and primary lease
+	List<ChunkserverInterface> chunkservers;				// chunkservers to contact
+	List<Request> pendingRequests;							// application request info for append, atomic append, and read 
+	int clientID;											// ID of this client
+	MasterInterface master;									// master to contact
+	int count;												// used to create unique request IDs
+	Semaphore countLock = new Semaphore (1, true);			// semaphore for creating unique request IDs
 
+	// requestType strings
+	public static final String APPEND = "append";
+	public static final String ATOMIC_APPEND = "atomicAppend";
+	public static final String READ = "read";
+
+
+	// constructor, takes an ID for the client
 	public Client(int ID) {
 		clientMetaDataArray = new ArrayList<ClientMetaDataItem>();	
 		pendingRequests = Collections.synchronizedList(new ArrayList<Request>());
 		clientID = ID;
 		count = 0;
-
+		chunkservers = Collections.synchronizedList(new ArrayList<ChunkserverInterface>());
 	}
 
+	// ***THIS WILL NEED TO BE UPDATED***
+	public void setUpChunkservers() throws RemoteException{
+		chunkservers.add(new ChunkServer());
+		chunkservers.add(new ChunkServer());
+		chunkservers.add(new ChunkServer());
+	}
 
-
-	public void createFile(String Path, String fileName ,int numReplicas)throws RemoteException {
+	// called by the application
+	public void createFile(String Path, String fileName, int numReplicas)throws RemoteException {
 		try {
 			master.createFile(Path, fileName, numReplicas, clientID);
 		}
 		catch(RemoteException e){
 			e.printStackTrace();
 		}
-
 	}
 
+	// called by the application
 	public void deleteFileMaster(String chunkhandle) throws RemoteException {
 		try {
 			master.deleteFileMaster(chunkhandle, clientID);
@@ -50,6 +66,7 @@ public class Client implements ClientInterface{
 		}
 	}	
 
+	// called by the application
 	public void deleteDirectory(String path) throws RemoteException {
 		try {
 			master.deleteDirectory(path, clientID);
@@ -59,12 +76,17 @@ public class Client implements ClientInterface{
 		}
 	}
 
-	public void append(String chunkhandle) throws RemoteException { //if no metadata is stored on the chunkhandle, ask master for location
+	// called by the application
+	public void append(String chunkhandle, int offset, int length, byte[] data, boolean withSize) throws RemoteException { //if no metadata is stored on the chunkhandle, ask master for location
 		int id = -1;
 		try {
 			countLock.acquire();
 			id = ++count;
-			Request r = new Request("append", chunkhandle, count);
+			Request r = new Request(APPEND, chunkhandle, count);
+			r.setData(data);
+			r.setLength(length);
+			r.setOffset(offset);
+			r.setWithSize(withSize);
 			pendingRequests.add(r);
 			master.append(chunkhandle, clientID, count);
 			countLock.release();	
@@ -73,26 +95,29 @@ public class Client implements ClientInterface{
 			e.printStackTrace();
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
-				Request r = (Request) pendingRequests.get(x);
-				if (r.ID == id) {
+				if ((pendingRequests.get(x)).ID == id) {
 					index = x;
 					break;
 				}
 			}
 			pendingRequests.remove(index);
-			
+
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void atomicAppend(String chunkhandle) throws RemoteException {
+	// called by the application
+	public void atomicAppend(String chunkhandle, int length, byte[] data, boolean withSize) throws RemoteException {
 		int id = -1;
 		try {
 			countLock.acquire();
 			id = ++count;
-			Request r = new Request("atomicAppend", chunkhandle, count);
+			Request r = new Request(ATOMIC_APPEND, chunkhandle, count);
+			r.setData(data);
+			r.setLength(length);
+			r.setWithSize(withSize);
 			pendingRequests.add(r);
 			master.atomicAppend(chunkhandle, clientID, count);
 			countLock.release();
@@ -101,8 +126,7 @@ public class Client implements ClientInterface{
 			e.printStackTrace();
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
-				Request r = (Request) pendingRequests.get(x);
-				if (r.ID == id) {
+				if ((pendingRequests.get(x)).ID == id) {
 					index = x;
 					break;
 				}
@@ -114,7 +138,8 @@ public class Client implements ClientInterface{
 		}
 	}
 
-	public void read(String chunkhandle) throws RemoteException {
+	// called by the application
+	public void read(String chunkhandle, int offset, int length) throws RemoteException {
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
 		if (index > -1) { //if the index is found, do not contact master.
 			try {
@@ -122,9 +147,12 @@ public class Client implements ClientInterface{
 				count++;
 				//this constructor adds the request knowing that it already has the server locations
 				ClientMetaDataItem i = (ClientMetaDataItem) clientMetaDataArray.get(index);
-				Request r = new Request("append", chunkhandle, count, i.chunkservers);
+				Request r = new Request(READ, chunkhandle, count, i.chunkservers);
+				r.setLength(length);
+				r.setOffset(offset);
 				pendingRequests.add(r);
 				countLock.release();	
+				contactChunks(r.getID());
 			}
 			catch (InterruptedException e) {
 				e.printStackTrace();
@@ -135,7 +163,7 @@ public class Client implements ClientInterface{
 			try {	
 				countLock.acquire();
 				id = ++count;
-				Request r = new Request("read", chunkhandle, count);
+				Request r = new Request(READ, chunkhandle, count);
 				pendingRequests.add(r);
 				master.read(chunkhandle, clientID, count);
 				countLock.release();
@@ -150,7 +178,7 @@ public class Client implements ClientInterface{
 						break;
 					}
 				}
-				pendingRequests.remove(index);
+				pendingRequests.remove(ind);
 			}
 			catch (InterruptedException e) {
 				e.printStackTrace();
@@ -158,6 +186,7 @@ public class Client implements ClientInterface{
 		}
 	}
 
+	// called by master
 	public void requestStatus(String requestType, String fullPath, boolean succeeded, int ID) throws RemoteException {
 
 		if (succeeded) {
@@ -166,7 +195,6 @@ public class Client implements ClientInterface{
 		else {
 			System.out.println("Request to" + requestType + " " + fullPath + "failed.");
 		}
-
 	}
 
 	//Method called by master giving chunkhandle and chunkservers
@@ -174,19 +202,19 @@ public class Client implements ClientInterface{
 		//reqID of -1 is used for functions such as Creates and Deletes which are not stored in the pendingRequests.
 		if (reqID != -1) {
 			//Go through the pendingRequests array to find request with the matching reqID.
+			// Save locations of replicates and/or update primary lease
 			for (int i = 0; i < pendingRequests.size(); i++) {
 				Request r = pendingRequests.get(i);
 				//if the reqID's are matching
-				if (reqID == r.ID) {
+				if (reqID == r.getID()) {
 					r.setCS(chunkservers);
 					r.setReceived();
 					boolean exists = false; //boolean to check if this chunkhandle already exists in the Client's metadata.
 					for (int j = 0; j < clientMetaDataArray.size(); j++) {
-						ClientMetaDataItem c = clientMetaDataArray.get(j);
 						//if the chunkhandle is found, exit the loop
-						if (c.chunkhandle.equals(chunkhandle)) {
+						if ((clientMetaDataArray.get(j)).equals(chunkhandle)) {
 							exists = true;
-							c.setID(ID);  //Update the primary lease in case it is different/ has changed
+							(clientMetaDataArray.get(j)).setID(ID);  //Update the primary lease in case it is different/ has changed
 							break;
 						}
 					}
@@ -200,9 +228,8 @@ public class Client implements ClientInterface{
 
 				}
 			}
+			contactChunks(reqID);
 		}
-
-
 	}
 	//check for chunkhandle
 
@@ -215,21 +242,41 @@ public class Client implements ClientInterface{
 	}
 
 	private void contactChunks(int rID) {
+		// retrieve request
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
 			if (r.ID == rID) {
-				switch (r.RequestType) {
-				case "append":
-					break;
-				case "atomicAppend":
-					break;
-				case "read":
-					break;
+				if((r.getRequestType()).equals(APPEND)){
+					for(int cs:r.getChunkservers()){
+						try {
+							chunkservers.get(cs).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize());
+						} catch (RemoteException e) {
+							System.out.println("Failed to connect to chunkserver for append");
+							e.printStackTrace();
+						}
+					}
+				}
+				else if((r.getRequestType()).equals(ATOMIC_APPEND)){
+					for(int cs:r.getChunkservers()){
+						try {
+							chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(), r.getLength(), r.getWithSize());
+						} catch (RemoteException e) {
+							System.out.println("Failed to connect to chunkserver for atomic append");
+							e.printStackTrace();
+						}
+					}
+				}
+				else if((r.getRequestType()).equals(READ)){
+					for(int cs:r.getChunkservers()){
+						try {
+							chunkservers.get(cs).read(r.getFullPath(), r.getOffset(), r.getLength());
+						} catch (RemoteException e) {
+							System.out.println("Failed to connect to chunkserver for read");
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		}
-
 	}
-
-
 }
