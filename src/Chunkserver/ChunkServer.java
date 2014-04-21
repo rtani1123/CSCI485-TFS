@@ -203,10 +203,13 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(raf.length());
-			ByteBuffer bb = ByteBuffer.allocate(4);
-			bb.putInt(length);
-			byte[] result = bb.array();
-			raf.write(result);
+			if (withSize)
+			{
+				ByteBuffer bb = ByteBuffer.allocate(4);
+				bb.putInt(length);
+				byte[] result = bb.array();
+				raf.write(result);
+			}
 			raf.write(payload);
 			raf.close();
 		} catch (Exception e) {

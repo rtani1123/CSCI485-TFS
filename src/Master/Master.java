@@ -1,5 +1,7 @@
 package Master;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -40,14 +42,30 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
-		
+
 		setupClient();
+//		chunkservers.get(1).createDirectory("C:/Users/rtani/MUAHAHA");
+//		chunkservers.get(1).createFile("C:/Users/rtani/MUAHAHA/killingit.jpg");
+//		chunkservers.get(1).createFile("C:/Users/rtani/MUAHAHA/everyday.jpg");
+//		File inputFile = new File("C:/1/bwp.jpg");
+//		byte [] bunny = new byte[(int)inputFile.length()];
+//		try{
+//			FileInputStream fis = new FileInputStream(inputFile);
+//			fis.read(bunny);
+//			fis.close();
+//		}
+//		catch(Exception e){
+//			e.printStackTrace();
+//		}
+//		chunkservers.get(1).atomicAppend("C:/Users/rtani/MUAHAHA/killingit.jpg", 
+//				bunny, bunny.length, false);
+		chunkservers.get(1).deleteDirectory("C:/Users/rtani/MUAHAHA");
 	}
 
 	/**
 	 * RMI Connection Code
 	 */
-	
+
 	/**
 	 * The format for connection should be "rmi:DOMAIN/ChunkserverID".  
 	 * ChunkserverID will be different for each instance of Chunkserver.
@@ -60,19 +78,18 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS;
-			
+
 			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/MasterCS");
 			chunkservers.put(1, tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
-			
-			
+
 		} catch(Exception re) {
 			re.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Threading code
 	 * */
@@ -569,14 +586,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.interrupt();
 		}
 	}
-	
-/**
- * The Task class is used for master to keep track of what is necessary
- * to process a request.
- * Master creates a Task when receiving a message from a client or CS
- * Master queues Tasks and uses this class to call actions 
- * 
- */
+
+	/**
+	 * The Task class is used for master to keep track of what is necessary
+	 * to process a request.
+	 * Master creates a Task when receiving a message from a client or CS
+	 * Master queues Tasks and uses this class to call actions 
+	 * 
+	 */
 	private class Task{
 		String path;	// same as chunkhandle for some calls
 		String fileName;
@@ -602,7 +619,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.clientID = clientID;
 			this.reqID = reqID;
 		}
-		
+
 		// called by deleteFile, createDirectory, deleteDirectory
 		public Task(TaskType type, String path, int clientID){
 			this.type = type;
