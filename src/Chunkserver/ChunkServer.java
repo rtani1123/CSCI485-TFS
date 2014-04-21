@@ -3,10 +3,15 @@ package Chunkserver;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,12 +20,33 @@ import Interfaces.ChunkserverInterface;
 import Interfaces.MasterInterface;
 import Utilities.Tree;
 
-public class ChunkServer implements ChunkserverInterface {
+public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
 //	public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
 	MasterInterface myMaster;
 	
-	public ChunkServer() {
+	public ChunkServer() throws RemoteException {
+		setupHost();
+		
+	}
+
+	public void setupHost() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			Registry registry = LocateRegistry.createRegistry(1099);
+			Naming.rebind("rmi://dblab-18.vlab.usc.edu/CSMASTER", this);
+		} catch(MalformedURLException re) {
+			System.out.println("Bad connection");
+			re.printStackTrace();
+		} catch (RemoteException e) {
+			System.out.println("Bad connection");
+			e.printStackTrace();
+		} catch(Exception e ) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void setupClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			/*format for connection should be "rmi:DOMAIN/ChunkserverID".  ChunkserverID will be different for each instance of Chunkserver
@@ -28,16 +54,18 @@ public class ChunkServer implements ChunkserverInterface {
 			 *for master calling CS functions than CS calling master functions.
 			 *
 			 *For this, the master is hosted on dblab-43.
-			*/
+			 */
 			myMaster = (MasterInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/MASTERCS");
 			
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
+			
+			
 		} catch(Exception re) {
-			System.out.println("Bad connection");
 			re.printStackTrace();
 		}
-		
 	}
-
 	@Override
 	public Map<String, Long> refreshMetadata() throws RemoteException {
 		// TODO Auto-generated method stub
@@ -198,6 +226,12 @@ public class ChunkServer implements ChunkserverInterface {
 	}
 
 	public static void main(String args[]) {
-		ChunkServer cs = new ChunkServer();
+		try {
+			ChunkServer cs = new ChunkServer();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+	
 }
