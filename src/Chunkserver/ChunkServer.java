@@ -4,18 +4,38 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import Interfaces.ChunkserverInterface;
+import Interfaces.MasterInterface;
 import Utilities.Tree;
 
 public class ChunkServer implements ChunkserverInterface {
 //	public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
+	MasterInterface myMaster;
+	
 	public ChunkServer() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			/*format for connection should be "rmi:DOMAIN/ChunkserverID".  ChunkserverID will be different for each instance of Chunkserver
+			 *one detail to mention is that CSMaster will not be the same as MasterCS.  There's actually a completely different call
+			 *for master calling CS functions than CS calling master functions.
+			 *
+			 *For this, the master is hosted on dblab-43.
+			*/
+			myMaster = (MasterInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/MASTERCS");
+			
+		} catch(Exception re) {
+			System.out.println("Bad connection");
+			re.printStackTrace();
+		}
+		
 	}
 
 	@Override
@@ -36,9 +56,12 @@ public class ChunkServer implements ChunkserverInterface {
 		try {
 			if (!f.createNewFile()) {
 				System.err.println("File creation unsuccessful " + chunkhandle);
+				return false;
 			}
 		} catch (Exception e) {
+			System.out.println("File creation unsuccessful");
 			e.printStackTrace();
+			return false;
 		}
 		return true;
 	}
@@ -53,7 +76,9 @@ public class ChunkServer implements ChunkserverInterface {
 				return false;
 			}
 		} catch (Exception e) {
+			System.out.println("Directory creation unsuccessful");
 			e.printStackTrace();
+			return false;
 		}
 		return true;
 	}
@@ -68,18 +93,24 @@ public class ChunkServer implements ChunkserverInterface {
 			if (dFile.isDirectory())
 				files = dFile.list();
 			if (dFile.isFile() || (files.length == 0))
-				if (!dFile.delete())
+				if (!dFile.delete()){
+					System.out.println("Delete file unsuccessful");
 					return false;
+				}
 				else if (dFile.isDirectory()) {
 					for (int i = 0; i < files.length; i++) {
 						deleteFile(parsedPath + "/" + files[i]);
 					}
-					if (!dFile.delete())
+					if (!dFile.delete()){
+						System.out.println("Delete file unsuccessful");
 						return false;
+					}
 				}
 
 		} catch (Exception e) {
+			System.out.println("Delete file unsuccessful");
 			e.printStackTrace();
+			return false;
 		}
 		return true;
 	}
@@ -127,7 +158,9 @@ public class ChunkServer implements ChunkserverInterface {
 			raf.write(payload);
 			raf.close();
 		} catch (IOException e) {
+			System.out.println("Append was unsuccessful");
 			e.printStackTrace();
+			return false;
 		}
 		// TODO : add to metadata
 		CSMetaData.put(chunkhandle, System.currentTimeMillis());
@@ -149,7 +182,9 @@ public class ChunkServer implements ChunkserverInterface {
 			raf.write(payload);
 			raf.close();
 		} catch (Exception e) {
+			System.out.println("atomic append unsuccessful");
 			e.printStackTrace();
+			return false;
 		}
 		// TODO : add to metadata
 		CSMetaData.put(chunkhandle, System.currentTimeMillis());
@@ -162,4 +197,7 @@ public class ChunkServer implements ChunkserverInterface {
 		return false;
 	}
 
+	public static void main(String args[]) {
+		ChunkServer cs = new ChunkServer();
+	}
 }

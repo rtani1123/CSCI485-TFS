@@ -22,7 +22,7 @@ public class TestServer {
 			
 			Registry registry = LocateRegistry.createRegistry(1099);
 			Test A = new Test();
-			Naming.rebind("rmi://localhost/ABC", A);
+			Naming.rebind("rmi://dblab-43.vlab.usc.edu/ABC", A);
 			
 			System.out.println("ready!");
 		} catch (Exception e) {
