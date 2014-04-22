@@ -49,8 +49,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		startThread();
 
-		setupHost();
-
+		setupMasterClientClient();
 	}
 
 	/**
@@ -65,7 +64,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 *
 	 * For this, the chunkserver is hosted on dblab-18.
 	 */
-	public void setupHost() {
+	public void setupMasterHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
@@ -80,16 +79,32 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			e.printStackTrace();
 		}
 	}
-	public void setupClient() {
+	//Master calls Chunkserver methods -> MASTERCHUNK1
+	public void setupMasterChunkserverClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS;
 
-			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/MasterCS");
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/MASTERCHUNK1");
+			
+			//TODO: Change this to handle multiple chunkservers.
 			chunkservers.put(1, tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
+
+		} catch(Exception re) {
+			re.printStackTrace();
+		}
+	}
+	
+	//Master calls Client methods -> MASTERCLIENT
+	public void setupMasterClientClient() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			
+			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/MASTERCLIENT");
+			
 
 		} catch(Exception re) {
 			re.printStackTrace();
@@ -687,6 +702,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			return reqID;
 		}
 	}
+
 	
 	/**
 	 * Class CSInfo is used by master to maintain metadata for connecting to various

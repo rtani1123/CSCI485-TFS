@@ -27,16 +27,17 @@ public class ChunkServer extends UnicastRemoteObject implements
 	MasterInterface myMaster;
 
 	public ChunkServer() throws RemoteException {
-		setupHost();
-		setupClient();
+		//setupMasterChunkserverHost();
+		//setupMasterChunkserverClient();
 
 	}
 
-	public void setupHost() {
+	//Master calls Chunkserver methods -> MASTERCHUNK1
+	public void setupMasterChunkserverHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-18.vlab.usc.edu/MasterCS", this);
+			Naming.rebind("rmi://dblab-18.vlab.usc.edu/MASTERCHUNK1", this);
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
@@ -48,7 +49,8 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 	}
 
-	public void setupClient() {
+	//Chunkserver calls Master Methods -> CHUNKMASTER1
+	public void setupMasterChunkserverClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			/*
@@ -58,11 +60,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 			 * MasterCS. There's actually a completely different callfor master
 			 * calling CS functions than CS calling master functions.
 			 * 
-			 * For this, the master is hosted on dblab-43.
+			 * For this, the master is hosted on dblab-29.
 			 */
 			myMaster = (MasterInterface) Naming
-					.lookup("rmi://dblab-29.vlab.usc.edu/CSMaster");
-			myMaster.setupClient();
+					.lookup("rmi://dblab-29.vlab.usc.edu/CHUNKMASTER1");
+			myMaster.setupMasterChunkserverClient();
 
 			/*
 			 * ChunkServer FUNCTION HOST implementation
