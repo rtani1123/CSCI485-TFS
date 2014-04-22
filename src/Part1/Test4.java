@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import Utilities.TreeStorage;
+import Utilities.Storage;
 
 /*Test4:  Store a file on the local machine in a target TFS file specified by its path. 
 
@@ -26,7 +26,7 @@ public class Test4 {
 			System.err.println("Error. Invalid number of arguments for Test4.");
 			return;
 		}
-		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		Part1FS tfs = new Part1FS(Storage.getTree());
 		String startingFullPath = args[0];
 		String destinationFullPath = args[1];
 		File destinationFile = new File(destinationFullPath);
@@ -65,6 +65,6 @@ public class Test4 {
 		//write to the output file
 		tfs.append(destinationFullPath, 0, b.length, b);
 		System.out.println("Successful TFS file creation " + destinationFullPath);
-		TreeStorage.storeTree(tfs.directory);
+		Storage.storeTree(tfs.directory);
 	}
 }

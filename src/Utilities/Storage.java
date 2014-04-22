@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public class TreeStorage {
+public class Storage {
 static public Tree getTree(){
 	String filename = "tree.txt";
 	Tree myTree = null;

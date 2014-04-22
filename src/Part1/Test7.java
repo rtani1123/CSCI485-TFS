@@ -2,7 +2,7 @@ package Part1;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import Utilities.TreeStorage;
+import Utilities.Storage;
 
 /*Test 7:  Count the number of logical files stored in a TFS file using Test6 and printout the results.
 
@@ -24,7 +24,7 @@ public class Test7 {
 			System.err.println("Error. Invalid number of arguments for Test7.");
 			return;
 		}
-		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		Part1FS tfs = new Part1FS(Storage.getTree());
 		String fullPath = args[0];
 		File f = new File(fullPath);
 		if (!f.exists())
@@ -58,6 +58,6 @@ public class Test7 {
 			}
 		}
 		System.out.println(fullPath + " contains " + count + " separate files");
-		TreeStorage.storeTree(tfs.directory);
+		Storage.storeTree(tfs.directory);
 	}
 }

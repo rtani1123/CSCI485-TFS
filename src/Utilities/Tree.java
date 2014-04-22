@@ -19,7 +19,7 @@ public class Tree implements Serializable {
 //		paths = myTree.pathTokenizer("C:/Program");
 //		myTree.addElement(paths, chunkServersNum);
 //		System.out.println(x.getPath());
-		TreeStorage ts = new TreeStorage();
+		Storage ts = new Storage();
 		myTree = ts.getTree();
 //		ts.storeTree(myTree);
 //		myTree = ts.getTree();

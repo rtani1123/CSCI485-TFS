@@ -27,7 +27,7 @@ import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Utilities.Node;
 import Utilities.Tree;
-import Utilities.TreeStorage;
+import Utilities.Storage;
 import Interfaces.MasterInterface;
 
 public class Master extends UnicastRemoteObject implements MasterInterface{
@@ -287,7 +287,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 		}
-		TreeStorage.storeTree(directory);
+		Storage.storeTree(directory);
 	}
 
 	/**
@@ -340,7 +340,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 		}
-		TreeStorage.storeTree(directory);
+		Storage.storeTree(directory);
 	}
 
 	/**
@@ -386,7 +386,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.err.println("Directory add to tree failure.");
 			}
 		}
-		TreeStorage.storeTree(directory);
+		Storage.storeTree(directory);
 	}
 
 	/**
@@ -439,7 +439,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 		}
-		TreeStorage.storeTree(directory);
+		Storage.storeTree(directory);
 	}
 
 	/**

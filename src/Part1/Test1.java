@@ -1,6 +1,6 @@
 package Part1;
 
-import Utilities.TreeStorage;
+import Utilities.Storage;
 
 /*
  * Test1:  Create a hierarchical directory structure.  
@@ -32,7 +32,7 @@ public class Test1 {
 			System.err.println("Error. Invalid number of arguments for Test1.");
 			return;
 		}
-		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		Part1FS tfs = new Part1FS(Storage.getTree());
 		int numFolders = Integer.parseInt(args[0]);
 		// set the root directory name
 		tfs.directory.root.name="C:";
@@ -52,6 +52,6 @@ public class Test1 {
 		}
 		System.out.println("Existing tree structure: ");
 		tfs.directory.getAllPath(tfs.directory.root);
-		TreeStorage.storeTree(tfs.directory);
+		Storage.storeTree(tfs.directory);
 	}
 }
