@@ -321,6 +321,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
 		
 	}
+	
+	// called by master
+	public void heartbeat() throws RemoteException{
+		myMaster.heartbeat(csIndex);
+	}
 
 	public static void main(String args[]) {
 		try {
