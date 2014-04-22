@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 public interface ClientInterface extends Remote {
 	//functions called by master
-	public void setupClientHost() throws RemoteException;
-	public void setupClientClient() throws RemoteException;
+	public void setupClientMasterHost() throws RemoteException;
+	public void setupClientMasterClient() throws RemoteException;
 	public void requestStatus(String requestType, String fullPath, boolean succeeded, int ID) throws RemoteException;
 	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkservers, int reqID) throws RemoteException;//chunkhandle, int id of primary, list of chunkservers
 
