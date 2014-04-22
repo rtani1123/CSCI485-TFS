@@ -71,7 +71,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-29.vlab.usc.edu/MASTER", this);
+			Naming.rebind("rmi://dblab-18.vlab.usc.edu/MASTER", this);
+			System.out.println("Master Host Setup Success");
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
@@ -95,6 +96,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
+			System.out.println("Connection to Chunkserver " + index + " Success" );
 
 		} catch(Exception re) {
 			re.printStackTrace();
@@ -107,7 +109,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.setSecurityManager(new RMISecurityManager());
 			
 			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
-			
+			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
 			re.printStackTrace();
@@ -562,7 +564,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 			try{
-				chunkservers.get(randomCS).primaryLease(chunkhandle);
+				chunkservers.get(randomCS).primaryLease(chunkhandle, new ArrayList<Integer>());
 			}
 			catch(RemoteException re){
 				//TODO: Assign the primary lease to a different chunkserver

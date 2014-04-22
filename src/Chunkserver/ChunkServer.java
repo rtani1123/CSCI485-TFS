@@ -50,6 +50,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
 			Naming.rebind("rmi://dblab-18.vlab.usc.edu/CHUNK" + csIndex.toString(), this);
+			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
@@ -77,7 +78,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			myMaster = (MasterInterface) Naming
 					.lookup("rmi://dblab-29.vlab.usc.edu/MASTER");
 			myMaster.connectToChunkserver(csIndex);
-
+			System.out.println("Connection to Master Success");
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -93,7 +94,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			System.setSecurityManager(new RMISecurityManager());
 			
 			myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
-			
+			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
 			re.printStackTrace();

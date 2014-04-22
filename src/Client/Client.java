@@ -54,7 +54,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
 			Naming.rebind("rmi://dblab-43.vlab.usc.edu/CLIENT", this);
-			System.out.println("Client Host Setup");
+			System.out.println("Client Host Setup Success");
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
@@ -81,9 +81,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 			 * For this, the master is hosted on dblab-29.
 			 */
 			master = (MasterInterface) Naming
-					.lookup("rmi://dblab-29.vlab.usc.edu/MASTER");
+					.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
 			master.connectToClient();
-
+			System.out.println("Connection to Master Success");
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -106,6 +106,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
+			System.out.println("Connection to Chunkserver " + index + " Success");
 
 		} catch(Exception re) {
 			re.printStackTrace();
