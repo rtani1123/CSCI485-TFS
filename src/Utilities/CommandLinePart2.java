@@ -8,16 +8,11 @@ import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 
 import Client.Client;
-import Part1.Test1;
-import Part1.Test2;
-import Part1.Test3;
-import Part1.Test4;
-import Part1.Test5;
-import Part1.Test6;
-import Part1.Test7;
 
 public class CommandLinePart2 {
+	
 	public static void main(String[] args) throws RemoteException {
+		Client myClient = new Client(11);
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println(" Welcome to our Tiny File System!");
 		System.out.println(" If you don't know what to do, ask us! Simply type help ");
@@ -45,31 +40,32 @@ public class CommandLinePart2 {
 				if (actuallArgs == null || actuallArgs.length!=1){
 					System.out.println(" Please enter appropriate number of arguments. ");
 				}else
-				Client.myClient.createDirectory(actuallArgs[0]);
-			} else if (input.equals("DeleteFile")) {
+				myClient.createDirectory(actuallArgs[0]);
+			} else if (input.contains("DeleteFile")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=1){
 					System.out.println(" Please enter appropriate number of arguments. ");
 					
 				}else
-				Client.myClient.deleteFileMaster(actuallArgs[0]);
+				myClient.deleteFileMaster(actuallArgs[0]);
 
-			} else if (input.equals("DeleteDirectory")) {
+			} else if (input.contains("DeleteDirectory")) {
+				System.out.println("delete directory called");
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=1){
 					System.out.println(" Please enter appropriate number of arguments. ");
 					
 				}else
-				Client.myClient.deleteDirectory(actuallArgs[0]);
+				myClient.deleteDirectory(actuallArgs[0]);
 
-			} else if (input.equals("CreateFile")) {
+			} else if (input.contains("CreateFile")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=3){
 					System.out.println(" Please enter appropriate number of arguments. ");
 					
 				}else
-				Client.myClient.createFile(actuallArgs[0], actuallArgs[1],Integer.parseInt(actuallArgs[2]));
-			} else if (input.equals("Append")) {
+				myClient.createFile(actuallArgs[0], actuallArgs[1],Integer.parseInt(actuallArgs[2]));
+			} else if (input.contains("Append")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=3){
 					System.out.println(" Please enter appropriate number of arguments. ");
@@ -85,10 +81,10 @@ public class CommandLinePart2 {
 					}catch(Exception e){
 						e.printStackTrace();
 					}
-					Client.myClient.append(actuallArgs[0],0, b.length, b, Boolean.parseBoolean(actuallArgs[3]));
+					myClient.append(actuallArgs[0],0, b.length, b, Boolean.parseBoolean(actuallArgs[2]));
 				}
 
-			} else if (input.equals("AtomicAppend")) {
+			} else if (input.contains("AtomicAppend")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=3){
 					System.out.println(" Please enter appropriate number of arguments. ");
@@ -104,17 +100,19 @@ public class CommandLinePart2 {
 					}catch(Exception e){
 						e.printStackTrace();
 					}
-					Client.myClient.atomicAppend(actuallArgs[0], b.length, b, Boolean.parseBoolean(actuallArgs[3]));
+					myClient.atomicAppend(actuallArgs[0], b.length, b, Boolean.parseBoolean(actuallArgs[3]));
 				}
 
-			} else if (input.equals("Read")) {
+			} else if (input.contains("Read")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=3){
 					System.out.println(" Please enter appropriate number of arguments. ");
 				}else
-				Client.myClient.read(actuallArgs[0], Integer.parseInt(actuallArgs[1]),Integer.parseInt(actuallArgs[1]));
+				myClient.read(actuallArgs[0], Integer.parseInt(actuallArgs[1]),Integer.parseInt(actuallArgs[1]));
 
 			}
+			else
+				System.out.println("Not a command");
 		}
 
 	}
