@@ -11,7 +11,7 @@ public interface ChunkserverInterface extends Remote{
 	public void setupMasterChunkserverHost() throws RemoteException;
 	public void setupMasterChunkserverClient() throws RemoteException;
 	public Map<String, Long> refreshMetadata() throws RemoteException;
-	public void primaryLease(String chunkhandle) throws RemoteException;
+	public void primaryLease(String chunkhandle, ArrayList<Integer> CServers) throws RemoteException;
 	public boolean createFile(String chunkhandle) throws RemoteException;
 	public boolean createDirectory(String chunkhandle) throws RemoteException;
 	public boolean deleteFile(String chunkhandle) throws RemoteException;

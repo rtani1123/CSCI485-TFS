@@ -25,14 +25,17 @@ public class ChunkServer extends UnicastRemoteObject implements
 	// public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
 	MasterInterface myMaster;
+	boolean isPrimary = false;
+	Map<Integer, ChunkServer> otherCS = new HashMap<Integer, ChunkServer>();
+	ArrayList<Integer> toBeUpdatedCS = new ArrayList<Integer>();
 
 	public ChunkServer() throws RemoteException {
-		//setupMasterChunkserverHost();
-		//setupMasterChunkserverClient();
+		// setupMasterChunkserverHost();
+		// setupMasterChunkserverClient();
 
 	}
 
-	//Master calls Chunkserver methods -> MASTERCHUNK1
+	// Master calls Chunkserver methods -> MASTERCHUNK1
 	public void setupMasterChunkserverHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -49,7 +52,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 	}
 
-	//Chunkserver calls Master Methods -> CHUNKMASTER1
+	// Chunkserver calls Master Methods -> CHUNKMASTER1
 	public void setupMasterChunkserverClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -81,9 +84,17 @@ public class ChunkServer extends UnicastRemoteObject implements
 		return null;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see Interfaces.ChunkserverInterface#primaryLease(java.lang.String,
+	 * java.util.ArrayList)
+	 */
 	@Override
-	public void primaryLease(String chunkhandle) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void primaryLease(String chunkhandle, ArrayList<Integer> CServers)
+			throws RemoteException {
+		isPrimary = true;
+		toBeUpdatedCS = CServers;
 
 	}
 
@@ -200,6 +211,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 		// TODO : add to metadata
 		CSMetaData.put(chunkhandle, System.currentTimeMillis());
+
 		return true;
 	}
 
@@ -207,10 +219,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public boolean atomicAppend(String chunkhandle, byte[] payload, int length,
 			boolean withSize) throws RemoteException {
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
-										// path
+		long offset;								// path
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(raf.length());
+			offset = raf.length();
 			if (withSize) {
 				ByteBuffer bb = ByteBuffer.allocate(4);
 				bb.putInt(length);
@@ -224,7 +237,17 @@ public class ChunkServer extends UnicastRemoteObject implements
 			e.printStackTrace();
 			return false;
 		}
-		// TODO : add to metadata
+		/*
+		 * If it's primary, it'll call other chunkservers to be updated
+		 */
+		if (isPrimary) {
+			for (int i = 0; i < toBeUpdatedCS.size(); i++) {
+				otherCS.get(toBeUpdatedCS.get(i)).atomicAppendSecondry(
+						chunkhandle, payload, length, withSize,offset );
+			}
+		} else {
+			System.out.println("I'm not the primary!");
+		}
 		CSMetaData.put(chunkhandle, System.currentTimeMillis());
 		return true;
 	}
@@ -232,7 +255,25 @@ public class ChunkServer extends UnicastRemoteObject implements
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
 			int length, boolean withSize, int offset) throws RemoteException {
-		// TODO Auto-generated method stub
+		File f = new File(chunkhandle); // might have to parse chunkhandle into
+		// path
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f, "rws");
+			raf.seek(offset);
+			if (withSize) {
+				ByteBuffer bb = ByteBuffer.allocate(4);
+				bb.putInt(length);
+				byte[] result = bb.array();
+				raf.write(result);
+			}
+			raf.write(payload);
+			raf.close();
+		} catch (Exception e) {
+			System.out.println("atomic append unsuccessful");
+			e.printStackTrace();
+			return false;
+		}
+
 		return false;
 	}
 
