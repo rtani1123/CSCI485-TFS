@@ -130,6 +130,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 			e.printStackTrace();
 		}
 	}
+	
+	public void createDirectory(String path) throws RemoteException {
+		try {
+			master.createDirectory(path, clientID);
+		}
+		catch(RemoteException e){
+			System.out.println("Could not connect to master to create file.");
+			e.printStackTrace();
+		}
+	}
 
 	// called by the application
 	public void deleteFileMaster(String chunkhandle) throws RemoteException {
