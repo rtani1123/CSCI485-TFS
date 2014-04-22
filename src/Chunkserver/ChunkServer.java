@@ -295,23 +295,14 @@ public class ChunkServer extends UnicastRemoteObject implements
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
 			int length, boolean withSize, int offset) throws RemoteException {
-		File f = new File(chunkhandle); // might have to parse chunkhandle into
-		// path
+		File f = new File(chunkhandle);	
 		try {
-			RandomAccessFile raf = new RandomAccessFile(f, "rws");
+			RandomAccessFile raf = new RandomAccessFile(f,"rws");
 			raf.seek(offset);
-			if (withSize) {
-				ByteBuffer bb = ByteBuffer.allocate(4);
-				bb.putInt(length);
-				byte[] result = bb.array();
-				raf.write(result);
-			}
 			raf.write(payload);
 			raf.close();
-		} catch (Exception e) {
-			System.out.println("atomic append unsuccessful");
+		} catch (IOException e) {
 			e.printStackTrace();
-			return false;
 		}
 
 		return false;
