@@ -674,5 +674,51 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			return reqID;
 		}
 	}
+	
+	/**
+	 * Class CSInfo is used by master to maintain metadata for connecting to various
+	 * chunkservers. It keeps track of the most recent heartbeat time received from
+	 * the chunkserver, the status of the chunkserver, and the chunkserver ID.
+	 * @author lazzarid
+	 *
+	 */
+	public enum CSStatus {DOWN, UNUSED, OK, RECOVERING};
+	private class CSInfo{
+		CSStatus status;
+		long lastHeartbeat;
+		int id;
+		ChunkserverInterface remoteCS;
+		
+		public CSInfo(ChunkserverInterface csi, int id){
+			this.id = id;
+			this.remoteCS = csi;
+			this.lastHeartbeat = System.currentTimeMillis();
+			this.status = CSStatus.OK;
+		}
+		
+		public CSStatus getStatus(){
+			return status;
+		}
+		
+		public long getLastHB(){
+			return lastHeartbeat;
+		}
+		
+		public ChunkserverInterface getCS(){
+			return remoteCS;
+		}
+		
+		public int getID(){
+			return id;
+		}
+		
+		public void setStatus(CSStatus status){
+			this.status = status;
+		}
+
+		public void setLastHB(long LHB){
+			this.lastHeartbeat = LHB;
+		}
+	}
 }
 
