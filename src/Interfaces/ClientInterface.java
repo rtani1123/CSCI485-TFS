@@ -12,6 +12,7 @@ public interface ClientInterface extends Remote {
 
 	// functions called by application
 	public void createFile(String Path, String fileName, int numReplicas)throws RemoteException;
+	public void createDirectory(String path) throws RemoteException;
 	public void deleteFileMaster(String chunkhandle) throws RemoteException;
 	public void deleteDirectory(String path) throws RemoteException;
 	public void append(String chunkhandle, int offset, int length, byte[] data, boolean withSize) throws RemoteException;
