@@ -261,13 +261,16 @@ public class Client implements ClientInterface{
 							if(chunkservers.get(cs).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())){
 								System.out.println("Successful append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 							else{
 								System.out.println("Failed append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for append");
+							pendingRequests.remove(r);
 							e.printStackTrace();
 						}
 					}
@@ -278,13 +281,16 @@ public class Client implements ClientInterface{
 							if(chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(), r.getLength(), r.getWithSize())){
 								System.out.println("Successful atomic append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 							else{
 								System.out.println("Failed atomic append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for atomic append");
+							pendingRequests.remove(r);
 							e.printStackTrace();
 						}
 					}
@@ -293,8 +299,10 @@ public class Client implements ClientInterface{
 					for(int cs:r.getChunkservers()){
 						try {
 							System.out.println(chunkservers.get(cs).read(r.getFullPath(), r.getOffset(), r.getLength()));
+							pendingRequests.remove(r);
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for read");
+							pendingRequests.remove(r);
 							e.printStackTrace();
 						}
 					}
