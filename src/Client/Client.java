@@ -82,7 +82,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 			 */
 			master = (MasterInterface) Naming
 					.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
-			master.connectToClient();
 			System.out.println("Connection to Master Success");
 			/*
 			 * ChunkServer FUNCTION HOST implementation
