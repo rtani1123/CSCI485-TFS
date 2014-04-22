@@ -259,11 +259,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public boolean atomicAppend(String chunkhandle, byte[] payload, int length,
 			boolean withSize) throws RemoteException {
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
-		int offset = 0;								// path
+		long offset = 0;								// path
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(raf.length());
-//			offset = raf.length();
+			offset = raf.length();
 			if (withSize) {
 				ByteBuffer bb = ByteBuffer.allocate(4);
 				bb.putInt(length);
@@ -294,17 +294,26 @@ public class ChunkServer extends UnicastRemoteObject implements
 
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
-			int length, boolean withSize, int offset) throws RemoteException {
-		File f = new File(chunkhandle);	
+			int length, boolean withSize, long offset) throws RemoteException {
+		File f = new File(chunkhandle); // might have to parse chunkhandle into
+		
 		try {
-			RandomAccessFile raf = new RandomAccessFile(f,"rws");
+			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
+			if (withSize) {
+				ByteBuffer bb = ByteBuffer.allocate(4);
+				bb.putInt(length);
+				byte[] result = bb.array();
+				raf.write(result);
+			}
 			raf.write(payload);
 			raf.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
+			System.out.println("atomic append unsuccessful");
 			e.printStackTrace();
+			return false;
 		}
-
+		
 		return false;
 	}
 
