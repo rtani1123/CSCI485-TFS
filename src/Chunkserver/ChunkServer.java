@@ -33,6 +33,10 @@ public class ChunkServer extends UnicastRemoteObject implements
 		//setupMasterChunkserverHost();
 		//setupMasterChunkserverClient();
 		csIndex = 1;  //TODO: Hardcoded to 1
+		
+		setupChunkserverHost();
+		connectToMaster();
+		myMaster.connectToChunkserver(csIndex);
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex

@@ -49,6 +49,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		startThread();
 
+		setupMasterHost();
+		connectToClient();
+		client.connectToMaster();
 	}
 
 	/**
