@@ -27,20 +27,10 @@ public class ChunkServer extends UnicastRemoteObject implements
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
 	Map<Integer, ChunkserverInterface> chunkservers;
 	MasterInterface myMaster;
-<<<<<<< HEAD
 	boolean isPrimary = false;
 	Map<Integer, ChunkServer> otherCS = new HashMap<Integer, ChunkServer>();
 	ArrayList<Integer> toBeUpdatedCS = new ArrayList<Integer>();
 
-	public ChunkServer() throws RemoteException {
-		// setupMasterChunkserverHost();
-		// setupMasterChunkserverClient();
-
-	}
-
-	// Master calls Chunkserver methods -> MASTERCHUNK1
-	public void setupMasterChunkserverHost() {
-=======
 	ClientInterface myClient;
 	Integer csIndex;
 
@@ -56,7 +46,6 @@ public class ChunkServer extends UnicastRemoteObject implements
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
 	public void setupChunkserverHost() {
->>>>>>> 8d532d1c9c988d16089d51ebc26782f122a07cf2
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
@@ -72,13 +61,8 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 	}
 
-<<<<<<< HEAD
-	// Chunkserver calls Master Methods -> CHUNKMASTER1
-	public void setupMasterChunkserverClient() {
-=======
 	//Chunkserver calls Master Methods -> MASTER
 	public void connectToMaster() {
->>>>>>> 8d532d1c9c988d16089d51ebc26782f122a07cf2
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			/*
@@ -275,11 +259,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public boolean atomicAppend(String chunkhandle, byte[] payload, int length,
 			boolean withSize) throws RemoteException {
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
-		long offset;								// path
+		int offset = 0;								// path
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(raf.length());
-			offset = raf.length();
+//			offset = raf.length();
 			if (withSize) {
 				ByteBuffer bb = ByteBuffer.allocate(4);
 				bb.putInt(length);
@@ -298,7 +282,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		 */
 		if (isPrimary) {
 			for (int i = 0; i < toBeUpdatedCS.size(); i++) {
-				otherCS.get(toBeUpdatedCS.get(i)).atomicAppendSecondry(
+				otherCS.get(toBeUpdatedCS.get(i)).atomicAppendSecondary(
 						chunkhandle, payload, length, withSize,offset );
 			}
 		} else {
