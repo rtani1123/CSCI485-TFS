@@ -58,11 +58,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 			 * MasterCS. There's actually a completely different callfor master
 			 * calling CS functions than CS calling master functions.
 			 * 
-			 * For this, the master is hosted on dblab-43.
+			 * For this, the master is hosted on dblab-29.
 			 */
 			myMaster = (MasterInterface) Naming
 					.lookup("rmi://dblab-29.vlab.usc.edu/CSMaster");
-			myMaster.setupClient();
+			myMaster.setupMasterClient();
 
 			/*
 			 * ChunkServer FUNCTION HOST implementation

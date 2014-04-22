@@ -3,8 +3,13 @@ package Client;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +44,50 @@ public class Client implements ClientInterface{
 		chunkservers = Collections.synchronizedList(new ArrayList<ChunkserverInterface>());
 	}
 
+	@Override
+	public void setupClientHost() throws RemoteException {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			Registry registry = LocateRegistry.createRegistry(1099);
+			Naming.rebind("rmi://dblab-43.vlab.usc.edu/MasterCS", this);
+			System.out.println("Client Host Setup");
+		} catch (MalformedURLException re) {
+			System.out.println("Bad connection");
+			re.printStackTrace();
+		} catch (RemoteException e) {
+			System.out.println("Bad connection");
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	@Override
+	public void setupClientClient() throws RemoteException {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			/*
+			 * format for connection should be "rmi:DOMAIN/ChunkserverID".
+			 * ChunkserverID will be different for each instance of Chunkserver
+			 * one detail to mention is that CSMaster will not be the same as
+			 * MasterCS. There's actually a completely different callfor master
+			 * calling CS functions than CS calling master functions.
+			 * 
+			 * For this, the master is hosted on dblab-29.
+			 */
+			master = (MasterInterface) Naming
+					.lookup("rmi://dblab-29.vlab.usc.edu/CSMaster");
+			master.setupMasterClient();
+
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
+
+		} catch (Exception re) {
+			re.printStackTrace();
+		}
+	}
 	// ***THIS WILL NEED TO BE UPDATED***
 	public void setUpChunkservers() throws RemoteException{
 		chunkservers.add(new ChunkServer());
@@ -279,4 +328,5 @@ public class Client implements ClientInterface{
 			}
 		}
 	}
+
 }
