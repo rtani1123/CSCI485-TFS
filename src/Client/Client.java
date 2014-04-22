@@ -37,9 +37,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public static final String APPEND = "append";
 	public static final String ATOMIC_APPEND = "atomicAppend";
 	public static final String READ = "read";
-
+	public static Client myClient=null;
 	public static void main(String[] args) throws RemoteException {
-		Client c = new Client(11);
+		myClient = new Client(11);
 	}
 
 	// constructor, takes an ID for the client
