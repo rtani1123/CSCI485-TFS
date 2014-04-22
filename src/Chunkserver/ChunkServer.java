@@ -40,25 +40,29 @@ public class ChunkServer extends UnicastRemoteObject implements
 		csIndex = 1;  //TODO: Hardcoded to 1
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		setupChunkserverHost();
-		//connectToMaster();
-		//myMaster.connectToChunkserver(csIndex);
+
+		connectToMaster();
+		myMaster.connectToChunkserver(csIndex);
+		connectToClient();
+		myClient.connectToChunkserver(csIndex);
+		
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
 	public void setupChunkserverHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-18.vlab.usc.edu/CHUNK" + csIndex.toString(), this);
+			Registry registry = LocateRegistry.createRegistry(123);
+			//System.out.println("attempting to create host at: " + "dblab-36.vlab.usc.edu/CHUNK" + csIndex.toString());
+			
+			Naming.bind("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + csIndex.toString(), this);
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
-		} catch (MalformedURLException re) {
-			System.out.println("Bad connection");
-			re.printStackTrace();
 		} catch (RemoteException e) {
-			System.out.println("Bad connection");
+			//index = index + 1;
+			//setupChunkserverHost(index);
 			e.printStackTrace();
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 
@@ -240,6 +244,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public boolean append(String chunkhandle, byte[] payload, int length,
 			int offset, boolean withSize) throws RemoteException {
 		File f = new File(chunkhandle);
+		System.out.println("Chunkserver append was called.");
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
