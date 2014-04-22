@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import Interfaces.ChunkserverInterface;
+import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 import Utilities.Tree;
 
@@ -25,6 +26,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 	// public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
 	MasterInterface myMaster;
+<<<<<<< HEAD
 	boolean isPrimary = false;
 	Map<Integer, ChunkServer> otherCS = new HashMap<Integer, ChunkServer>();
 	ArrayList<Integer> toBeUpdatedCS = new ArrayList<Integer>();
@@ -37,10 +39,27 @@ public class ChunkServer extends UnicastRemoteObject implements
 
 	// Master calls Chunkserver methods -> MASTERCHUNK1
 	public void setupMasterChunkserverHost() {
+=======
+	ClientInterface myClient;
+	Integer csIndex;
+
+	public ChunkServer() throws RemoteException {
+		//setupMasterChunkserverHost();
+		//setupMasterChunkserverClient();
+		csIndex = 1;  //TODO: Hardcoded to 1
+		
+		setupChunkserverHost();
+		connectToMaster();
+		myMaster.connectToChunkserver(csIndex);
+	}
+
+	//Master calls Chunkserver methods -> CHUNK + csIndex
+	public void setupChunkserverHost() {
+>>>>>>> 8d532d1c9c988d16089d51ebc26782f122a07cf2
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-18.vlab.usc.edu/MASTERCHUNK1", this);
+			Naming.rebind("rmi://dblab-18.vlab.usc.edu/CHUNK" + csIndex.toString(), this);
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
@@ -52,8 +71,13 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 	}
 
+<<<<<<< HEAD
 	// Chunkserver calls Master Methods -> CHUNKMASTER1
 	public void setupMasterChunkserverClient() {
+=======
+	//Chunkserver calls Master Methods -> MASTER
+	public void connectToMaster() {
+>>>>>>> 8d532d1c9c988d16089d51ebc26782f122a07cf2
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			/*
@@ -66,8 +90,8 @@ public class ChunkServer extends UnicastRemoteObject implements
 			 * For this, the master is hosted on dblab-29.
 			 */
 			myMaster = (MasterInterface) Naming
-					.lookup("rmi://dblab-29.vlab.usc.edu/CHUNKMASTER1");
-			myMaster.setupMasterChunkserverClient();
+					.lookup("rmi://dblab-29.vlab.usc.edu/MASTER");
+			myMaster.connectToChunkserver(csIndex);
 
 			/*
 			 * ChunkServer FUNCTION HOST implementation
@@ -78,6 +102,18 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 	}
 
+	//Chunkserver calls Client Methods -> CLIENT
+	public void connectToClient() {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			
+			myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			
+
+		} catch(Exception re) {
+			re.printStackTrace();
+		}
+	}
 	@Override
 	public Map<String, Long> refreshMetadata() throws RemoteException {
 		// TODO Auto-generated method stub

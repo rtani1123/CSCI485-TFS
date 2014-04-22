@@ -45,15 +45,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 		count = 0;
 		chunkservers = Collections.synchronizedList(new ArrayList<ChunkserverInterface>());
 		
-		setupClientMasterHost();
+		setupClientHost();
 	}
 
 	//Master calls Client methods -> MASTERCLIENT
-	public void setupClientMasterHost() throws RemoteException {
+	public void setupClientHost() throws RemoteException {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-43.vlab.usc.edu/MASTERCLIENT", this);
+			Naming.rebind("rmi://dblab-43.vlab.usc.edu/CLIENT", this);
 			System.out.println("Client Host Setup");
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
@@ -68,7 +68,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 	}
 
 	//Client Calls Master code -> CLIENTMASTER
-	public void setupClientMasterClient() throws RemoteException {
+	public void connectToMaster() throws RemoteException {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			/*
@@ -81,14 +81,33 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 			 * For this, the master is hosted on dblab-29.
 			 */
 			master = (MasterInterface) Naming
-					.lookup("rmi://dblab-29.vlab.usc.edu/CLIENTMASTER");
-			master.setupMasterClientClient();
+					.lookup("rmi://dblab-29.vlab.usc.edu/MASTER");
+			master.connectToClient();
 
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
 
 		} catch (Exception re) {
+			re.printStackTrace();
+		}
+	}
+	
+	public void connectToChunkserver(Integer index) {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			ChunkserverInterface tempCS;
+
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
+			
+			//TODO: Change this to handle multiple chunkservers.
+			//chunkservers.put(1, tempCS);
+			chunkservers.add(tempCS);
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
+
+		} catch(Exception re) {
 			re.printStackTrace();
 		}
 	}
@@ -313,13 +332,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 							if(chunkservers.get(cs).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())){
 								System.out.println("Successful append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 							else{
 								System.out.println("Failed append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for append");
+							pendingRequests.remove(r);
 							e.printStackTrace();
 						}
 					}
@@ -330,13 +352,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 							if(chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(), r.getLength(), r.getWithSize())){
 								System.out.println("Successful atomic append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 							else{
 								System.out.println("Failed atomic append");
 								// call application to print to command line
+								pendingRequests.remove(r);
 							}
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for atomic append");
+							pendingRequests.remove(r);
 							e.printStackTrace();
 						}
 					}
@@ -345,8 +370,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 					for(int cs:r.getChunkservers()){
 						try {
 							System.out.println(chunkservers.get(cs).read(r.getFullPath(), r.getOffset(), r.getLength()));
+							pendingRequests.remove(r);
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for read");
+							pendingRequests.remove(r);
 							e.printStackTrace();
 						}
 					}

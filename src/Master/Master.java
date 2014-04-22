@@ -49,7 +49,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		startThread();
 
-		setupMasterClientClient();
+		setupMasterHost();
+		connectToClient();
+		client.connectToMaster();
 	}
 
 	/**
@@ -64,11 +66,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 *
 	 * For this, the chunkserver is hosted on dblab-18.
 	 */
+	//Chunkserver calls Master methods -> CHUNKMASTER1
 	public void setupMasterHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-29.vlab.usc.edu/CSMaster", this);
+			Naming.rebind("rmi://dblab-29.vlab.usc.edu/MASTER", this);
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");
 			re.printStackTrace();
@@ -80,15 +83,15 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 	//Master calls Chunkserver methods -> MASTERCHUNK1
-	public void setupMasterChunkserverClient() {
+	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS;
 
-			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/MASTERCHUNK1");
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
 			
 			//TODO: Change this to handle multiple chunkservers.
-			chunkservers.put(1, tempCS);
+			chunkservers.put(index, tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -99,11 +102,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	}
 	
 	//Master calls Client methods -> MASTERCLIENT
-	public void setupMasterClientClient() {
+	public void connectToClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			
-			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/MASTERCLIENT");
+			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
 			
 
 		} catch(Exception re) {
@@ -222,7 +225,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					return true;
 				}
 				else if(tasks.get(0).getType() == TaskType.heartbeat){
-					heartbeatA(tasks.get(0).getCSID());
+					//TODO: send a heartbeat message
 					tasks.remove(0);
 					return true;
 				}
@@ -568,15 +571,28 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}	
 	}
 
-	public void heartbeatA(int CSID) throws RemoteException
-	{
-		//this function is called when the chunkserver comes back online and an update is required
-		try{
-			chunkservers.get(CSID).refreshMetadata();
-		}
-		catch(RemoteException re){
-			System.out.println("Error connecting to chunkserver " + CSID);
-		}
+	public void restoreChunkserver(int CSID) throws RemoteException {
+
+	}
+	
+	public void createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void deleteDirectoryRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void fetchAndRewrite(String chunkhandle, int CSSource, int chunkserverID) throws RemoteException {
+		
 	}
 
 	public static void main(String[] args) {
