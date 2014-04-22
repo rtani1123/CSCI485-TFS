@@ -26,6 +26,7 @@ import java.util.concurrent.Semaphore;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Utilities.Node;
+import Utilities.OperationsLog;
 import Utilities.Tree;
 import Utilities.Storage;
 import Interfaces.MasterInterface;
@@ -35,16 +36,17 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	Tree directory;
+	OperationsLog log;
 	Semaphore stateChange;
 	private MasterThread masterThread;
 	List<Task> tasks;
 	public enum TaskType {createF, deleteF, createD, deleteD, read, append, aAppend, heartbeat};
 	ClientInterface client;
-	HashMap<Integer, ChunkserverInterface> chunkservers;
+	HashMap<Integer, CSInfo> chunkservers;
 
 	public Master() throws RemoteException{
 		directory = new Tree();
-		chunkservers = new HashMap<Integer, ChunkserverInterface>();
+		chunkservers = new HashMap<Integer, CSInfo>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		startThread();
@@ -94,11 +96,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS;
+
 			System.out.println( "attempting connect to: dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			
 			//TODO: Change this to handle multiple chunkservers.
-			chunkservers.put(index, tempCS);
+			CSInfo temp = new CSInfo(tempCS, 1);
+			chunkservers.put(index, temp);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -108,12 +112,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			re.printStackTrace();
 		}
 	}
-	
+
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient() {
 		try {
-			System.setSecurityManager(new RMISecurityManager());
-			
 			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
@@ -152,39 +154,46 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public void createFile(String path, String fileName, int numReplicas,
 			int clientID) throws RemoteException {
 		tasks.add(new Task(TaskType.createF,path,fileName,numReplicas,clientID));
+		log.makeLogRecord(System.currentTimeMillis(), path + "/" + fileName, "createFile", 0);
 		stateChanged();
 	}
 
 	public void deleteFileMaster(String chunkhandle, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.deleteF,chunkhandle,clientID));
+		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 0);
 		stateChanged();
 	}
 
 	public void createDirectory(String path, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.createD,path,clientID));
+		log.makeLogRecord(System.currentTimeMillis(), path, "createDirectory", 0);
 		stateChanged();
 	}
 	public void deleteDirectory(String path, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.deleteD,path,clientID));
+		log.makeLogRecord(System.currentTimeMillis(), path, "deleteDirectory", 0);
 		stateChanged();
 	}
 
 	public void append(String chunkhandle, int clientID, int reqID) throws RemoteException {
 		tasks.add(new Task(TaskType.append,chunkhandle,clientID, reqID));
+		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "append", 0);
 		stateChanged();
 	}
 
 	public void atomicAppend(String chunkhandle, int clientID, int reqID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID,reqID));
+		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "atomicAppend", 0);
 		stateChanged();
 	}
 
 	public void read(String chunkhandle, int clientID, int reqID) throws RemoteException{
 		tasks.add(new Task(TaskType.read,chunkhandle,clientID,reqID));
+		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "read", 0);
 		stateChanged();
 	}
 
@@ -274,34 +283,56 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		else{
 			//pick the number of replicas
 			ArrayList<Integer> CSLocations = new ArrayList<Integer>();
-			CSLocations.add(1);
-//			if (numReplicas == 3){
-//				//all of the chunkservers get the file
-//				CSLocations.add(1);
-//				CSLocations.add(2);
-//				CSLocations.add(3);
-//			}
-//			else{
-//			//TODO: set up a random way to pick up chunkservers
-//			}
+			if (numReplicas == 3){
+				//all of the chunkservers get the file
+				CSLocations.add(1);
+				CSLocations.add(2);
+				CSLocations.add(3);
+			}
+			else{
+				int count = 0;
+				while (count < numReplicas){					
+					Random rand = new Random();
+					int randCS = rand.nextInt() % chunkservers.size();
+					if(!CSLocations.contains(randCS)){
+						CSLocations.add(randCS);
+						count++;
+					}
+				}
+			}
 			System.out.println(path+"/"+fileName);
 			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
 				System.out.println("Successful add to tree. Requesting file create from CS.");
+				int downChunkservers = 0;
 				for(Integer CS : CSLocations){
 					try{
-						chunkservers.get(CS).createFile(path + "/" + fileName);
+						chunkservers.get(CS).getCS().createFile(path + "/" + fileName);
 					}
 					catch(RemoteException re){
 						System.out.println("Error connecting to chunkserver " + CS);
-						//TODO: handle rolling back the write
+						chunkservers.get(CS).setStatus(CSStatus.DOWN);
+						downChunkservers++;
 					}
 				}
-//				try{
-//					client.requestStatus("createFile", path + "/" + fileName, true, -1);
-//				}
-//				catch(RemoteException re){
-//					System.out.println("Error connecting to client.");
-//				}
+				if(downChunkservers == numReplicas){
+					System.out.println("Element addition to file system failed. No available chunkservers.");
+					try{
+						client.requestStatus("createFile", path + "/" + fileName, false, -1);
+					}
+					catch(RemoteException re){
+						System.out.println("Connection to client failed.");
+					}					
+				}
+				else{
+					try{
+						client.requestStatus("createFile", path + "/" + fileName, true, -1);
+					}
+					catch(RemoteException re){
+						System.out.println("Error connecting to client.");
+					}
+					System.out.println("Successful addition of file to file system");
+					log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);
+				}
 			}
 			else{
 				try{
@@ -341,20 +372,21 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			for(Integer CS : file.chunkServersNum){
 				try{
 					System.err.println("Messaging chunkserver " + CS);
-					chunkservers.get(CS).deleteFile(chunkhandle);
+					chunkservers.get(CS).getCS().deleteFile(chunkhandle);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to chunkserver " + CS);
-					//TODO: handle rolling back of the remove request?
+					chunkservers.get(CS).setStatus(CSStatus.DOWN);
 				}
 			}
-//			try{
-//				client.requestStatus("deleteFile", chunkhandle, true, -1);
-//			}
-//			catch(RemoteException re){
-//				System.out.println("Error connecting to client.");
-//			}
-			System.err.println("file removal success.");
+			try{
+				client.requestStatus("deleteFile", chunkhandle, true, -1);
+			}
+			catch(RemoteException re){
+				System.out.println("Error connecting to client.");
+			}
+			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 1);
+			System.out.println("File successfully removed from file system.");
 		}
 		else
 		{
@@ -389,27 +421,37 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else{
 			ArrayList<Integer> chunkserversL = new ArrayList<Integer>();
-			//TODO: add all chunkservers to this array list
-			chunkserversL.add(1);
+			for (Map.Entry<Integer, CSInfo> entry: chunkservers.entrySet()){
+				chunkserversL.add(entry.getKey());
+			}
 			if(directory.addElement(directory.pathTokenizer(path),chunkserversL)){
-				for(int CS = 1; CS <= chunkservers.size(); CS++){
-					try{
-						chunkservers.get(CS).createDirectory(path);
-					}
-					catch(RemoteException re){
-						System.out.println("Error connecting to chunkserver " + CS);
+				for(int CS = 1; CS <= chunkserversL.size(); CS++){
+					if(chunkservers.get(CS).getStatus() == CSStatus.OK){
+						try{
+							chunkservers.get(CS).getCS().createDirectory(path);
+						}
+						catch(RemoteException re){
+							System.out.println("Error connecting to chunkserver " + CS);
+							chunkservers.get(CS).setStatus(CSStatus.DOWN);
+						}
 					}
 				}
-				//			try{
-				//				client.requestStatus("createDirectory", path, true, -1);
-				//			}
-				//			catch(RemoteException re){
-				//				System.out.println("Error connecting to client.");
-				//			}
+				try{
+					client.requestStatus("createDirectory", path, true, -1);
+				}
+				catch(RemoteException re){
+					System.out.println("Error connecting to client.");
+				}
+				log.makeLogRecord(System.currentTimeMillis(), path, "createDirectory", 1);
 			}
 			else{
-				//TODO: Handle the failed add
-				System.err.println("Directory add to tree failure.");
+				try{
+					client.requestStatus("createDirectory", path, false, -1);
+				}
+				catch(RemoteException re){
+					System.out.println("Error connecting to client.");
+				}
+				System.out.println("Directory add to tree failure.");
 			}
 		}
 		Storage.storeTree(directory);
@@ -440,20 +482,21 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			for(Integer CS : file.chunkServersNum){
 				try{
-					chunkservers.get(CS).deleteDirectory(path);
+					chunkservers.get(CS).getCS().deleteDirectory(path);
 				}
 				catch(RemoteException re){
-					//TODO: Handle rolling back of the request in case of no success?
 					System.out.println("Error connecting to chunkserver " + CS);
+					chunkservers.get(CS).setStatus(CSStatus.DOWN);
 				}
 			}
-//			try{
-//				client.requestStatus("deleteFile", path, true, -1);
-//			}
-//			catch(RemoteException re){
-//				System.out.println("Error connecting to client.");
-//			}
-			System.err.println("Directory deletion successful.");
+			try{
+				client.requestStatus("deleteFile", path, true, -1);
+			}
+			catch(RemoteException re){
+				System.out.println("Error connecting to client.");
+			}
+			log.makeLogRecord(System.currentTimeMillis(), path, "deleteDirectory", 1);
+			System.out.println("Directory deletion successful.");
 		}
 		else
 		{
@@ -493,6 +536,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		else{
 			try{
 				client.passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
+				log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "append", 1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -526,6 +570,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
+			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "read", 1);
 		}	
 	}
 
@@ -559,50 +604,218 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
+			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "atomicAppend", 1);
 		}
 		else
 		{
-			Random randInt = new Random();
-			int randomCS = randInt.nextInt() % file.chunkServersNum.size();
+			int randomCS = getRandomWorkingCS(file.chunkServersNum);
+			if (randomCS == -1){
+				try{
+					client.requestStatus("atomicAppend", chunkhandle, false, -1);
+				}
+				catch(RemoteException re){
+					System.out.println("Error connecting to client.");
+				}
+			}
 			file.issuePrimaryLease(file.chunkServersNum.get(randomCS), System.currentTimeMillis());
+			boolean primaryLeaseSuccess;
+			ArrayList<Integer> secondaries = new ArrayList<Integer>();
+			for(Integer CS: file.chunkServersNum){
+				if(CS != randomCS){
+					secondaries.add(new Integer(CS));
+				}
+			}
 			try{
-				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
+				chunkservers.get(randomCS).getCS().primaryLease(chunkhandle, secondaries);
 			}
 			catch(RemoteException re){
-				System.out.println("Error connecting to client.");
-			}
-			try{
-				chunkservers.get(randomCS).primaryLease(chunkhandle, new ArrayList<Integer>());
-			}
-			catch(RemoteException re){
-				//TODO: Assign the primary lease to a different chunkserver
 				System.out.println("Error connecting to chunkserver " + randomCS);
+				chunkservers.get(randomCS).setStatus(CSStatus.DOWN);
+				primaryLeaseSuccess = false;
+			}
+			primaryLeaseSuccess = true;
+			if(primaryLeaseSuccess){
+				try{
+					client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
+				}
+				catch(RemoteException re){
+					System.out.println("Error connecting to client.");
+				}
+				log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "atomicAppend", 1);
+			}
+			else{
+				try{
+					client.requestStatus("atomicAppend", chunkhandle, false, -1);
+				}
+				catch(RemoteException re){
+					System.out.println("Error connecting to client.");
+				}				
 			}
 		}	
 	}
 
 	public void restoreChunkserver(int CSID) throws RemoteException {
+		long lastGoodTime = chunkservers.get(CSID).getLastGoodTime();
+		String logRecord = log.getReference(0);
+		String[] fields = logRecord.split("//$");
+		long logTime = Long.parseLong(fields[1]);
+		int count = 0;
+		//for now, this scans through the entire transaction log
+		//it assumes that the transaction log has entries since the last good time
+		while (lastGoodTime > logTime){
+			count++;
+			logRecord = log.getReference(count);
+			fields = logRecord.split("$");
+			logTime = Long.parseLong(fields[1]);
+		}
+		while (count < log.getLength()){
+			logRecord = log.getReference(count);
+			fields = logRecord.split("$");
+			if(fields[4] == "0"){
+				continue;
+			}
+			switch(fields[3]){
+			case "append":
+				if(!fetchAndRewrite(fields[2], CSID)){
+					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
+					return;					
+				}
+				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
+				break;
+			case "createFile":
+				if(!createFileRedo(fields[2], CSID)){
+					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
+					return;
+				}
+				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
+				break;
+			case "createDirectory":
+				if(!createDirectoryRedo(fields[2], CSID)){
+					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
+					return;
+				}
+				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
+				break;
+			case "atomicAppend":
+				if(!fetchAndRewrite(fields[2], CSID)){
+					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
+					return;
+				}
+				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
+				break;
+			case "deleteFile":
+				if(!deleteFileRedo(fields[2], CSID)){
+					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
+					return;
+				}
+				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
+				break;
+			case "deleteDirectory":
+				if(!deleteDirectoryRedo(fields[2], CSID)){
+					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
+					return;
+				}
+				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
+				break;	
+			default:
+				System.out.println("Error parsing log file.");
+				break;
+			}
+		}
+		chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
+		chunkservers.get(CSID).setStatus(CSStatus.OK);
+	}
 
+	public boolean createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
+		try{
+			chunkservers.get(chunkserverID).getCS().createDirectory(path);
+		}
+		catch (RemoteException re){
+			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
+			return false;
+		}
+		return true;
 	}
-	
-	public void createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
-		
+
+	public boolean createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		try{
+			chunkservers.get(chunkserverID).getCS().createFile(chunkhandle);
+		}
+		catch (RemoteException re){
+			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
+			return false;
+		}
+		return true;
 	}
-	
-	public void createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
-		
+
+	public boolean deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		try{
+			chunkservers.get(chunkserverID).getCS().deleteFile(chunkhandle);
+		}
+		catch (RemoteException re){
+			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
+			return false;
+		}
+		return true;
 	}
-	
-	public void deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
-		
+
+	public boolean deleteDirectoryRedo(String path, int chunkserverID) throws RemoteException {
+		try{
+			chunkservers.get(chunkserverID).getCS().deleteDirectory(path);
+		}
+		catch (RemoteException re){
+			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
+			return false;
+		}
+		return true;
 	}
-	
-	public void deleteDirectoryRedo(String chunkhandle, int chunkserverID) throws RemoteException {
-		
+
+	public boolean fetchAndRewrite(String chunkhandle, int chunkserverID) throws RemoteException {
+		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
+		int source = file.chunkServersNum.get(0);
+		int count = 0;
+		while(chunkservers.get(source).getStatus() != CSStatus.OK){
+			count++;
+			source = file.chunkServersNum.get(count);
+			if(count == file.chunkServersNum.size()){
+				System.out.println("No remaining healthy replicas. Skipping file " + chunkhandle);
+				return true;
+			}
+		}
+		chunkservers.get(chunkserverID).getCS().fetchAndRewrite(chunkhandle, source);
+		return true;
 	}
-	
-	public void fetchAndRewrite(String chunkhandle, int CSSource, int chunkserverID) throws RemoteException {
-		
+
+	public int getRandomWorkingCS (ArrayList<Integer> CSList){
+		Random randInt = new Random();
+		int chosenOne = randInt.nextInt() % CSList.size();
+		boolean working = false;
+		int attempts = 0;
+		if(chunkservers.get(chosenOne).getStatus() == CSStatus.OK){
+			working = true;
+		}
+		else{
+			working = false;
+		}
+		while(!working){
+			chosenOne = randInt.nextInt() % CSList.size();
+			attempts++;
+			if(chunkservers.get(chosenOne).getStatus() == CSStatus.OK){
+				working = true;
+			}
+			else{
+				working = false;
+			}
+			if(attempts > 10){
+				System.out.println("Unable to locate a working chunkserver.");
+				return -1;
+			}
+		}
+		return chosenOne;
 	}
 
 	public static void main(String[] args) {
@@ -660,6 +873,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		int reqID;
 		int clientID;
 		TaskType type;
+		long startTime;
 
 		// called by createFile
 		public Task(TaskType type, String path, String fileName, int numReplicas, int clientID){
@@ -668,6 +882,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.fileName = fileName;
 			this.numReplicas = numReplicas;
 			this.clientID = clientID;
+			startTime = System.currentTimeMillis();
 		}
 
 		// called by read, append, and atomicAppend 
@@ -676,6 +891,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.path = path;
 			this.clientID = clientID;
 			this.reqID = reqID;
+			startTime = System.currentTimeMillis();
 		}
 
 		// called by deleteFile, createDirectory, deleteDirectory
@@ -684,12 +900,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.path = path;
 			this.clientID = clientID;
 			this.reqID = -1;
+			startTime = System.currentTimeMillis();
 		}
 
 		// called by heartbeat
 		public Task(TaskType type, int CSID){
 			this.type = type;
 			this.CSID = CSID;
+			startTime = System.currentTimeMillis();
 		}
 
 		// Getters
@@ -714,9 +932,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		public int getReqID(){
 			return reqID;
 		}
+		public long getStartTime(){
+			return startTime;
+		}
 	}
 
-	
+
 	/**
 	 * Class CSInfo is used by master to maintain metadata for connecting to various
 	 * chunkservers. It keeps track of the most recent heartbeat time received from
@@ -728,32 +949,41 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	private class CSInfo{
 		CSStatus status;
 		long lastHeartbeat;
+		long lastGoodTime;
 		int id;
 		ChunkserverInterface remoteCS;
-		
+
 		public CSInfo(ChunkserverInterface csi, int id){
 			this.id = id;
 			this.remoteCS = csi;
 			this.lastHeartbeat = System.currentTimeMillis();
 			this.status = CSStatus.OK;
 		}
-		
+
 		public CSStatus getStatus(){
 			return status;
 		}
-		
+
+		public long getLastGoodTime(){
+			return lastGoodTime;
+		}
+
 		public long getLastHB(){
 			return lastHeartbeat;
 		}
-		
+
 		public ChunkserverInterface getCS(){
 			return remoteCS;
 		}
-		
+
 		public int getID(){
 			return id;
 		}
-		
+
+		public void setLastGoodTime(long lastGoodTime){
+			this.lastGoodTime = lastGoodTime;
+		}
+
 		public void setStatus(CSStatus status){
 			this.status = status;
 		}

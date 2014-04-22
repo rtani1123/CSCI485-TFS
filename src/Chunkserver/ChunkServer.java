@@ -317,6 +317,10 @@ public class ChunkServer extends UnicastRemoteObject implements
 		
 		return false;
 	}
+	
+	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
+		
+	}
 
 	public static void main(String args[]) {
 		try {
