@@ -3,8 +3,14 @@ package Client;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +22,7 @@ import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 import Master.Master;
 
-public class Client implements ClientInterface{
+public class Client extends UnicastRemoteObject implements ClientInterface{
 	ArrayList<ClientMetaDataItem> clientMetaDataArray;		// locations of replicas and primary lease
 	List<ChunkserverInterface> chunkservers;				// chunkservers to contact
 	List<Request> pendingRequests;							// application request info for append, atomic append, and read 
@@ -32,14 +38,79 @@ public class Client implements ClientInterface{
 
 
 	// constructor, takes an ID for the client
-	public Client(int ID) {
+	public Client(int ID) throws RemoteException {
 		clientMetaDataArray = new ArrayList<ClientMetaDataItem>();	
 		pendingRequests = Collections.synchronizedList(new ArrayList<Request>());
 		clientID = ID;
 		count = 0;
 		chunkservers = Collections.synchronizedList(new ArrayList<ChunkserverInterface>());
+		
+		setupClientHost();
 	}
 
+	//Master calls Client methods -> MASTERCLIENT
+	public void setupClientHost() throws RemoteException {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			Registry registry = LocateRegistry.createRegistry(1099);
+			Naming.rebind("rmi://dblab-43.vlab.usc.edu/CLIENT", this);
+			System.out.println("Client Host Setup");
+		} catch (MalformedURLException re) {
+			System.out.println("Bad connection");
+			re.printStackTrace();
+		} catch (RemoteException e) {
+			System.out.println("Bad connection");
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//now run Master.
+	}
+
+	//Client Calls Master code -> CLIENTMASTER
+	public void connectToMaster() throws RemoteException {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			/*
+			 * format for connection should be "rmi:DOMAIN/ChunkserverID".
+			 * ChunkserverID will be different for each instance of Chunkserver
+			 * one detail to mention is that CSMaster will not be the same as
+			 * MasterCS. There's actually a completely different callfor master
+			 * calling CS functions than CS calling master functions.
+			 * 
+			 * For this, the master is hosted on dblab-29.
+			 */
+			master = (MasterInterface) Naming
+					.lookup("rmi://dblab-29.vlab.usc.edu/MASTER");
+			master.connectToClient();
+
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
+
+		} catch (Exception re) {
+			re.printStackTrace();
+		}
+	}
+	
+	public void connectToChunkserver(Integer index) {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			ChunkserverInterface tempCS;
+
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
+			
+			//TODO: Change this to handle multiple chunkservers.
+			//chunkservers.put(1, tempCS);
+			chunkservers.add(tempCS);
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
+
+		} catch(Exception re) {
+			re.printStackTrace();
+		}
+	}
 	// ***THIS WILL NEED TO BE UPDATED***
 	public void setUpConnections() throws RemoteException{
 		chunkservers.add(new ChunkServer());
@@ -313,4 +384,5 @@ public class Client implements ClientInterface{
 			}
 		}
 	}
+
 }

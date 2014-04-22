@@ -8,8 +8,9 @@ import java.util.Map;
 
 public interface ChunkserverInterface extends Remote{
 	//functions called by the master
-	public void setupHost() throws RemoteException;
-	public void setupClient() throws RemoteException;
+	public void setupChunkserverHost() throws RemoteException;
+	public void connectToMaster() throws RemoteException;
+	public void connectToClient() throws RemoteException;
 	public Map<String, Long> refreshMetadata() throws RemoteException;
 	public void primaryLease(String chunkhandle) throws RemoteException;
 	public boolean createFile(String chunkhandle) throws RemoteException;
