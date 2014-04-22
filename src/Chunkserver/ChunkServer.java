@@ -235,6 +235,10 @@ public class ChunkServer extends UnicastRemoteObject implements
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
+		
+	}
 
 	public static void main(String args[]) {
 		try {

@@ -16,6 +16,7 @@ public interface ChunkserverInterface extends Remote{
 	public boolean createDirectory(String chunkhandle) throws RemoteException;
 	public boolean deleteFile(String chunkhandle) throws RemoteException;
 	public boolean deleteDirectory(String chunkhandle) throws RemoteException;
+	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException;
 	//functions called by the client
 	public boolean atomicAppend(String chunkhandle, byte[] payload, int length, boolean withSize) throws RemoteException;
 	public byte[] read(String chunkhandle, int offset, int length) throws RemoteException;
