@@ -25,6 +25,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		ChunkserverInterface {
 	// public CSMetadata csmd = new CSMetadata();
 	Map<String, Long> CSMetaData = new HashMap<String, Long>();
+	Map<Integer, ChunkserverInterface> chunkservers;
 	MasterInterface myMaster;
 	ClientInterface myClient;
 	Integer csIndex;
@@ -33,7 +34,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		//setupMasterChunkserverHost();
 		//setupMasterChunkserverClient();
 		csIndex = 1;  //TODO: Hardcoded to 1
-		
+		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		setupChunkserverHost();
 		connectToMaster();
 		myMaster.connectToChunkserver(csIndex);
@@ -89,6 +90,25 @@ public class ChunkServer extends UnicastRemoteObject implements
 			
 			myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
 			
+
+		} catch(Exception re) {
+			re.printStackTrace();
+		}
+	}
+	
+	public void connectToChunkserver(Integer index) {
+		try {
+			System.setSecurityManager(new RMISecurityManager());
+			ChunkserverInterface tempCS;
+
+			//TODO: Careful!! Don't connect to yourself!
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
+			
+			//TODO: Change this to handle multiple chunkservers.
+			chunkservers.put(index, tempCS);
+			/*
+			 * ChunkServer FUNCTION HOST implementation
+			 */
 
 		} catch(Exception re) {
 			re.printStackTrace();
