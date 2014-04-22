@@ -12,8 +12,8 @@ import java.util.ArrayList;
  * 
  * Format of the logs is as follows:
  * startTimestamp is the transactionID
- * type = 1 for create and 0 for delete 
- * stage = 0 for received and 1 for commit
+ * type = read, createFile, deleteFile, createDirectory, deleteDirectory, append, or atomicAppend\
+ * stage is 0 for start and 1 for commit
  * String: ($startTimestamp$fileOrDirectory$type$stage$)
  */
 public class OperationsLog implements Serializable{
@@ -31,10 +31,9 @@ public class OperationsLog implements Serializable{
 	 * It does not write to disk.
 	 * @param startTime
 	 * @param type
-	 * @param stage
 	 * @param chunkhandle
 	 */
-	public void makeLogRecord(long startTime, int type, int stage, String chunkhandle){
+	public void makeLogRecord(long startTime, String type, String chunkhandle, int stage){
 		StringBuffer newRecord = new StringBuffer("$");
 		newRecord.append(startTime);
 		newRecord.append("$");
@@ -45,6 +44,14 @@ public class OperationsLog implements Serializable{
 		newRecord.append(stage);
 		newRecord.append("$");
 		log.add(newRecord);
+	}
+	
+	public String getReference(int index){
+		return log.get(index).toString();
+	}
+	
+	public int getLength(){
+		return log.size();
 	}
 	
 	public void recover(){

@@ -40,12 +40,12 @@ public class ChunkServer extends UnicastRemoteObject implements
 		csIndex = 1;  //TODO: Hardcoded to 1
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		setupChunkserverHost();
+
 		connectToMaster();
 		myMaster.connectToChunkserver(csIndex);
 		connectToClient();
 		myClient.connectToChunkserver(csIndex);
-		//myMaster.append("C:/1/test.txt", 1, 1);
-		//myClient.createDirectory("C:/1");
+		
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
@@ -321,6 +321,15 @@ public class ChunkServer extends UnicastRemoteObject implements
 		}
 		
 		return false;
+	}
+	
+	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
+		
+	}
+	
+	// called by master
+	public void heartbeat() throws RemoteException{
+		myMaster.heartbeat(csIndex);
 	}
 
 	public static void main(String args[]) {
