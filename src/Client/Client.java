@@ -37,9 +37,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public static final String APPEND = "append";
 	public static final String ATOMIC_APPEND = "atomicAppend";
 	public static final String READ = "read";
-	public static Client myClient=null;
+//	public static Client myClient=null;
 	public static void main(String[] args) throws RemoteException {
-		myClient = new Client(11);
+	
 	}
 
 	// constructor, takes an ID for the client
@@ -105,7 +105,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			ChunkserverInterface tempCS;
 
 			tempCS = (ChunkserverInterface) Naming
-					.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK"
+					.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK"
 							+ index.toString());
 
 			// TODO: Change this to handle multiple chunkservers.
@@ -180,6 +180,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 														// chunkhandle, ask
 														// master for location
 		int id = -1;
+		System.out.println(chunkhandle + " " + offset + " " + length + " "+data + " " +withSize);
 		try {
 			countLock.acquire();
 			id = ++count;
@@ -309,9 +310,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	// Method called by master giving chunkhandle and chunkservers
 	public void passMetaData(String chunkhandle, int ID,
 			ArrayList<Integer> chunkservers, int reqID) {
+		System.out.println("wre are getting meta data");
 		// reqID of -1 is used for functions such as Creates and Deletes which
 		// are not stored in the pendingRequests.
 		if (reqID != -1) {
+			System.out.println("reqID is not -1");
 			// Go through the pendingRequests array to find request with the
 			// matching reqID.
 			// Save locations of replicates and/or update primary lease
@@ -368,7 +371,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 	// call this to contact chunkservers
 	private void contactChunks(int rID) {
+<<<<<<< HEAD
 		// retrieve requests
+=======
+		// retrieve request
+		System.out.println("we are contacting chunkserver");
+		
+>>>>>>> 3e43de7e2e8e3e9ceb3733b66abeb124337274a6
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
 			if (r.getID() == rID) {

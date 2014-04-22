@@ -35,6 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
+	final static long HEARTBEAT_DELAY = 5000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -43,13 +44,16 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public enum TaskType {createF, deleteF, createD, deleteD, read, append, aAppend, heartbeat};
 	ClientInterface client;
 	HashMap<Integer, CSInfo> chunkservers;
+	Heartbeat heartbeat;
 
 	public Master() throws RemoteException{
 		directory = new Tree();
 		chunkservers = new HashMap<Integer, CSInfo>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
-		startThread();
+		heartbeat = new Heartbeat();
+		heartbeat.start();		// initiate run method in Heartbeat class, start sending out heartbeat messages
+		startThread();		
 
 		setupMasterHost();
 		
@@ -99,7 +103,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 			System.out.println( "attempting connect to: dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
-			
+
 			//TODO: Change this to handle multiple chunkservers.
 			CSInfo temp = new CSInfo(tempCS, 1);
 			chunkservers.put(index, temp);
@@ -198,6 +202,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	}
 
 	public void heartbeat(int CSID) throws RemoteException {
+		for(int i:chunkservers.keySet()){
+			if((chunkservers.get(i)).getID() == CSID){
+				// TODO update accordingly to record new heartbeat time
+			}
+		}
+
 		tasks.add(new Task(TaskType.heartbeat,CSID));
 		stateChanged();
 	}
@@ -847,7 +857,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					while (pickAndExecuteAnAction()) ;
 				} catch (InterruptedException e) {
 				} catch (Exception e) {
-					System.out.println("Unexpected exception caught in Agent thread:" + e);
+					System.out.println("Unexpected exception caught in Master thread:" + e);
 				}
 			}
 		}
@@ -990,6 +1000,43 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		public void setLastHB(long LHB){
 			this.lastHeartbeat = LHB;
+		}
+	}
+
+	private class Heartbeat extends Thread{
+		long lastHBTime;
+
+		public Heartbeat(){
+			lastHBTime = 0;
+		}
+
+		public void run(){
+			while(true){
+				// send heartbeat message to chunkservers
+				for(Integer i:chunkservers.keySet()){
+					// check if chunkserver is dead
+					if(chunkservers.get(i).getStatus()!=CSStatus.DOWN && chunkservers.get(i).getLastHB() < lastHBTime - HEARTBEAT_DELAY){
+						chunkservers.get(i).setStatus(CSStatus.DOWN);
+					}
+					// don't sent heartbeat to dead chunkservers
+					if(chunkservers.get(i).getStatus()!=CSStatus.DOWN){
+						try {
+							chunkservers.get(i).getCS().heartbeat();
+						} catch (RemoteException e) {
+							System.out.println("Could not connect to chunkserver " + i + " for heartbeat");
+							e.printStackTrace();
+						}
+					}
+				}
+				lastHBTime = System.currentTimeMillis();
+				// gap time between sends
+				try {
+					sleep(HEARTBEAT_DELAY);
+				} catch (InterruptedException e) {
+					System.err.println("InterruptedException in master heartbeat");
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }
