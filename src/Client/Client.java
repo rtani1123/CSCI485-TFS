@@ -19,6 +19,7 @@ import Chunkserver.ChunkServer;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
+import Master.Master;
 
 public class Client implements ClientInterface{
 	ArrayList<ClientMetaDataItem> clientMetaDataArray;		// locations of replicas and primary lease
@@ -89,10 +90,12 @@ public class Client implements ClientInterface{
 		}
 	}
 	// ***THIS WILL NEED TO BE UPDATED***
-	public void setUpChunkservers() throws RemoteException{
+	public void setUpConnections() throws RemoteException{
 		chunkservers.add(new ChunkServer());
 		chunkservers.add(new ChunkServer());
 		chunkservers.add(new ChunkServer());
+		
+		master = new Master();
 	}
 
 	// called by the application
@@ -101,6 +104,7 @@ public class Client implements ClientInterface{
 			master.createFile(Path, fileName, numReplicas, clientID);
 		}
 		catch(RemoteException e){
+			System.out.println("Could not connect to master to create file.");
 			e.printStackTrace();
 		}
 	}
@@ -111,6 +115,7 @@ public class Client implements ClientInterface{
 			master.deleteFileMaster(chunkhandle, clientID);
 		}
 		catch(RemoteException e){
+			System.out.println("Could not connect to master to delete file.");
 			e.printStackTrace();
 		}
 	}	
@@ -121,6 +126,7 @@ public class Client implements ClientInterface{
 			master.deleteDirectory(path, clientID);
 		}
 		catch(RemoteException e){
+			System.out.println("Could not connect to master to delete directory.");
 			e.printStackTrace();
 		}
 	}
@@ -141,10 +147,12 @@ public class Client implements ClientInterface{
 			countLock.release();	
 		}
 		catch(RemoteException e){
+			System.out.println("Could not connect to master to append.");
 			e.printStackTrace();
+			// Remove request if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
-				if ((pendingRequests.get(x)).ID == id) {
+				if ((pendingRequests.get(x)).getID() == id) {
 					index = x;
 					break;
 				}
@@ -172,10 +180,12 @@ public class Client implements ClientInterface{
 			countLock.release();
 		}
 		catch(RemoteException e){
+			System.out.println("Could not connect to master to atomic append.");
 			e.printStackTrace();
+			// Remove request if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
-				if ((pendingRequests.get(x)).ID == id) {
+				if ((pendingRequests.get(x)).getID() == id) {
 					index = x;
 					break;
 				}
@@ -212,17 +222,17 @@ public class Client implements ClientInterface{
 			try {	
 				countLock.acquire();
 				id = ++count;
-				Request r = new Request(READ, chunkhandle, count);
-				pendingRequests.add(r);
+				pendingRequests.add(new Request(READ, chunkhandle, count));
 				master.read(chunkhandle, clientID, count);
 				countLock.release();
 			}
 			catch(RemoteException e){
+				System.out.println("Could not connect to master to atomic append.");
 				e.printStackTrace();
+				// Remove request if could not connect to master
 				int ind = -1;
 				for (int x = 0; x < pendingRequests.size(); x++) {
-					Request r = (Request) pendingRequests.get(x);
-					if (r.ID == id) {
+					if (pendingRequests.get(x).getID() == id) {
 						ind = x;
 						break;
 					}
@@ -237,7 +247,6 @@ public class Client implements ClientInterface{
 
 	// called by master
 	public void requestStatus(String requestType, String fullPath, boolean succeeded, int ID) throws RemoteException {
-
 		if (succeeded) {
 			System.out.println("Request to" + requestType + " " + fullPath + "succeeded.");
 		}
@@ -269,8 +278,7 @@ public class Client implements ClientInterface{
 					}
 					//if the chunkhandle was not already in the metadata, add it along with its chunkservers
 					if (!exists) {
-						ClientMetaDataItem cmdi = new ClientMetaDataItem(chunkhandle, ID, chunkservers);
-						clientMetaDataArray.add(cmdi);
+						clientMetaDataArray.add(new ClientMetaDataItem(chunkhandle, ID, chunkservers));
 					}
 					//once the corresponding ReqID is found, break out of the outer loop.
 					break;
@@ -280,25 +288,33 @@ public class Client implements ClientInterface{
 			contactChunks(reqID);
 		}
 	}
-	//check for chunkhandle
-
+	
+	// return index of metadata for chunkhandle if already known
+	// otherwise return -1
 	private int alreadyInClientMetaData(String chunkhandle) {
 		for (int i = 0; i < clientMetaDataArray.size(); i++) {
-			ClientMetaDataItem  c = (ClientMetaDataItem) clientMetaDataArray.get(i);
-			if (chunkhandle.equals(c.chunkhandle)) return i;
+			if (chunkhandle.equals(clientMetaDataArray.get(i).chunkhandle)) return i;
 		}
 		return -1;
 	}
 
+	// call this to contact chunkservers
 	private void contactChunks(int rID) {
 		// retrieve request
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
-			if (r.ID == rID) {
+			if (r.getID() == rID) {
 				if((r.getRequestType()).equals(APPEND)){
 					for(int cs:r.getChunkservers()){
 						try {
-							chunkservers.get(cs).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize());
+							if(chunkservers.get(cs).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())){
+								System.out.println("Successful append");
+								// call application to print to command line
+							}
+							else{
+								System.out.println("Failed append");
+								// call application to print to command line
+							}
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for append");
 							e.printStackTrace();
@@ -308,7 +324,14 @@ public class Client implements ClientInterface{
 				else if((r.getRequestType()).equals(ATOMIC_APPEND)){
 					for(int cs:r.getChunkservers()){
 						try {
-							chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(), r.getLength(), r.getWithSize());
+							if(chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(), r.getLength(), r.getWithSize())){
+								System.out.println("Successful atomic append");
+								// call application to print to command line
+							}
+							else{
+								System.out.println("Failed atomic append");
+								// call application to print to command line
+							}
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for atomic append");
 							e.printStackTrace();
@@ -318,12 +341,15 @@ public class Client implements ClientInterface{
 				else if((r.getRequestType()).equals(READ)){
 					for(int cs:r.getChunkservers()){
 						try {
-							chunkservers.get(cs).read(r.getFullPath(), r.getOffset(), r.getLength());
+							System.out.println(chunkservers.get(cs).read(r.getFullPath(), r.getOffset(), r.getLength()));
 						} catch (RemoteException e) {
 							System.out.println("Failed to connect to chunkserver for read");
 							e.printStackTrace();
 						}
 					}
+				}
+				else{
+					System.out.println("Error. Request type not found.");
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-package Master;
+package Utilities;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

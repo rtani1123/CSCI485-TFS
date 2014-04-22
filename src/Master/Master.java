@@ -27,6 +27,7 @@ import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Utilities.Node;
 import Utilities.Tree;
+import Utilities.Storage;
 import Interfaces.MasterInterface;
 
 public class Master extends UnicastRemoteObject implements MasterInterface{
@@ -46,7 +47,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
-
+		startThread();
 
 		setupHost();
 
@@ -232,9 +233,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 */
 	public void createFileA(String path, String fileName, int numReplicas, int clientID) throws RemoteException
 	{
-		Node file = directory.root.find(directory.pathTokenizer(path), 1);	
+		directory.getAllPath(directory.root);
+		Node file = directory.root.find(directory.pathTokenizer(path + "/" + fileName), 1);	
 		if (file != null){
 			//if the file exists, we return an error
+			System.err.println("Error file already exists.");
 			try{
 				client.requestStatus("createFile", path + "/" + fileName, false, -1);
 			}
@@ -245,24 +248,17 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		else{
 			//pick the number of replicas
 			ArrayList<Integer> CSLocations = new ArrayList<Integer>();
-			if (numReplicas == 3){
-				//all of the chunkservers get the file
-				CSLocations.add(1);
-				CSLocations.add(2);
-				CSLocations.add(3);
-			}
-			else{
-				//randomly pick the chunkservers to have the file
-				int count = 0;
-				Random rands = new Random();
-				while (count < numReplicas){
-					int CS = rands.nextInt() % chunkservers.size();
-					if (!CSLocations.contains(CS)){
-						count++;
-						CSLocations.add(CS);
-					}
-				}
-			}
+			CSLocations.add(1);
+//			if (numReplicas == 3){
+//				//all of the chunkservers get the file
+//				CSLocations.add(1);
+//				CSLocations.add(2);
+//				CSLocations.add(3);
+//			}
+//			else{
+//			//TODO: set up a random way to pick up chunkservers
+//			}
+			System.out.println(path+"/"+fileName);
 			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
 				System.out.println("Successful add to tree. Requesting file create from CS.");
 				for(Integer CS : CSLocations){
@@ -274,12 +270,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						//TODO: handle rolling back the write
 					}
 				}
-				try{
-					client.requestStatus("createFile", path + "/" + fileName, true, -1);
-				}
-				catch(RemoteException re){
-					System.out.println("Error connecting to client.");
-				}
+//				try{
+//					client.requestStatus("createFile", path + "/" + fileName, true, -1);
+//				}
+//				catch(RemoteException re){
+//					System.out.println("Error connecting to client.");
+//				}
 			}
 			else{
 				try{
@@ -291,7 +287,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 		}
-
+		Storage.storeTree(directory);
 	}
 
 	/**
@@ -318,19 +314,21 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			for(Integer CS : file.chunkServersNum){
 				try{
-					chunkservers.get(CS).deleteDirectory(chunkhandle);
+					System.err.println("Messaging chunkserver " + CS);
+					chunkservers.get(CS).deleteFile(chunkhandle);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to chunkserver " + CS);
 					//TODO: handle rolling back of the remove request?
 				}
 			}
-			try{
-				client.requestStatus("deleteFile", chunkhandle, true, -1);
-			}
-			catch(RemoteException re){
-				System.out.println("Error connecting to client.");
-			}
+//			try{
+//				client.requestStatus("deleteFile", chunkhandle, true, -1);
+//			}
+//			catch(RemoteException re){
+//				System.out.println("Error connecting to client.");
+//			}
+			System.err.println("file removal success.");
 		}
 		else
 		{
@@ -342,6 +340,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 		}
+		Storage.storeTree(directory);
 	}
 
 	/**
@@ -363,21 +362,31 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 		}
 		else{
-			for(int CS = 1; CS <= chunkservers.size(); CS++){
-				try{
-					chunkservers.get(CS).createFile(path);
+			ArrayList<Integer> chunkserversL = new ArrayList<Integer>();
+			//TODO: add all chunkservers to this array list
+			chunkserversL.add(1);
+			if(directory.addElement(directory.pathTokenizer(path),chunkserversL)){
+				for(int CS = 1; CS <= chunkservers.size(); CS++){
+					try{
+						chunkservers.get(CS).createDirectory(path);
+					}
+					catch(RemoteException re){
+						System.out.println("Error connecting to chunkserver " + CS);
+					}
 				}
-				catch(RemoteException re){
-					System.out.println("Error connecting to chunkserver " + CS);
-				}
+				//			try{
+				//				client.requestStatus("createDirectory", path, true, -1);
+				//			}
+				//			catch(RemoteException re){
+				//				System.out.println("Error connecting to client.");
+				//			}
 			}
-			try{
-				client.requestStatus("createDirectory", path, true, -1);
-			}
-			catch(RemoteException re){
-				System.out.println("Error connecting to client.");
+			else{
+				//TODO: Handle the failed add
+				System.err.println("Directory add to tree failure.");
 			}
 		}
+		Storage.storeTree(directory);
 	}
 
 	/**
@@ -399,8 +408,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
+			return;
 		}
-		else if(directory.removeElement(directory.pathTokenizer(path)))
+		if(directory.removeElement(directory.pathTokenizer(path)))
 		{
 			for(Integer CS : file.chunkServersNum){
 				try{
@@ -411,12 +421,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					System.out.println("Error connecting to chunkserver " + CS);
 				}
 			}
-			try{
-				client.requestStatus("deleteFile", path, true, -1);
-			}
-			catch(RemoteException re){
-				System.out.println("Error connecting to client.");
-			}
+//			try{
+//				client.requestStatus("deleteFile", path, true, -1);
+//			}
+//			catch(RemoteException re){
+//				System.out.println("Error connecting to client.");
+//			}
+			System.err.println("Directory deletion successful.");
 		}
 		else
 		{
@@ -427,7 +438,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
-		}		
+		}
+		Storage.storeTree(directory);
 	}
 
 	/**

@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import Utilities.TreeStorage;
+import Utilities.Storage;
 
 /*Test6:  Append the size and content of a file stored on the local machine in a target TFS file 
 specified by its path.
@@ -39,7 +39,7 @@ public class Test6 {
 			System.err.println("Error. Invalid number of arguments for Test6.");
 			return;
 		}
-		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		Part1FS tfs = new Part1FS(Storage.getTree());
 		String startingFullPath = args[0];
 		String destinationFullPath = args[1];
 		int lastSlash = destinationFullPath.lastIndexOf("/", destinationFullPath.length());
@@ -69,7 +69,7 @@ public class Test6 {
 		//write to the output file
 		tfs.atomicAppendWithSize(destinationFullPath, b.length, b);
 		System.out.println("Successful append of " + b.length + " bytes of payload to " + destinationFullPath);
-		TreeStorage.storeTree(tfs.directory);
+		Storage.storeTree(tfs.directory);
 		
 	}
 }

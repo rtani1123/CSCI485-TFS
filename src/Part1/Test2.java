@@ -2,7 +2,7 @@ package Part1;
 
 import java.io.File;
 import java.util.ArrayList;
-import Utilities.TreeStorage;
+import Utilities.Storage;
 
 /*Test2: Create N files in a directory and its subdirectories until the leaf subdirectories.  
  * Each file in a directory is named File1, File2, ..., FileN
@@ -27,7 +27,7 @@ public class Test2 {
 			System.err.println("Error. Invalid number of arguments for Test2.");
 			return;
 		}
-		Part1FS tfs = new Part1FS(TreeStorage.getTree());
+		Part1FS tfs = new Part1FS(Storage.getTree());
 		String startingPath = args[0];
 		int numFiles = Integer.parseInt(args[1]);
 		ArrayList<String> directories = new ArrayList<String>();
@@ -66,6 +66,6 @@ public class Test2 {
 		}
 		System.out.println("Existing tree structure: ");
 		tfs.directory.getAllPath(tfs.directory.root);
-		TreeStorage.storeTree(tfs.directory);
+		Storage.storeTree(tfs.directory);
 	}
 }

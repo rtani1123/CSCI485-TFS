@@ -19,7 +19,7 @@ public class Tree implements Serializable {
 //		paths = myTree.pathTokenizer("C:/Program");
 //		myTree.addElement(paths, chunkServersNum);
 //		System.out.println(x.getPath());
-		TreeStorage ts = new TreeStorage();
+		Storage ts = new Storage();
 		myTree = ts.getTree();
 //		ts.storeTree(myTree);
 //		myTree = ts.getTree();
@@ -61,8 +61,11 @@ public class Tree implements Serializable {
 			Node newFile = new Node();
 			newFile.name = paths.get(paths.size()-1);
 			newFile.parent = x;
+			for(Integer CS: chunckServersNum){
+				Integer copiedInt = new Integer(CS);
+				newFile.chunkServersNum.add(copiedInt);
+			}
 			x.children.put(newFile.name, newFile);
-			x.chunkServersNum = chunckServersNum;
 		}
 
 		return true;
