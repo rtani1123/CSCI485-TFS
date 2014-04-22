@@ -332,7 +332,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface{
 
 	// call this to contact chunkservers
 	private void contactChunks(int rID) {
-		// retrieve request
+		// retrieve requests
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
 			if (r.getID() == rID) {

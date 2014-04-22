@@ -40,8 +40,8 @@ public class ChunkServer extends UnicastRemoteObject implements
 		csIndex = 1;  //TODO: Hardcoded to 1
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		setupChunkserverHost();
-		connectToMaster();
-		myMaster.connectToChunkserver(csIndex);
+		//connectToMaster();
+		//myMaster.connectToChunkserver(csIndex);
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
@@ -49,7 +49,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-36.vlab.usc.edu/CHUNK" + csIndex.toString(), this);
+			Naming.rebind("rmi://dblab-18.vlab.usc.edu/CHUNK" + csIndex.toString(), this);
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection");

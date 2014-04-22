@@ -50,8 +50,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		startThread();
 
 		setupMasterHost();
+		
 		connectToClient();
-		client.connectToMaster();
+		try {
+			client.connectToMaster();
+		} catch(RemoteException re) {
+			System.out.println("Cannot connect to client");
+		}
+		//client.createDirectory("C:/1");
 	}
 
 	/**
@@ -88,8 +94,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS;
-
-			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
+			System.out.println( "attempting connect to: dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
+			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			
 			//TODO: Change this to handle multiple chunkservers.
 			chunkservers.put(index, tempCS);
@@ -472,7 +478,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 */
 	public void appendA(String chunkhandle, int clientID, int reqID) throws RemoteException
 	{
+		System.out.println("Attempt action append");
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
+		System.out.println("Attempt action append");
 		if(file == null)
 		{
 			try{
