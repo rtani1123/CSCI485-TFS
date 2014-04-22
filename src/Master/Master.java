@@ -207,7 +207,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					return true;
 				}
 				else if(tasks.get(0).getType() == TaskType.heartbeat){
-					heartbeatA(tasks.get(0).getCSID());
+					//TODO: send a heartbeat message
 					tasks.remove(0);
 					return true;
 				}
@@ -553,15 +553,28 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}	
 	}
 
-	public void heartbeatA(int CSID) throws RemoteException
-	{
-		//this function is called when the chunkserver comes back online and an update is required
-		try{
-			chunkservers.get(CSID).refreshMetadata();
-		}
-		catch(RemoteException re){
-			System.out.println("Error connecting to chunkserver " + CSID);
-		}
+	public void restoreChunkserver(int CSID) throws RemoteException {
+
+	}
+	
+	public void createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void deleteDirectoryRedo(String chunkhandle, int chunkserverID) throws RemoteException {
+		
+	}
+	
+	public void fetchAndRewrite(String chunkhandle, int CSSource, int chunkserverID) throws RemoteException {
+		
 	}
 
 	public static void main(String[] args) {
