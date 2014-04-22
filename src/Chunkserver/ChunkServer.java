@@ -42,23 +42,27 @@ public class ChunkServer extends UnicastRemoteObject implements
 		setupChunkserverHost();
 		connectToMaster();
 		myMaster.connectToChunkserver(csIndex);
+		connectToClient();
+		myClient.connectToChunkserver(csIndex);
+		//myMaster.append("C:/1/test.txt", 1, 1);
+		//myClient.createDirectory("C:/1");
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
 	public void setupChunkserverHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			Registry registry = LocateRegistry.createRegistry(1099);
-			Naming.rebind("rmi://dblab-36.vlab.usc.edu/CHUNK" + csIndex.toString(), this);
+			Registry registry = LocateRegistry.createRegistry(123);
+			//System.out.println("attempting to create host at: " + "dblab-36.vlab.usc.edu/CHUNK" + csIndex.toString());
+			
+			Naming.bind("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + csIndex.toString(), this);
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
-		} catch (MalformedURLException re) {
-			System.out.println("Bad connection");
-			re.printStackTrace();
 		} catch (RemoteException e) {
-			System.out.println("Bad connection");
+			//index = index + 1;
+			//setupChunkserverHost(index);
 			e.printStackTrace();
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 
@@ -240,6 +244,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public boolean append(String chunkhandle, byte[] payload, int length,
 			int offset, boolean withSize) throws RemoteException {
 		File f = new File(chunkhandle);
+		System.out.println("Chunkserver append was called.");
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
