@@ -102,7 +102,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS;
 
-			System.out.println( "attempting connect to: dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
+			//System.out.println( "attempting connect to: dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 
 			//TODO: Change this to handle multiple chunkservers.
@@ -534,7 +534,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	{
 		System.out.println("Attempt action append");
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
-		System.out.println("Attempt action append");
 		if(file == null)
 		{
 			try{
