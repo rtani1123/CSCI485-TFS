@@ -86,13 +86,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			Naming.rebind("rmi://dblab-18.vlab.usc.edu/MASTER", this);
 			System.out.println("Master Host Setup Success");
 		} catch (MalformedURLException re) {
-			System.out.println("Bad connection");
-			re.printStackTrace();
+			System.out.println("Bad connection - MalformedURLException");
 		} catch (RemoteException e) {
-			System.out.println("Bad connection");
-			e.printStackTrace();
+			System.out.println("Bad connection - RemoteException");
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Bad connection - Misc Exception");
 		}
 	}
 	//Master calls Chunkserver methods -> MASTERCHUNK1
@@ -116,7 +114,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println("Connection to Chunkserver " + index + " Success" );
 
 		} catch(Exception re) {
-			re.printStackTrace();
+			System.out.println("Error in connect to Chunkserver");
 		}
 	}
 
@@ -127,7 +125,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
-			re.printStackTrace();
+			System.out.println("Error in connection to client");
 		}
 	}
 
@@ -259,7 +257,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			catch (RemoteException e){
 				System.out.println("Remote Exception connecting from Master.");
-				e.printStackTrace();
 			}
 		}
 		return false;
@@ -595,6 +592,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 */
 	public void atomicAppendA(String chunkhandle, int clientID, int reqID) throws RemoteException
 	{
+		System.out.println("Attempt action atomic append");
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		if(file == null)
 		{
@@ -841,7 +839,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			Master master = new Master();
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Error in creating Master instance");
 		}
 	}
 
