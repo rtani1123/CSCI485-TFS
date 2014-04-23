@@ -110,7 +110,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
 			else if(index == 3)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
-		
+
 			// TODO: Change this to handle multiple chunkservers.
 			// chunkservers.put(1, tempCS);
 			chunkservers.add(tempCS);
@@ -302,16 +302,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			ArrayList<Integer> chunkservers, int reqID) {
 		try{
 			System.err.println(chunkhandle + " " + ID+ " " +reqID+ " " +chunkservers);
-			
+
 			// reqID of -1 is used for functions such as Creates and Deletes which
 			// are not stored in the pendingRequests.
 			if (reqID != -1) {
-				
+
 				// Go through the pendingRequests array to find request with the
 				// matching reqID.
 				// Save locations of replicates and/or update primary lease
 				for (int i = 0; i < pendingRequests.size(); i++) {
-					
+
 					Request r = pendingRequests.get(i);
 					// if the reqID's are matching
 					if (reqID == r.getID()) {
@@ -350,10 +350,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 					}
 				}
-				
+
 				contactChunks(reqID);
 			}
-			
+
 		}catch(Exception e){
 			System.out.println("PassMetaData error in Client");
 		}
@@ -376,7 +376,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			Request r = (Request) pendingRequests.get(i);
 			if (r.getID() == rID) {
 				if ((r.getRequestType()).equals(APPEND)) {
-					
+
 					for (int cs : r.getChunkservers()) {
 						try {
 							if (chunkservers.get(cs-1).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())) {
@@ -389,16 +389,18 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						}
 					}
 				} else if ((r.getRequestType()).equals(ATOMIC_APPEND)) {
-					
+
 					for (int cs : r.getChunkservers()) {
-						try {
-							if (chunkservers.get(cs-1).atomicAppend(r.getFullPath(), r.getPayload(),r.getLength(), r.getWithSize())) {
-								System.out.println("Successful atomic append");
-							} else {
-								System.out.println("Failed atomic append");
+						if(r.getID() == cs){
+							try {
+								if (chunkservers.get(cs-1).atomicAppend(r.getFullPath(), r.getPayload(),r.getLength(), r.getWithSize())) {
+									System.out.println("Successful atomic append");
+								} else {
+									System.out.println("Failed atomic append");
+								}
+							} catch (RemoteException e) {
+								System.out.println("Failed to connect to chunkserver for atomic append");
 							}
-						} catch (RemoteException e) {
-							System.out.println("Failed to connect to chunkserver for atomic append");
 						}
 					}
 				} else if ((r.getRequestType()).equals(READ)) {

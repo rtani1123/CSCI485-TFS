@@ -13,7 +13,7 @@ public class Request {
 	String requestType;
 	String fullPath;
 	String destination;
-	int ID;
+	int ID;		// ID of chunkserver with primary lease
 	enum rState{SentToMaster, ReceivedLocations, SentToChunk, Completed}
 	rState state;
 	ArrayList<Integer> chunkservers;
