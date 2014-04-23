@@ -81,7 +81,6 @@ public class ChunkServer extends UnicastRemoteObject implements
 			 */
 			myMaster = (MasterInterface) Naming
 					.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
-			myMaster.connectToChunkserver(csIndex);
 			System.out.println("Connection to Master Success");
 			/*
 			 * ChunkServer FUNCTION HOST implementation
