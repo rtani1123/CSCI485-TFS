@@ -23,7 +23,7 @@ public class OperationsLog implements Serializable{
 	ObjectOutputStream cos;
 
 	public OperationsLog() {
-
+		log = new ArrayList<StringBuffer>();
 	}
 	
 	/**
