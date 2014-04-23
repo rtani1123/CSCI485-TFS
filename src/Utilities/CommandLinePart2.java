@@ -33,7 +33,7 @@ public class CommandLinePart2 {
 				System.out.println(" DeleteDirectory chunkHandle ");
 				System.out.println(" CreateFile path filename numOfReplicas ");
 				System.out.println(" Append chunkHandle source withSize ");
-				System.out.println(" AtomicAppend chunkHandle source withSize ");
+				System.out.println(" Atomic chunkHandle source withSize ");
 				System.out.println(" Read chunkHandle offset length destination ");
 			} else if (input.contains("CreateDirectory")) {
 				String [] actuallArgs = getArgs(input);
@@ -84,7 +84,7 @@ public class CommandLinePart2 {
 					myClient.append(actuallArgs[0],0, b.length, b, Boolean.parseBoolean(actuallArgs[2]));
 				}
 
-			} else if (input.contains("AtomicAppend")) {
+			} else if (input.contains("Atomic")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=3){
 					System.out.println(" Please enter appropriate number of arguments. ");
