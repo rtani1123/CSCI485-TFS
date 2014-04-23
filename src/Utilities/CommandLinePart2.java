@@ -34,7 +34,7 @@ public class CommandLinePart2 {
 				System.out.println(" CreateFile path filename numOfReplicas ");
 				System.out.println(" Append chunkHandle source withSize ");
 				System.out.println(" AtomicAppend chunkHandle source withSize ");
-				System.out.println(" Read chunkHandle offset length ");
+				System.out.println(" Read chunkHandle offset length destination ");
 			} else if (input.contains("CreateDirectory")) {
 				String [] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length!=1){
@@ -105,10 +105,10 @@ public class CommandLinePart2 {
 
 			} else if (input.contains("Read")) {
 				String [] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length!=3){
+				if (actuallArgs == null || actuallArgs.length!=4){
 					System.out.println(" Please enter appropriate number of arguments. ");
 				}else
-				myClient.read(actuallArgs[0], Integer.parseInt(actuallArgs[1]),Integer.parseInt(actuallArgs[1]));
+				myClient.read(actuallArgs[0], Integer.parseInt(actuallArgs[1]),Integer.parseInt(actuallArgs[2]), actuallArgs[3]);
 
 			}
 			else
