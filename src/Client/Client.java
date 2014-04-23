@@ -407,7 +407,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				} else if ((r.getRequestType()).equals(ATOMIC_APPEND)) {
 					for (int cs : r.getChunkservers()) {
 						try {
-							if (chunkservers.get(cs).atomicAppend(
+							if (chunkservers.get(cs-1).atomicAppend(
 									r.getFullPath(), r.getPayload(),
 									r.getLength(), r.getWithSize())) {
 								System.out.println("Successful atomic append");
@@ -428,7 +428,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				} else if ((r.getRequestType()).equals(READ)) {
 					for (int cs : r.getChunkservers()) {
 						try {
-							System.out.println(chunkservers.get(cs).read(
+							System.out.println(chunkservers.get(cs-1).read(
 									r.getFullPath(), r.getOffset(),
 									r.getLength()));
 							pendingRequests.remove(r);
