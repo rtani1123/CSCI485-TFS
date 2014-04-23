@@ -597,15 +597,17 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		if(file == null)
 		{
 			try{
+				System.out.println("Cannot atomic append. File does not exist.");
 				client.requestStatus("atomicAppend", chunkhandle, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
 		}
-		else if (file.getPrimaryLeaseTime() < (System.currentTimeMillis() - MINUTE))
+		else if (file.getPrimaryLeaseTime() > (System.currentTimeMillis() - MINUTE))
 		{
 			try{
+				System.out.println("Primary lease exists for " + file.getPrimaryChunkserver());
 				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
 			}
 			catch(RemoteException re){
@@ -615,34 +617,38 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else
 		{
-			int randomCS = getRandomWorkingCS(file.chunkServersNum);
-			if (randomCS == -1){
-				try{
-					client.requestStatus("atomicAppend", chunkhandle, false, -1);
-				}
-				catch(RemoteException re){
-					System.out.println("Error connecting to client.");
-				}
-			}
-			file.issuePrimaryLease(file.chunkServersNum.get(randomCS), System.currentTimeMillis());
+			//TODO: reliable method for finding a random chunkserver
+//			int randomCS = getRandomWorkingCS(file.chunkServersNum);
+//			if (randomCS == -1){
+//				try{
+//					System.out.println("Unable to issue primary lease.");
+//					client.requestStatus("atomicAppend", chunkhandle, false, -1);
+//				}
+//				catch(RemoteException re){
+//					System.out.println("Error connecting to client.");
+//				}
+//			}
+			file.issuePrimaryLease(file.chunkServersNum.get(0), System.currentTimeMillis());
 			boolean primaryLeaseSuccess;
 			ArrayList<Integer> secondaries = new ArrayList<Integer>();
-			for(Integer CS: file.chunkServersNum){
-				if(CS != randomCS){
-					secondaries.add(new Integer(CS));
-				}
-			}
+//			for(Integer CS: file.chunkServersNum){
+//				if(CS != randomCS){
+//					secondaries.add(new Integer(CS));
+//				}
+//			}
 			try{
-				chunkservers.get(randomCS).getCS().primaryLease(chunkhandle, secondaries);
+				System.out.println("Issued primary lease to " + file.getPrimaryChunkserver());
+				chunkservers.get(1).getCS().primaryLease(chunkhandle, secondaries);
 			}
 			catch(RemoteException re){
-				System.out.println("Error connecting to chunkserver " + randomCS);
-				chunkservers.get(randomCS).setStatus(CSStatus.DOWN);
+				System.out.println("Error connecting to chunkserver " + 1);
+				chunkservers.get(1).setStatus(CSStatus.DOWN);
 				primaryLeaseSuccess = false;
 			}
 			primaryLeaseSuccess = true;
 			if(primaryLeaseSuccess){
 				try{
+					System.out.println("Passing metadata for atomic append to client.");
 					client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
 				}
 				catch(RemoteException re){
@@ -652,6 +658,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			else{
 				try{
+					System.out.println("Unable to issue primary lease.");
 					client.requestStatus("atomicAppend", chunkhandle, false, -1);
 				}
 				catch(RemoteException re){
