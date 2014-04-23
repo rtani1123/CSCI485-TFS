@@ -19,7 +19,7 @@ import Chunkserver.ChunkServer;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
-import Master.Master;
+
 
 public class Client extends UnicastRemoteObject implements ClientInterface {
 	ArrayList<ClientMetaDataItem> clientMetaDataArray; // locations of replicas
@@ -122,14 +122,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
-	// ***THIS WILL NEED TO BE UPDATED***
-	public void setUpConnections() throws RemoteException {
-		chunkservers.add(new ChunkServer());
-		chunkservers.add(new ChunkServer());
-		chunkservers.add(new ChunkServer());
-
-		master = new Master();
-	}
+	
 
 	// called by the application
 	public void createFile(String Path, String fileName, int numReplicas)
@@ -310,26 +303,31 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	// Method called by master giving chunkhandle and chunkservers
 	public void passMetaData(String chunkhandle, int ID,
 			ArrayList<Integer> chunkservers, int reqID) {
-		System.out.println("wre are getting meta data");
+		try{
+		System.err.println(chunkhandle + " " + ID+ " " +reqID+ " " +chunkservers);
+		System.err.println("wre are getting meta data");
 		// reqID of -1 is used for functions such as Creates and Deletes which
 		// are not stored in the pendingRequests.
 		if (reqID != -1) {
-			System.out.println("reqID is not -1");
+			System.err.println("reqID is not -1");
 			// Go through the pendingRequests array to find request with the
 			// matching reqID.
 			// Save locations of replicates and/or update primary lease
 			for (int i = 0; i < pendingRequests.size(); i++) {
+				System.err.println(pendingRequests.size());
 				Request r = pendingRequests.get(i);
 				// if the reqID's are matching
 				if (reqID == r.getID()) {
+					System.err.println("req IDs match");
 					r.setCS(chunkservers);
 					r.setReceived();
 					boolean exists = false; // boolean to check if this
 											// chunkhandle already exists in the
 											// Client's metadata.
+					System.out.println(clientMetaDataArray.size());
 					for (int j = 0; j < clientMetaDataArray.size(); j++) {
 						// if the chunkhandle is found, exit the loop
-						if ((clientMetaDataArray.get(j)).equals(chunkhandle)) {
+						if ((clientMetaDataArray.get(j).chunkhandle).equals(chunkhandle)) {
 							exists = true;
 							(clientMetaDataArray.get(j)).setID(ID); // Update
 																	// the
@@ -340,22 +338,32 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 																	// different/
 																	// has
 																	// changed
+							System.err.println("before break");
 							break;
+							
 						}
+						
 					}
 					// if the chunkhandle was not already in the metadata, add
 					// it along with its chunkservers
 					if (!exists) {
+						System.out.println("existst ? " +exists);
 						clientMetaDataArray.add(new ClientMetaDataItem(
 								chunkhandle, ID, chunkservers));
 					}
 					// once the corresponding ReqID is found, break out of the
 					// outer loop.
+					System.err.println("are we here?");
 					break;
-
+					
 				}
 			}
+			System.err.println("are we here11?");
 			contactChunks(reqID);
+		}
+		System.err.println("are we here?2");
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 
@@ -378,7 +386,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				if ((r.getRequestType()).equals(APPEND)) {
 					for (int cs : r.getChunkservers()) {
 						try {
-							if (chunkservers.get(cs).append(r.getFullPath(),
+							if (chunkservers.get(cs-1).append(r.getFullPath(),
 									r.getPayload(), r.getLength(),
 									r.getOffset(), r.getWithSize())) {
 								System.out.println("Successful append");

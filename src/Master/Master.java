@@ -54,7 +54,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		heartbeat = new Heartbeat();
 		heartbeat.start();		// initiate run method in Heartbeat class, start sending out heartbeat messages
 		startThread();		
-
+		log = new OperationsLog();
 		setupMasterHost();
 		
 		connectToClient();
