@@ -41,7 +41,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	Semaphore stateChange;
 	private MasterThread masterThread;
 	List<Task> tasks;
-	public enum TaskType {createF, deleteF, createD, deleteD, read, append, aAppend, heartbeat};
+	public enum TaskType {recoverCS, createF, deleteF, createD, deleteD, read, append, aAppend};
 	ClientInterface client;
 	HashMap<Integer, CSInfo> chunkservers;
 	Heartbeat heartbeat;
@@ -56,7 +56,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		startThread();		
 
 		setupMasterHost();
-		
+
 		connectToClient();
 		try {
 			client.connectToMaster();
@@ -202,21 +202,23 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	}
 
 	public void heartbeat(int CSID) throws RemoteException {
-		for(int i:chunkservers.keySet()){
-			if((chunkservers.get(i)).getID() == CSID){
-				// TODO update accordingly to record new heartbeat time
-			}
+		chunkservers.get(CSID).setLastHB(System.currentTimeMillis());
+		if(chunkservers.get(CSID).getStatus() == CSStatus.OK){
+			//if the chunkserver was up to date, assume it is still up to date
+			chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
 		}
-
-		tasks.add(new Task(TaskType.heartbeat,CSID));
-		stateChanged();
 	}
 
 	protected boolean pickAndExecuteAnAction(){
 		// scheduler checks, return true if something to do
 		if(tasks.size() != 0){
 			try{
-				if(tasks.get(0).getType() == TaskType.createF){
+				if(tasks.get(0).getType() == TaskType.recoverCS){
+					restoreChunkserver(tasks.get(0).getCSID());
+					tasks.remove(0);
+					return true;
+				}
+				else if(tasks.get(0).getType() == TaskType.createF){
 					createFileA(tasks.get(0).getPath(), tasks.get(0).getFileName(), tasks.get(0).getNumReplicas(), tasks.get(0).getClientID());
 					tasks.remove(0);
 					return true;
@@ -248,11 +250,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 				else if(tasks.get(0).getType() == TaskType.read){
 					readA(tasks.get(0).getPath(), tasks.get(0).getClientID(), tasks.get(0).getReqID());
-					tasks.remove(0);
-					return true;
-				}
-				else if(tasks.get(0).getType() == TaskType.heartbeat){
-					//TODO: send a heartbeat message
 					tasks.remove(0);
 					return true;
 				}
@@ -667,9 +664,17 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public void restoreChunkserver(int CSID) throws RemoteException {
 		long lastGoodTime = chunkservers.get(CSID).getLastGoodTime();
 		String logRecord = log.getReference(0);
-		String[] fields = logRecord.split("//$");
-		long logTime = Long.parseLong(fields[1]);
 		int count = 0;
+		String[] fields = logRecord.split("//$");
+		//check to see if the first file should be on the chunkserver
+		Node file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
+		while(!file.chunkServersNum.contains(CSID)){
+			count++;
+			logRecord = log.getReference(count);
+			fields = logRecord.split("//$");
+			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
+		}
+		long logTime = Long.parseLong(fields[1]);
 		//for now, this scans through the entire transaction log
 		//it assumes that the transaction log has entries since the last good time
 		while (lastGoodTime > logTime){
@@ -681,7 +686,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		while (count < log.getLength()){
 			logRecord = log.getReference(count);
 			fields = logRecord.split("$");
-			if(fields[4] == "0"){
+			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
+			if(fields[4] == "0" || !file.chunkServersNum.contains(CSID)){
 				continue;
 			}
 			switch(fields[3]){
@@ -955,7 +961,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * @author lazzarid
 	 *
 	 */
-	public enum CSStatus {DOWN, UNUSED, OK, RECOVERING};
+	public enum CSStatus {DOWN, OK, RECOVERING};
 	private class CSInfo{
 		CSStatus status;
 		long lastHeartbeat;
@@ -1014,18 +1020,32 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			while(true){
 				// send heartbeat message to chunkservers
 				for(Integer i:chunkservers.keySet()){
-					// check if chunkserver is dead
-					if(chunkservers.get(i).getStatus()!=CSStatus.DOWN && chunkservers.get(i).getLastHB() < lastHBTime - HEARTBEAT_DELAY){
+					boolean downCS = false;
+					try {
+						chunkservers.get(i).getCS().heartbeat();
+					} catch (RemoteException e) {
+						downCS = true;
+						System.out.println("Could not connect to chunkserver " + i + " for heartbeat");
+						e.printStackTrace();
+					}
+					if (downCS && chunkservers.get(i).getStatus() != CSStatus.DOWN){
+						//chunkserver has gone down
 						chunkservers.get(i).setStatus(CSStatus.DOWN);
 					}
-					// don't sent heartbeat to dead chunkservers
-					if(chunkservers.get(i).getStatus()!=CSStatus.DOWN){
-						try {
-							chunkservers.get(i).getCS().heartbeat();
-						} catch (RemoteException e) {
-							System.out.println("Could not connect to chunkserver " + i + " for heartbeat");
-							e.printStackTrace();
-						}
+					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.DOWN){
+						//initiate chunkserver recovery
+						tasks.add(new Task(TaskType.recoverCS, i));
+						chunkservers.get(i).setStatus(CSStatus.RECOVERING);
+						stateChanged();
+					}
+					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.OK){
+						//chunkserver is still ok, so we assume up to date
+						chunkservers.get(i).setLastHB(System.currentTimeMillis());
+						chunkservers.get(i).setLastGoodTime(System.currentTimeMillis());
+					}
+					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.RECOVERING){
+						//chunkserver is recovering so we do not assume this is a good time
+						chunkservers.get(i).setLastHB(System.currentTimeMillis());
 					}
 				}
 				lastHBTime = System.currentTimeMillis();
