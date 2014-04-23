@@ -252,6 +252,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
+			System.err.println("Append offset by: " + offset);
 			raf.write(payload);
 			raf.close();
 		} catch (IOException e) {
@@ -272,6 +273,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		long offset = 0;								// path
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
+			System.err.println("Atomic append seek length " + raf.length());
 			raf.seek(raf.length());
 			offset = raf.length();
 			if (withSize) {
