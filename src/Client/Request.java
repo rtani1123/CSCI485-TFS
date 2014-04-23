@@ -12,6 +12,7 @@ import java.util.ArrayList;
 public class Request {
 	String requestType;
 	String fullPath;
+	String destination;
 	int ID;
 	enum rState{SentToMaster, ReceivedLocations, SentToChunk, Completed}
 	rState state;
@@ -92,6 +93,10 @@ public class Request {
 	
 	public void setReceived() {
 		state = rState.ReceivedLocations;
+	}
+	
+	public void setDestination (String d) {
+		destination = d;
 	}
 	
 	
