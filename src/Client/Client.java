@@ -102,11 +102,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			ChunkserverInterface tempCS;
+			ChunkserverInterface tempCS = null;
 
-			tempCS = (ChunkserverInterface) Naming
-					.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK"
-							+ index.toString());
+			if(index == 1)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
+			else if(index == 2)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
 
 			// TODO: Change this to handle multiple chunkservers.
 			// chunkservers.put(1, tempCS);

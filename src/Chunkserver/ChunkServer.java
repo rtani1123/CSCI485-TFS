@@ -1,7 +1,9 @@
 package Chunkserver;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -32,12 +34,11 @@ public class ChunkServer extends UnicastRemoteObject implements
 	ArrayList<Integer> toBeUpdatedCS = new ArrayList<Integer>();
 
 	ClientInterface myClient;
-	Integer csIndex;
+	static Integer csIndex;
 
 	public ChunkServer() throws RemoteException {
 		//setupMasterChunkserverHost();
 		//setupMasterChunkserverClient();
-		csIndex = 1;  //TODO: Hardcoded to 1
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		setupChunkserverHost();
 
@@ -52,10 +53,14 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public void setupChunkserverHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			Registry registry = LocateRegistry.createRegistry(123);
-			//System.out.println("attempting to create host at: " + "dblab-36.vlab.usc.edu/CHUNK" + csIndex.toString());
-			
-			Naming.bind("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + csIndex.toString(), this);
+			if(csIndex == 1) {
+				Registry registry = LocateRegistry.createRegistry(123);
+				Naming.bind("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + csIndex.toString(), this);
+			}
+			else if(csIndex == 2) {
+				Registry registry = LocateRegistry.createRegistry(124);
+				Naming.bind("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + csIndex.toString(), this);
+			}
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (RemoteException e) {
 			//index = index + 1;
@@ -332,6 +337,22 @@ public class ChunkServer extends UnicastRemoteObject implements
 	}
 
 	public static void main(String args[]) {
+		System.out.println("Enter ChunkServer ID.");
+		System.out.print("> ");
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String input = "";
+		try {
+			input = br.readLine();
+		} catch (IOException e1) {
+			System.out.println("Bad input. Try again.");
+		}
+		csIndex = Integer.parseInt(input);
+		if(csIndex == 1) {
+			System.out.println("Welcome Arjun, Cluster 36. Attempting to Connect...");
+		}
+		else if(csIndex == 2) {
+			System.out.println("Welcome Brian, Cluster 05. Attempting to Connect...");
+		}
 		try {
 			ChunkServer cs = new ChunkServer();
 		} catch (RemoteException e) {
