@@ -53,8 +53,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		heartbeat = new Heartbeat();
 		heartbeat.start();		// initiate run method in Heartbeat class, start sending out heartbeat messages
+		log = new OperationsLog();
 		startThread();		
-
+		log = new OperationsLog();
 		setupMasterHost();
 
 		connectToClient();
@@ -300,7 +301,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				int count = 0;
 				while (count < numReplicas){					
 					Random rand = new Random();
-					int randCS = rand.nextInt() % chunkservers.size();
+					int randCS = rand.nextInt() % chunkservers.size() + 1;
 					if(!CSLocations.contains(randCS)){
 						CSLocations.add(randCS);
 						count++;
