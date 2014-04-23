@@ -67,14 +67,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			Naming.rebind("rmi://dblab-43.vlab.usc.edu/CLIENT", this);
 			System.out.println("Client Host Setup Success");
 		} catch (MalformedURLException re) {
-			System.out.println("Bad connection");
-			re.printStackTrace();
+			System.out.println("Bad connection - MalformedURLException");
 		} catch (RemoteException e) {
-			System.out.println("Bad connection");
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			System.out.println("Bad connection - RemoteException");
+		} catch (Exception e) {		}
 		// now run Master.
 	}
 
@@ -99,19 +95,22 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			 */
 
 		} catch (Exception re) {
-			re.printStackTrace();
+			System.out.println("Failure to connect to Master");
 		}
 	}
 
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			ChunkserverInterface tempCS;
+			ChunkserverInterface tempCS = null;
 
-			tempCS = (ChunkserverInterface) Naming
-					.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK"
-							+ index.toString());
-
+			if(index == 1)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
+			else if(index == 2)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
+			else if(index == 3)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
+		
 			// TODO: Change this to handle multiple chunkservers.
 			// chunkservers.put(1, tempCS);
 			chunkservers.add(tempCS);
@@ -122,7 +121,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					+ " Success");
 
 		} catch (Exception re) {
-			re.printStackTrace();
+			System.out.println("Failure to connect to Chunkserver " + index);
 		}
 	}
 
@@ -135,7 +134,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			master.createFile(Path, fileName, numReplicas, clientID);
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to create file.");
-			e.printStackTrace();
 		}
 	}
 
@@ -145,7 +143,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 		catch(RemoteException e){
 			System.out.println("Could not connect to master to create file.");
-			e.printStackTrace();
 		}
 	}
 
@@ -155,7 +152,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			master.deleteFileMaster(chunkhandle, clientID);
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to delete file.");
-			e.printStackTrace();
 		}
 	}
 
@@ -164,9 +160,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		try {
 			master.deleteDirectory(path, clientID);
 		} catch (RemoteException e) {
-			System.out
-			.println("Could not connect to master to delete directory.");
-			e.printStackTrace();
+
+			System.out.println("Could not connect to master to delete directory.");
+
 		}
 	}
 
@@ -191,7 +187,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			countLock.release();
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to append.");
-			e.printStackTrace();
 			// Remove request if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
@@ -203,7 +198,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			pendingRequests.remove(index);
 
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			System.out.println("Interrupted Exception in append method");
 		}
 	}
 
@@ -223,7 +218,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			countLock.release();
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to atomic append.");
-			e.printStackTrace();
 			// Remove request if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
@@ -234,7 +228,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 			pendingRequests.remove(index);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			System.out.println("Interrupted Exception in atomic append method");
 		}
 	}
 
@@ -264,7 +258,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				countLock.release();
 				contactChunks(r.getID());
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				System.out.println("Interrupted Exception in read method");
 			}
 		} else {
 			int id = -1;
@@ -275,9 +269,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				master.read(chunkhandle, clientID, count);
 				countLock.release();
 			} catch (RemoteException e) {
-				System.out
-				.println("Could not connect to master to atomic append.");
-				e.printStackTrace();
+				System.out.println("Could not connect to master to atomic append.");
 				// Remove request if could not connect to master
 				int ind = -1;
 				for (int x = 0; x < pendingRequests.size(); x++) {
@@ -288,7 +280,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				}
 				pendingRequests.remove(ind);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				System.out.println("Interrupted Exception in read method");
 			}
 		}
 	}
@@ -368,7 +360,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 			System.err.println("are we here?2");
 		}catch(Exception e){
-			e.printStackTrace();
+			System.out.println("PassMetaData error in Client");
 		}
 	}
 
@@ -436,6 +428,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						}
 						catch(IOException ioe){
 							System.err.println("Error creating or writing to local file for read ouput.");
+							pendingRequests.remove(r);
+
 						}
 					}
 				} else {
