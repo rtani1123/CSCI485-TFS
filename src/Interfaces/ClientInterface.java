@@ -18,5 +18,5 @@ public interface ClientInterface extends Remote {
 	public void deleteDirectory(String path) throws RemoteException;
 	public void append(String chunkhandle, int offset, int length, byte[] data, boolean withSize) throws RemoteException;
 	public void atomicAppend(String chunkhandle, int length, byte[] data, boolean withSize) throws RemoteException;
-	public void read(String chunkhandle, int offset, int length) throws RemoteException;
+	public void read(String chunkhandle, int offset, int length, String destination) throws RemoteException;
 }
