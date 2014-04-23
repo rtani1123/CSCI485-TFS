@@ -104,6 +104,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			else if(index == 2)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
+			else if(index == 3)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
+		
 			//TODO: Change this to handle multiple chunkservers.
 			CSInfo temp = new CSInfo(tempCS, 1);
 			chunkservers.put(index, temp);

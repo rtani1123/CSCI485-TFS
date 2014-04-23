@@ -61,6 +61,10 @@ public class ChunkServer extends UnicastRemoteObject implements
 				Registry registry = LocateRegistry.createRegistry(124);
 				Naming.bind("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + csIndex.toString(), this);
 			}
+			else if(csIndex == 3) {
+				Registry registry = LocateRegistry.createRegistry(125);
+				Naming.bind("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + csIndex.toString(), this);
+			}
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (RemoteException e) {
 			//index = index + 1;
@@ -355,11 +359,14 @@ public class ChunkServer extends UnicastRemoteObject implements
 		else if(csIndex == 2) {
 			System.out.println("Welcome Brian, Cluster 05. Attempting to Connect...");
 		}
+		else if(csIndex == 3) {
+			System.out.println("Welcome Julia, Cluster 29. Attempting to Connect...");
+		}
 		try {
 			ChunkServer cs = new ChunkServer();
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Could not start chunkserver class instance");
 		}
 	}
 
