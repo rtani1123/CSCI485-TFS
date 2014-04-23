@@ -364,7 +364,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			ChunkServer cs = new ChunkServer();
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Could not start chunkserver class instance");
 		}
 	}
 
