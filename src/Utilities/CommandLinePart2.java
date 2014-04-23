@@ -100,7 +100,7 @@ public class CommandLinePart2 {
 					}catch(Exception e){
 						e.printStackTrace();
 					}
-					myClient.atomicAppend(actuallArgs[0], b.length, b, Boolean.parseBoolean(actuallArgs[3]));
+					myClient.atomicAppend(actuallArgs[0], b.length, b, Boolean.parseBoolean(actuallArgs[2]));
 				}
 
 			} else if (input.contains("Read")) {
