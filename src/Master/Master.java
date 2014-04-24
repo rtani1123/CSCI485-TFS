@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 5000;
+	final static long HEARTBEAT_DELAY = 60000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -862,7 +862,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	public int getRandomWorkingCS (ArrayList<Integer> CSList){
 		Random randInt = new Random();
-		int chosenIndex = randInt.nextInt() % CSList.size();
+		int chosenIndex = Math.abs(randInt.nextInt() % CSList.size());
 		int chosenID = CSList.get(chosenIndex);
 		boolean working = false;
 		int attempts = 0;
