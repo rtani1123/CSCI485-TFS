@@ -363,6 +363,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				for(Integer CS : CSLocations){
 					try{
 						chunkservers.get(CS).getCS().createFile(path + "/" + fileName);
+						chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 					}
 					catch(RemoteException re){
 						System.out.println("Error connecting to chunkserver " + CS);
@@ -429,6 +430,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				try{
 					System.err.println("Messaging chunkserver " + CS);
 					chunkservers.get(CS).getCS().deleteFile(chunkhandle);
+					chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to chunkserver " + CS);
@@ -486,6 +488,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					if(entry.getValue().getStatus() == CSStatus.OK){
 						try{
 							entry.getValue().getCS().createDirectory(path);
+							entry.getValue().setLastGoodTime(System.currentTimeMillis());
 						}
 						catch(RemoteException re){
 							System.out.println("Error connecting to chunkserver " + entry.getKey());
@@ -542,6 +545,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			for(Integer CS : file.chunkServersNum){
 				try{
 					chunkservers.get(CS).getCS().deleteDirectory(path);
+					chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to chunkserver " + CS);
@@ -749,13 +753,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		long logTime = Long.parseLong(fields[1]);
 		//for now, this scans through the entire transaction log
 		//it assumes that the transaction log has entries since the last good time
-		while (lastGoodTime > logTime && count < log.getLength()-1){
-			System.out.println("no need to redo this transaction");
-			count++;
+		while (lastGoodTime > logTime && count < log.getLength()){
+			System.out.println("no need to redo this transaction");			
 			System.out.println("count: " + count);
 			logRecord = log.getReference(count);
 			fields = logRecord.split("\\$");
 			logTime = Long.parseLong(fields[1]);
+			count++;
+
 		}
 		while (count < log.getLength()){
 			System.out.println("in main while loop");
@@ -830,6 +835,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public boolean createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().createDirectory(path);
+			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
 			System.out.println("Error connecting to chunkserver " + chunkserverID);
@@ -842,6 +848,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public boolean createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().createFile(chunkhandle);
+			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
 			System.out.println("Error connecting to chunkserver " + chunkserverID);
@@ -854,6 +861,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public boolean deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().deleteFile(chunkhandle);
+			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
 			System.out.println("Error connecting to chunkserver " + chunkserverID);
@@ -866,6 +874,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public boolean deleteDirectoryRedo(String path, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().deleteDirectory(path);
+			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
 			System.out.println("Error connecting to chunkserver " + chunkserverID);
@@ -887,7 +896,15 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				return true;
 			}
 		}
-		chunkservers.get(chunkserverID).getCS().fetchAndRewrite(chunkhandle, source);
+		try{
+			chunkservers.get(chunkserverID).getCS().fetchAndRewrite(chunkhandle, source);
+			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
+		}
+		catch(RemoteException re){
+			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
+			return false;
+		}
 		return true;
 	}
 
