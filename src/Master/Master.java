@@ -42,8 +42,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	private MasterThread masterThread;
 	List<Task> tasks;
 	public enum TaskType {recoverCS, createF, deleteF, createD, deleteD, read, append, aAppend};
-	//ClientInterface client;
-	Map<Integer, ClientInterface> clients;
+	ClientInterface client;
 	HashMap<Integer, CSInfo> chunkservers;
 	Heartbeat heartbeat;
 
@@ -58,7 +57,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		
 		chunkservers = new HashMap<Integer, CSInfo>();
-		clients = new HashMap<Integer, ClientInterface>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		heartbeat = new Heartbeat();
@@ -68,7 +66,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		connectToClient();
 		try {
-			clients.get(11).connectToMaster();
+			client.connectToMaster();
 		} catch(RemoteException re) {
 			System.out.println("Cannot connect to client");
 		}
@@ -137,9 +135,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			if(index == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			else if(index == 2)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:124/CHUNK" + index.toString());
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
 			else if(index == 3)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:125/CHUNK" + index.toString());
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
 		
 			if(chunkservers.get(index) == null) {
 				System.out.println("doesn't exist. creating new");
@@ -170,9 +168,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient() {
 		try {
-			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
-			clients.put(11, client);
-			System.out.println("Connection to Client 11 Success");
+			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
 			System.out.println("Error in connection to client");
@@ -339,7 +336,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			//if the file exists, we return an error
 			System.out.println("File creation failed. " + path + "/" + fileName + " already exists.");
 			try{
-				clients.get(clientID).requestStatus("createFile", path + "/" + fileName, false, -1);
+				client.requestStatus("createFile", path + "/" + fileName, false, -1);
 			}
 			catch (RemoteException re){
 				System.out.println ("Connection failure to client.");
@@ -386,7 +383,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				if(downChunkservers == numReplicas){
 					System.out.println("Element addition to file system failed. No available chunkservers.");
 					try{
-						clients.get(clientID).requestStatus("createFile", path + "/" + fileName, false, -1);
+						client.requestStatus("createFile", path + "/" + fileName, false, -1);
 					}
 					catch(RemoteException re){
 						System.out.println("Connection to client failed.");
@@ -394,7 +391,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 				else{
 					try{
-						clients.get(clientID).requestStatus("createFile", path + "/" + fileName, true, -1);
+						client.requestStatus("createFile", path + "/" + fileName, true, -1);
 					}
 					catch(RemoteException re){
 						System.out.println("Error connecting to client.");
@@ -405,7 +402,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			else{
 				try{
 					System.out.println("Element addition to file system failed. Invalid path.");
-					clients.get(clientID).requestStatus("createFile", path + "/" + fileName, false, -1);
+					client.requestStatus("createFile", path + "/" + fileName, false, -1);
 				}
 				catch(RemoteException re){
 					System.out.println("Connection to client failed.");
@@ -429,7 +426,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		if(file == null){
 			System.out.println("Cannot delete nonexistent path " + chunkhandle);
 			try{
-				clients.get(clientID).requestStatus("deleteFile", chunkhandle, false, -1);
+				client.requestStatus("deleteFile", chunkhandle, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -451,7 +448,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 			try{
-				clients.get(clientID).requestStatus("deleteFile", chunkhandle, true, -1);
+				client.requestStatus("deleteFile", chunkhandle, true, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -463,7 +460,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			System.out.println("Delete unsuccessful. Item not found.");
 			try{
-				clients.get(clientID).requestStatus("deleteFile", chunkhandle, false, -1);
+				client.requestStatus("deleteFile", chunkhandle, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -484,7 +481,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		if (newDir != null){
 			System.out.println("Error. Directory creation failed. " + path + " already exists");
 			try{
-				clients.get(clientID).requestStatus("createDirectory", path, false, -1);
+				client.requestStatus("createDirectory", path, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -511,7 +508,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					}
 				}
 				try{
-					clients.get(clientID).requestStatus("createDirectory", path, true, -1);
+					client.requestStatus("createDirectory", path, true, -1);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to client.");
@@ -520,7 +517,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			else{
 				try{
-					clients.get(clientID).requestStatus("createDirectory", path, false, -1);
+					client.requestStatus("createDirectory", path, false, -1);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to client.");
@@ -545,7 +542,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		if(file == null){
 			System.err.println("Nonexistent directory " + path);
 			try{
-				clients.get(clientID).requestStatus("deleteDirectory", path, false, -1);
+				client.requestStatus("deleteDirectory", path, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -568,7 +565,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 			try{
-				clients.get(clientID).requestStatus("deleteFile", path, true, -1);
+				client.requestStatus("deleteFile", path, true, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -578,7 +575,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			System.out.println("Delete unsuccessful. " + path + " does not exist.");
 			try{
-				clients.get(clientID).requestStatus("deleteDirectory", path, false, -1);
+				client.requestStatus("deleteDirectory", path, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -602,7 +599,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			try{
 				System.out.println("Cannot append to a null file " + chunkhandle);
-				clients.get(clientID).requestStatus("append", chunkhandle, false, -1);
+				client.requestStatus("append", chunkhandle, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -610,7 +607,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else{
 			try{
-				clients.get(clientID).passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
+				client.passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
 				System.out.println("Metadata sent to client.");
 			}
 			catch(RemoteException re){
@@ -635,7 +632,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			System.out.println("Cannot find metadata. " + chunkhandle + " does not exist.");
 			try{
-				clients.get(clientID).requestStatus("read", chunkhandle, false, -1);
+				client.requestStatus("read", chunkhandle, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -643,7 +640,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else{
 			try{
-				clients.get(clientID).passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
+				client.passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
 				System.out.println("Metadata sent to client.");
 			}
 			catch(RemoteException re){
@@ -671,7 +668,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			try{
 				System.out.println("Cannot atomic append. " + chunkhandle + " does not exist.");
-				clients.get(clientID).requestStatus("atomicAppend", chunkhandle, false, -1);
+				client.requestStatus("atomicAppend", chunkhandle, false, -1);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -681,7 +678,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		{
 			try{
 				System.out.println("Primary lease exists for " + file.getPrimaryChunkserver());
-				clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
+				client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -695,7 +692,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			if (randomCS == -1){
 				try{
 					System.out.println("Unable to issue primary lease.");
-					clients.get(clientID).requestStatus("atomicAppend", chunkhandle, false, -1);
+					client.requestStatus("atomicAppend", chunkhandle, false, -1);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to client.");
@@ -722,7 +719,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			if(primaryLeaseSuccess){
 				try{
 					System.out.println("Passing metadata for atomic append to client.");
-					clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
+					client.passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to client.");
@@ -733,7 +730,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			else{
 				try{
 					System.out.println("Unable to issue primary lease.");
-					clients.get(clientID).requestStatus("atomicAppend", chunkhandle, false, -1);
+					client.requestStatus("atomicAppend", chunkhandle, false, -1);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to client.");
