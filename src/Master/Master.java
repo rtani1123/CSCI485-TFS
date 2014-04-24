@@ -47,13 +47,20 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	Heartbeat heartbeat;
 
 	public Master() throws RemoteException{
-		directory = new Tree();
+		if(Storage.getTree() != null) {
+			directory = Storage.getTree();
+			log = Storage.getLog();
+		}
+		else {
+			directory = new Tree();
+			log = new OperationsLog();
+		}
+		
 		chunkservers = new HashMap<Integer, CSInfo>();
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		heartbeat = new Heartbeat();
 		heartbeat.start();		// initiate run method in Heartbeat class, start sending out heartbeat messages
-		log = new OperationsLog();
 		startThread();		
 		setupMasterHost();
 
@@ -358,6 +365,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println(path+"/"+fileName);
 			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
 				log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);
+				Storage.storeLog(log);
 				System.out.println("Successful add to tree. Requesting file create from CS.");
 				int downChunkservers = 0;
 				for(Integer CS : CSLocations){
@@ -426,6 +434,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		else if(directory.removeElement(directory.pathTokenizer(chunkhandle)))
 		{
 			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 1);
+			Storage.storeLog(log);
 			for(Integer CS : file.chunkServersNum){
 				try{
 					System.err.println("Messaging chunkserver " + CS);
@@ -484,6 +493,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			if(directory.addElement(directory.pathTokenizer(path),chunkserversL)){
 				log.makeLogRecord(System.currentTimeMillis(), path, "createDirectory", 1);
+				Storage.storeLog(log);
 				for(Map.Entry<Integer, CSInfo> entry: chunkservers.entrySet()){
 					if(entry.getValue().getStatus() == CSStatus.OK){
 						try{
@@ -541,6 +551,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		if(directory.removeElement(directory.pathTokenizer(path)))
 		{
 			log.makeLogRecord(System.currentTimeMillis(), path, "deleteDirectory", 1);
+			Storage.storeLog(log);
 			System.out.println("Directory removed from namespace " + path);
 			for(Integer CS : file.chunkServersNum){
 				try{
@@ -602,6 +613,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "append", 1);
+			Storage.storeLog(log);
 		}
 	}
 
@@ -634,6 +646,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "read", 1);
+			Storage.storeLog(log);
 		}	
 	}
 
@@ -670,6 +683,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "atomicAppend", 1);
+			Storage.storeLog(log);
 		}
 		else
 		{
@@ -710,6 +724,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					System.out.println("Error connecting to client.");
 				}
 				log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "atomicAppend", 1);
+				Storage.storeLog(log);
 			}
 			else{
 				try{
@@ -740,16 +755,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		for(int i = 0; i < fields.length; i++) {
 			System.out.println(i + ": " + fields[i]);
 		}
-		//check to see if the first file should be on the chunkserver
 		Node file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
-//		while(!file.chunkServersNum.contains(CSID)){
-//			System.out.println("file does not belong on chunk server " + fields[2]);
-//			count++;
-//			System.out.println("count: " + count);
-//			logRecord = log.getReference(count);
-//			fields = logRecord.split("\\$");
-//			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
-//		}
+
 		long logTime = Long.parseLong(fields[1]);
 		//for now, this scans through the entire transaction log
 		//it assumes that the transaction log has entries since the last good time
