@@ -32,15 +32,12 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	public static final long LEASETIME = 60000;
 
 	public ChunkServer() throws RemoteException {
-		//setupMasterChunkserverHost();
-		//setupMasterChunkserverClient();
 		try {
 			if(ChunkserverMetadata.getMetadata()!=null) {
 				CSMetadata = ChunkserverMetadata.getMetadata();
 			}
 		} catch(Exception e) {
 			System.out.println("No Chunkserver Metadata found for " + csIndex);
-			e.printStackTrace();
 		}
 		
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
@@ -70,12 +67,8 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			}
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (RemoteException e) {
-			//index = index + 1;
-			//setupChunkserverHost(index);
-			e.printStackTrace();
-		} catch (Exception e) {
-			//e.printStackTrace();
-		}
+			System.out.println("Chunkserver unable to connect");
+		} catch (Exception e) {		}
 	}
 
 	//Chunkserver calls Master Methods -> MASTER
@@ -94,12 +87,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			myMaster = (MasterInterface) Naming
 					.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
 			System.out.println("Connection to Master Success");
-			/*
-			 * ChunkServer FUNCTION HOST implementation
-			 */
 
 		} catch (Exception re) {
-			re.printStackTrace();
+			System.out.println("Master failure to host.");
 		}
 	}
 
@@ -112,7 +102,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
-			re.printStackTrace();
+			System.out.println("Client failure to host");
 		}
 	}
 
@@ -134,7 +124,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			 */
 
 		} catch(Exception re) {
-			re.printStackTrace();
+			System.out.println("Chunkserver failure to host");
 		}
 	}
 	@Override
@@ -382,7 +372,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Could not connect to alternative data source for append.");
 		}
 		catch (Exception e){
-			e.printStackTrace();
+			System.out.println("Fetch and rewrite failure");
 		}
 	}
 

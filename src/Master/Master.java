@@ -126,7 +126,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			//connects existing chunkservers to new chunkserver.
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				if(!(entry.getKey().equals(index))) {
+				if(!(entry.getKey().equals(index)) && entry.getValue().getStatus() != CSStatus.DOWN) {
 					((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
 				}
 			}
@@ -147,6 +147,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			else {
 				System.out.println("updating cs interface " + index);
 				chunkservers.get(index).setCS(tempCS);
+				chunkservers.get(index).setStatus(CSStatus.DOWN);
 			}
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				if(entry.getValue().id != index) {
@@ -160,7 +161,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println("Connection to Chunkserver " + index + " Success" );
 
 		} catch(Exception re) {
-			System.out.println("Error in connect to Chunkserver");
+			System.out.println("Error in connect to Chunkserver " + index);
 		}
 	}
 
@@ -1085,7 +1086,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.id = id;
 			this.remoteCS = csi;
 			this.lastHeartbeat = System.currentTimeMillis();
-			this.status = CSStatus.DOWN;
+			this.status = CSStatus.OK;
 		}
 
 		public CSStatus getStatus(){
