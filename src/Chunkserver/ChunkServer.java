@@ -116,12 +116,15 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			ChunkserverInterface tempCS;
+			ChunkserverInterface tempCS = null;
 
-			//TODO: Careful!! Don't connect to yourself!
-			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
-			
-			//TODO: Change this to handle multiple chunkservers.
+			if(index == 1)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
+			else if(index == 2)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
+			else if(index == 3)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
+
 			chunkservers.put(index, tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation

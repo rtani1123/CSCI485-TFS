@@ -96,6 +96,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Chunkserver methods -> MASTERCHUNK1
 	public void connectToChunkserver(Integer index) {
 		try {
+			//connects existing chunkservers to new chunkserver.
+			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
+				System.out.println("connection from " + index + " to " + entry.getKey());
+				((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
 			if(index == 1)
