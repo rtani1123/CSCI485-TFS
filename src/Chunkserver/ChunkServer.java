@@ -115,9 +115,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			if(index == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			else if(index == 2)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:124/CHUNK" + index.toString());
 			else if(index == 3)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:125/CHUNK" + index.toString());
 			chunkservers.put(index, tempCS);
 			
 			/*
@@ -397,10 +397,10 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Welcome Arjun, Cluster 36. Attempting to Connect...");
 		}
 		else if(csIndex == 2) {
-			System.out.println("Welcome Brian, Cluster 05. Attempting to Connect...");
+			System.out.println("Welcome Julia, Cluster 29. Attempting to Connect...");
 		}
 		else if(csIndex == 3) {
-			System.out.println("Welcome Julia, Cluster 29. Attempting to Connect...");
+			System.out.println("Welcome Brian, Cluster 05. Attempting to Connect...");
 		}
 		try {
 			ChunkServer cs = new ChunkServer();
