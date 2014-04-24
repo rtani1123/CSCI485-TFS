@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 import Interfaces.ChunkserverInterface;
@@ -36,7 +37,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	ArrayList<ClientMetaDataItem> clientMetaDataArray; // locations of replicas
 	// and primary lease
 	Map<Integer, ChunkserverInterface> chunkservers;
-//	List<ChunkserverInterface> chunkservers; // chunkservers to contact
+	//	List<ChunkserverInterface> chunkservers; // chunkservers to contact
 	List<Request> pendingRequests; // application request info for append,
 	// atomic append, and read
 	int clientID; // ID of this client
@@ -361,7 +362,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 	// call this to contact chunkservers
 	private void contactChunks(int rID) {
-System.out.println("contacting chunks... ");
+		System.out.println("contacting chunks... ");
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
 			if (r.getReqID() == rID) {
@@ -397,37 +398,40 @@ System.out.println("contacting chunks... ");
 						}
 					}
 				} else if ((r.getRequestType()).equals(READ)) {
-					for (int cs : r.getChunkservers()) {
-						try {
-							byte[] result = chunkservers.get(cs).read(r.getFullPath(), r.getOffset(),r.getLength());
-							File localDest = new File(r.destination);
-							if (localDest.exists()){
-								System.err.println("Local file destination already exist for read.");
-							}
-							else{
-								localDest.createNewFile();
-								FileOutputStream fos = new FileOutputStream(localDest);
-								fos.write(result);
-								fos.flush();
-								fos.close();
-							}
-							pendingRequests.remove(r);
-						} catch (RemoteException e) {
-							System.out.println("Failed to connect to chunkserver for read");
+					//for (int cs : r.getChunkservers()) {
+					Random rand = new Random();
+					int randCS = Math.abs((rand.nextInt() % r.getChunkservers().size()));
+					randCS++;
+					System.out.println("Reading from chunkserver " + randCS);
+					try {
+						byte[] result = chunkservers.get(randCS).read(r.getFullPath(), r.getOffset(),r.getLength());
+						File localDest = new File(r.destination);
+						if (localDest.exists()){
+							System.err.println("Local file destination already exist for read.");
 						}
-						catch(FileNotFoundException fnfe){
-							System.err.println("Local destination file for read unable to be created.");
+						else{
+							localDest.createNewFile();
+							FileOutputStream fos = new FileOutputStream(localDest);
+							fos.write(result);
+							fos.flush();
+							fos.close();
 						}
-						catch(IOException ioe){
-							System.err.println("Error creating or writing to local file for read ouput.");
-							pendingRequests.remove(r);
+						pendingRequests.remove(r);
+					} catch (RemoteException e) {
+						System.out.println("Failed to connect to chunkserver for read");
+					}
+					catch(FileNotFoundException fnfe){
+						System.err.println("Local destination file for read unable to be created.");
+					}
+					catch(IOException ioe){
+						System.err.println("Error creating or writing to local file for read ouput.");
+						pendingRequests.remove(r);
 
-						}
 					}
 				} else {
 					System.out.println("Error. Request type not found.");
-					
-					
+
+
 				}
 				pendingRequests.remove(r);
 			}			
