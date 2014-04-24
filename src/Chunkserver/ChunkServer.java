@@ -277,9 +277,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			e.printStackTrace();
 			return false;
 		}
-		// TODO : add to metadata
 		CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
-
 		return true;
 	}
 
@@ -313,7 +311,12 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			}
 			CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
 			for (int i = 0; i < CSMetadata.get(chunkhandle).getSecondaries().size(); i++) {
-				chunkservers.get(CSMetadata.get(chunkhandle).getSecondaries().get(i)).atomicAppendSecondary(chunkhandle, payload, length, withSize,offset );
+				try{
+					chunkservers.get(CSMetadata.get(chunkhandle).getSecondaries().get(i)).atomicAppendSecondary(chunkhandle, payload, length, withSize,offset );
+				}
+				catch (RemoteException re){
+					System.out.println("Unable to push to secondary " + CSMetadata.get(chunkhandle).getSecondaries().get(i) + " because unavailable.");
+				}
 			}
 			return true;
 		} else {
@@ -350,8 +353,16 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	}
 
 	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
-		byte [] payload = chunkservers.get(sourceID).readCompletely(chunkhandle);
-		append(chunkhandle, payload, payload.length, 0, false);
+		try{
+			byte [] payload = chunkservers.get(sourceID).readCompletely(chunkhandle);
+			append(chunkhandle, payload, payload.length, 0, false);
+		}
+		catch (RemoteException re){
+			System.out.println("Could not connect to alternative data source for append.");
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	// called by master
