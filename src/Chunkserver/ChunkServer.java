@@ -224,7 +224,22 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 		return true;
 	}
-
+	@Override
+	public byte [] readCompltely(String chunkhandle){
+		File f = new File(chunkhandle);	
+		
+		byte[] b = new byte[(int)f.length()];
+		try {
+			RandomAccessFile raf = new RandomAccessFile(f,"r");
+			raf.readFully(b);
+			raf.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("File read exception");
+			return new byte[0];
+		}
+		return b;
+	}
 	@Override
 	public byte[] read(String chunkhandle, int offset, int length)
 			throws RemoteException {
@@ -334,8 +349,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return false;
 	}
 
-	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
-
+	public void fetchAndRewrite(String chunkhandle, int sourceID, boolean withsize) throws RemoteException{
+		byte [] payload = chunkservers.get(sourceID).readCompltely(chunkhandle);
+		append(chunkhandle, payload, payload.length, 0, withsize);
 	}
 
 	// called by master
@@ -408,4 +424,6 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			return secondaries;
 		}
 	}
+
+	
 }
