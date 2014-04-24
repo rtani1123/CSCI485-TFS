@@ -24,7 +24,7 @@ import Interfaces.MasterInterface;
 import Utilities.Tree;
 
 public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
-	Map<String, Metadata> CSMetadata = new HashMap<String, Metadata>();
+	Map<String, ChunkserverMetadata> CSMetadata = new HashMap<String, ChunkserverMetadata>();
 	Map<Integer, ChunkserverInterface> chunkservers  = new HashMap<Integer, ChunkserverInterface>();
 	MasterInterface myMaster;
 	ClientInterface myClient;
@@ -34,6 +34,15 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	public ChunkServer() throws RemoteException {
 		//setupMasterChunkserverHost();
 		//setupMasterChunkserverClient();
+		try {
+			if(ChunkserverMetadata.getMetadata()!=null) {
+				CSMetadata = ChunkserverMetadata.getMetadata();
+			}
+		} catch(Exception e) {
+			System.out.println("No Chunkserver Metadata found for " + csIndex);
+			e.printStackTrace();
+		}
+		
 		chunkservers = new HashMap<Integer, ChunkserverInterface>();
 		setupChunkserverHost();
 
@@ -155,8 +164,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 				System.err.println("File creation unsuccessful " + chunkhandle);
 				return false;
 			}
-			Metadata md = new Metadata(chunkhandle);
+			ChunkserverMetadata md = new ChunkserverMetadata(chunkhandle);
 			CSMetadata.put(chunkhandle, md);
+			ChunkserverMetadata.storeTree(CSMetadata);
 		} catch (Exception e) {
 			System.out.println("File creation unsuccessful");
 			e.printStackTrace();
@@ -192,6 +202,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			if (dFile.isDirectory())
 				files = dFile.list();
 			if (dFile.isFile() || (files.length == 0)) {
+
+				CSMetadata.remove(chunkhandle);
+				ChunkserverMetadata.storeTree(CSMetadata);
 				if (!dFile.delete()) {
 					System.out.println("Delete file unsuccessful");
 					return false;
@@ -211,6 +224,8 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			e.printStackTrace();
 			return false;
 		}
+		CSMetadata.remove(chunkhandle);
+		ChunkserverMetadata.storeTree(CSMetadata);
 		return true;
 	}
 
@@ -279,7 +294,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 		// TODO : add to metadata
 		CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
-
+		ChunkserverMetadata.storeTree(CSMetadata);
 		return true;
 	}
 
@@ -312,6 +327,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 				return false;
 			}
 			CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+			ChunkserverMetadata.storeTree(CSMetadata);
 			for (int i = 0; i < CSMetadata.get(chunkhandle).getSecondaries().size(); i++) {
 				chunkservers.get(CSMetadata.get(chunkhandle).getSecondaries().get(i)).atomicAppendSecondary(chunkhandle, payload, length, withSize,offset );
 			}
@@ -388,42 +404,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 	}
 
-	private class Metadata{
-		long primaryLeaseTime;
-		long writeTime;
-		ArrayList<Integer> secondaries = new ArrayList<Integer>();
-		String chunkhandle;
-
-		public Metadata(String chunkhandle){
-			writeTime = System.currentTimeMillis();
-			primaryLeaseTime = -1;
-			this.chunkhandle = chunkhandle;
-		}
-
-		public void setWriteTime(long time){
-			this.writeTime = time;
-		}
-
-		public void setPrimaryLeaseTime(long time){
-			primaryLeaseTime = time;
-		}
-
-		public void setSecondaries(ArrayList<Integer> secondaries){
-			this.secondaries = secondaries;
-		}
-
-		public long getWriteTime(){
-			return writeTime;
-		}
-
-		public long getPrimaryLeaseTime() {
-			return primaryLeaseTime;
-		}
-
-		public ArrayList<Integer> getSecondaries() {
-			return secondaries;
-		}
-	}
+	
 
 	
 }

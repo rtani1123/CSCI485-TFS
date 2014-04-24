@@ -803,6 +803,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
 					return;
 				}
+				
 				chunkservers.get(CSID).setLastGoodTime(Long.parseLong(fields[1]));
 				break;
 			case "deleteFile":
