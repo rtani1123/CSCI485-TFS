@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 60000;
+	final static long HEARTBEAT_DELAY = 5000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -119,10 +119,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			//connects existing chunkservers to new chunkserver.
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+				if(!(entry.getKey().equals(index))) {
+					((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+				}
 			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
+			System.out.println("Attempting to connect to " + index);
 			if(index == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			else if(index == 2)
