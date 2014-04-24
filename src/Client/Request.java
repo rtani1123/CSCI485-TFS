@@ -13,7 +13,8 @@ public class Request {
 	String requestType;
 	String fullPath;
 	String destination;
-	int ID;		// ID of chunkserver with primary lease
+	int reqID;
+	int primaryID;		// ID of chunkserver with primary lease
 	enum rState{SentToMaster, ReceivedLocations, SentToChunk, Completed}
 	rState state;
 	ArrayList<Integer> chunkservers;
@@ -21,42 +22,42 @@ public class Request {
 	int length;
 	int offset;
 	boolean withSize;
-	
+
 	/**
 	 * Request constructor
-	 * @param _rq	request type (append, atomic append, or read)
-	 * @param _fp	full path or chunkhandle
-	 * @param _id	ID of chunkserver with the primary lease
+	 * @param rq	request type (read)
+	 * @param fp	full path or chunkhandle
+	 * @param rID	request ID
 	 */
-	
-	public Request(String _rq, String _fp, int _id) {
-		requestType = _rq;
-		fullPath = _fp;
-		ID = _id;
+
+	public Request(String rq, String fp, int rID) {
+		requestType = rq;
+		fullPath = fp;
+		reqID = rID;
 		state = rState.SentToMaster;
 		chunkservers = new ArrayList<Integer>();
 	}
-	
+
 	/**
 	 * Request constructor, used in the read method in Client when it
 	 * already has the location of the requested chunkservers stored 
 	 * in its metadata 
-	 * @param _rq	request type (read)
-	 * @param _fp	full path or chunkhandle
-	 * @param _id	ID of chunkserver with the primary lease
+	 * @param rq	request type (read)
+	 * @param fp	full path or chunkhandle
+	 * @param rID	request ID
 	 * @param cs	list of chunkserver replicas
 	 */
-	public Request(String _rq, String _fp, int _id, ArrayList<Integer> cs) {
-		requestType = _rq;
-		fullPath = _fp;
-		ID = _id;
+	public Request(String rq, String fp, int rID, ArrayList<Integer> cs) {
+		requestType = rq;
+		fullPath = fp;
+		reqID = rID;
 		state = rState.ReceivedLocations;
 		chunkservers = new ArrayList<Integer>();
 		for (int i = 0; i < cs.size(); i++) {
 			chunkservers.add(cs.get(i));
 		}
 	}
-	
+
 	/**
 	 * Make a deep copy of a list of chunkserver IDs and store
 	 * @param cs	list of replicas
@@ -73,7 +74,7 @@ public class Request {
 			chunkservers.add(cs.get(i));
 		}
 	}
-	
+
 	/**
 	 * Create a shallow copy of the data byte array
 	 * @param data	byte array of data
@@ -85,24 +86,24 @@ public class Request {
 		}*/
 		payload = data;
 	}
-	
+
 	public void setLength(int length) {
 		this.length = length;
 	}
-	
+
 	public void setOffset(int offset) {
 		this.offset = offset;
 	}
-	
+
 	public void setWithSize(boolean withSize) {
 		this.withSize = withSize;
 	}
-	
+
 	public boolean isReceived() {
 		if (state == rState.ReceivedLocations) return true;
 		else return false;
 	}
-	
+
 	public boolean isSentToChunk() {
 		if (state == rState.SentToChunk) return true;
 		else return false;
@@ -111,22 +112,28 @@ public class Request {
 		if (state == rState.Completed) return true;
 		else return false;
 	}
-	
+
 	public void setReceived() {
 		state = rState.ReceivedLocations;
 	}
-	
+
 	public void setDestination (String d) {
 		destination = d;
 	}
-	
+
+	public void setPrimaryID(int primaryID) {
+		this.primaryID = primaryID;
+	}
 	
 	// getters
 	public String getFullPath() {
 		return fullPath;
 	}
-	public int getID() {
-		return ID;
+	public int getPrimaryID() {
+		return primaryID;
+	}
+	public int getReqID() {
+		return reqID;
 	}
 	public int getLength() {
 		return length;
