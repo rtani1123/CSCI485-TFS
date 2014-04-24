@@ -126,11 +126,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			//TODO: Change this to handle multiple chunkservers.
 			CSInfo temp = new CSInfo(tempCS, index);
 			chunkservers.put(index, temp);
-			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				if((CSInfo)entry.getValue().getCS() != chunkservers.get(index).getCS()) {
-					chunkservers.get(index).getCS().connectToChunkserver(entry.getValue().getID());
-				}
-			}
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
