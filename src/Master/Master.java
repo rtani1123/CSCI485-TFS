@@ -126,6 +126,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			//TODO: Change this to handle multiple chunkservers.
 			CSInfo temp = new CSInfo(tempCS, index);
 			chunkservers.put(index, temp);
+			
+			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
+				if(entry.getValue()!= temp) {
+					temp.getCS().connectToChunkserver(entry.getKey());
+				}
+			}
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -139,7 +145,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient() {
 		try {
-			client = (ClientInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu/CLIENT");
+			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
