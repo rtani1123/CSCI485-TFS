@@ -32,24 +32,18 @@ import Client.Client;
  */
 public class UnitTest1 {
 	public static void main(String[] args) throws RemoteException {
-		test1(7, 2);
+		unitTest1Func(15, 3, new Client(11));
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
-//		String path = "C:/";
 		for(int i = 1; i <= numFolders; i++){
 			int k = i;
 			StringBuffer path = new StringBuffer(String.valueOf(k));
-//			StringBuffer path = new StringBuffer();
-			k = (int)Math.floor((double)k/fanOut);
-//			k=fanOut;
-			System.out.println("outside " + k);
-//			k=(int) k/fanOut;
+			k = (int)Math.floor((double)(k)/fanOut);
 			while (k > 0)
 			{
 				String addMe = k + "/";
 				path.insert(0, addMe);
 				k = (int)Math.floor((double)k/fanOut);
-				System.out.println("inseide " +k);
 			}
 			path.insert(0, "C:/");
 			System.out.println(path.toString());
@@ -57,10 +51,10 @@ public class UnitTest1 {
 	}
 	public static void test1(int numFolders, int fanOut) {
 		ArrayList<String> current = new ArrayList<String>();
-		int count = 2;
-		String base = "C:/1";
-		System.out.println("C:/1");
-		current.add(new String("C:/1"));
+		int count = 1;
+		String base = "C:";
+		System.out.println("C:");
+		current.add(new String("C:"));
 		while(count <= numFolders) {
 			System.out.println("current = " + current);
 			int size = current.size();
