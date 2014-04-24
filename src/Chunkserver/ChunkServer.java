@@ -119,7 +119,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			else if(index == 3)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
 			chunkservers.put(index, tempCS);
-			tempCS.connectToChunkserver(index);
+			tempCS.connectToChunkserver(csIndex);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
