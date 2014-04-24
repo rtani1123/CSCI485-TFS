@@ -135,7 +135,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			chunkservers.put(index, temp);
 			
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				if(entry.getValue()!= temp) {
+				if(entry.getValue().id != index) {
 					temp.getCS().connectToChunkserver(entry.getKey());
 				}
 			}
@@ -152,7 +152,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient() {
 		try {
-			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			client = (ClientInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
