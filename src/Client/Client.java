@@ -303,64 +303,43 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	}
 
 	// Method called by master giving chunkhandle and chunkservers
-	public void passMetaData(String chunkhandle, int ID,
-			ArrayList<Integer> chunkservers, int reqID) {
+	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkservers, int reqID) {
 		try{
 			System.err.println(chunkhandle + " " + ID+ " " +reqID+ " " +chunkservers);
-
-			// reqID of -1 is used for functions such as Creates and Deletes which
-			// are not stored in the pendingRequests.
+			// reqID of -1 is used for functions such as Creates and Deletes which are not stored in pendingRequests
 			if (reqID != -1) {
-
-				// Go through the pendingRequests array to find request with the
-				// matching reqID.
+				// Go through the pendingRequests array to find request with the matching reqID
 				// Save locations of replicates and/or update primary lease
 				for (int i = 0; i < pendingRequests.size(); i++) {
-
 					Request r = pendingRequests.get(i);
 					// if the reqID's are matching
 					if (reqID == r.getID()) {
 						r.setCS(chunkservers);
 						r.setReceived();
 						boolean exists = false; // boolean to check if this
-						// chunkhandle already exists in the
-						// Client's metadata.
+						// chunkhandle already exists in the client's metadata
 						for (int j = 0; j < clientMetaDataArray.size(); j++) {
 							// if the chunkhandle is found, exit the loop
 							if ((clientMetaDataArray.get(j).chunkhandle).equals(chunkhandle)) {
 								exists = true;
-								(clientMetaDataArray.get(j)).setID(ID); // Update
-								// the
-								// primary
-								// lease in
-								// case it
-								// is
-								// different/
-								// has
-								// changed
+								(clientMetaDataArray.get(j)).setID(ID); 
+								// update the primary lease in case it is different/has changed
 								break;
-
 							}
-
 						}
-						// if the chunkhandle was not already in the metadata, add
-						// it along with its chunkservers
+						// if the chunkhandle was not already in the metadata, add it along with its chunkservers
 						if (!exists) {
-							clientMetaDataArray.add(new ClientMetaDataItem(
-									chunkhandle, ID, chunkservers));
+							clientMetaDataArray.add(new ClientMetaDataItem(chunkhandle, ID, chunkservers));
 						}
-						// once the corresponding ReqID is found, break out of the
-						// outer loop.
+						// once the corresponding ReqID is found, break out of the outer loop
 						break;
-
 					}
 				}
-
 				contactChunks(reqID);
 			}
-
 		}catch(Exception e){
 			System.out.println("PassMetaData error in Client");
+			e.printStackTrace();
 		}
 	}
 
@@ -384,7 +363,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 					for (int cs : r.getChunkservers()) {
 						try {
-							//System.out.println("Trying to connect to chunkserver " + (cs-1));
 							if (chunkservers.get(cs-1).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())) {
 								System.out.println("Successful append");
 							} else {
@@ -399,6 +377,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					for (int cs : r.getChunkservers()) {
 						if(r.getID() == cs){
 							try {
+								System.out.println("Trying to connect to chunkserver " + (cs-1));
 								if (chunkservers.get(cs-1).atomicAppend(r.getFullPath(), r.getPayload(),r.getLength(), r.getWithSize())) {
 									System.out.println("Successful atomic append");
 								} else {

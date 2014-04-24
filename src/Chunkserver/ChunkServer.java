@@ -23,18 +23,13 @@ import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 import Utilities.Tree;
 
-public class ChunkServer extends UnicastRemoteObject implements
-		ChunkserverInterface {
-	// public CSMetadata csmd = new CSMetadata();
-	Map<String, Long> CSMetaData = new HashMap<String, Long>();
-	Map<Integer, ChunkserverInterface> chunkservers;
+public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
+	Map<String, Metadata> CSMetadata = new HashMap<String, Metadata>();
+	Map<Integer, ChunkserverInterface> chunkservers  = new HashMap<Integer, ChunkserverInterface>();
 	MasterInterface myMaster;
-	boolean isPrimary = false;
-	Map<Integer, ChunkServer> otherCS = new HashMap<Integer, ChunkServer>();
-	ArrayList<Integer> toBeUpdatedCS = new ArrayList<Integer>();
-
 	ClientInterface myClient;
 	static Integer csIndex;
+	public static final long LEASETIME = 60000;
 
 	public ChunkServer() throws RemoteException {
 		//setupMasterChunkserverHost();
@@ -46,7 +41,6 @@ public class ChunkServer extends UnicastRemoteObject implements
 		myMaster.connectToChunkserver(csIndex);
 		connectToClient();
 		myClient.connectToChunkserver(csIndex);
-		
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
@@ -104,7 +98,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public void connectToClient() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			
+
 			myClient = (ClientInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
@@ -112,7 +106,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			re.printStackTrace();
 		}
 	}
-	
+
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -120,7 +114,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 
 			//TODO: Careful!! Don't connect to yourself!
 			tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-18.vlab.usc.edu/CHUNK" + index.toString());
-			
+
 			//TODO: Change this to handle multiple chunkservers.
 			chunkservers.put(index, tempCS);
 			/*
@@ -146,9 +140,8 @@ public class ChunkServer extends UnicastRemoteObject implements
 	@Override
 	public void primaryLease(String chunkhandle, ArrayList<Integer> CServers)
 			throws RemoteException {
-		isPrimary = true;
-		toBeUpdatedCS = CServers;
-
+		CSMetadata.get(chunkhandle).setPrimaryLeaseTime(System.currentTimeMillis());
+		CSMetadata.get(chunkhandle).setSecondaries(CServers);
 	}
 
 	@Override
@@ -159,6 +152,8 @@ public class ChunkServer extends UnicastRemoteObject implements
 				System.err.println("File creation unsuccessful " + chunkhandle);
 				return false;
 			}
+			Metadata md = new Metadata(chunkhandle);
+			CSMetadata.put(chunkhandle, md);
 		} catch (Exception e) {
 			System.out.println("File creation unsuccessful");
 			e.printStackTrace();
@@ -231,7 +226,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 	public byte[] read(String chunkhandle, int offset, int length)
 			throws RemoteException {
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
-										// path
+		// path
 
 		byte[] b = new byte[length];
 		try {
@@ -242,7 +237,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out
-					.println("Error in creating RandomAccessFule in read. Returning byte array of 0 size.");
+			.println("Error in creating RandomAccessFule in read. Returning byte array of 0 size.");
 			return new byte[0];
 		}
 		return b;
@@ -265,7 +260,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 			return false;
 		}
 		// TODO : add to metadata
-		CSMetaData.put(chunkhandle, System.currentTimeMillis());
+		CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
 
 		return true;
 	}
@@ -273,46 +268,47 @@ public class ChunkServer extends UnicastRemoteObject implements
 	@Override
 	public boolean atomicAppend(String chunkhandle, byte[] payload, int length,
 			boolean withSize) throws RemoteException {
-		File f = new File(chunkhandle); // might have to parse chunkhandle into
-		long offset = 0;								// path
-		try {
-			RandomAccessFile raf = new RandomAccessFile(f, "rws");
-			System.err.println("Atomic append seek length " + raf.length());
-			raf.seek(raf.length());
-			offset = raf.length();
-			if (withSize) {
-				ByteBuffer bb = ByteBuffer.allocate(4);
-				bb.putInt(length);
-				byte[] result = bb.array();
-				raf.write(result);
+		/*
+		 * If it's primary, it'll update and call other chunkservers to be updated
+		 */
+		if (System.currentTimeMillis() < CSMetadata.get(chunkhandle).getPrimaryLeaseTime() + LEASETIME) {
+			File f = new File(chunkhandle); 
+			long offset = 0;								
+			try {
+				RandomAccessFile raf = new RandomAccessFile(f, "rws");
+				System.err.println("Atomic append seek length " + raf.length());
+				raf.seek(raf.length());
+				offset = raf.length();
+				if (withSize) {
+					ByteBuffer bb = ByteBuffer.allocate(4);
+					bb.putInt(length);
+					byte[] result = bb.array();
+					raf.write(result);
+				}
+				raf.write(payload);
+				raf.close();
+			} catch (Exception e) {
+				System.out.println("atomic append unsuccessful");
+				e.printStackTrace();
+				return false;
 			}
-			raf.write(payload);
-			raf.close();
-		} catch (Exception e) {
-			System.out.println("atomic append unsuccessful");
-			e.printStackTrace();
+			CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
+			for (int i = 0; i < CSMetadata.get(chunkhandle).getSecondaries().size(); i++) {
+				chunkservers.get(CSMetadata.get(chunkhandle).getSecondaries().get(i)).atomicAppendSecondary(chunkhandle, payload, length, withSize,offset );
+			}
+			return true;
+		} else {
+			System.out.println("Unable to append because not the primary");
+			myClient.requestStatus("atomicAppend", chunkhandle, false, csIndex);
 			return false;
 		}
-		/*
-		 * If it's primary, it'll call other chunkservers to be updated
-		 */
-		if (isPrimary) {
-			for (int i = 0; i < toBeUpdatedCS.size(); i++) {
-				otherCS.get(toBeUpdatedCS.get(i)).atomicAppendSecondary(
-						chunkhandle, payload, length, withSize,offset );
-			}
-		} else {
-			System.out.println("I'm not the primary!");
-		}
-		CSMetaData.put(chunkhandle, System.currentTimeMillis());
-		return true;
 	}
 
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
 			int length, boolean withSize, long offset) throws RemoteException {
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
-		
+
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
@@ -329,14 +325,14 @@ public class ChunkServer extends UnicastRemoteObject implements
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return false;
 	}
-	
+
 	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
-		
+
 	}
-	
+
 	// called by master
 	public void heartbeat() throws RemoteException{
 		myMaster.heartbeat(csIndex);
@@ -368,6 +364,43 @@ public class ChunkServer extends UnicastRemoteObject implements
 			// TODO Auto-generated catch block
 			System.out.println("Could not start chunkserver class instance");
 		}
+
 	}
 
+	private class Metadata{
+		long primaryLeaseTime;
+		long writeTime;
+		ArrayList<Integer> secondaries = new ArrayList<Integer>();
+		String chunkhandle;
+
+		public Metadata(String chunkhandle){
+			writeTime = System.currentTimeMillis();
+			primaryLeaseTime = -1;
+			this.chunkhandle = chunkhandle;
+		}
+
+		public void setWriteTime(long time){
+			this.writeTime = time;
+		}
+
+		public void setPrimaryLeaseTime(long time){
+			primaryLeaseTime = time;
+		}
+
+		public void setSecondaries(ArrayList<Integer> secondaries){
+			this.secondaries = secondaries;
+		}
+
+		public long getWriteTime(){
+			return writeTime;
+		}
+
+		public long getPrimaryLeaseTime() {
+			return primaryLeaseTime;
+		}
+
+		public ArrayList<Integer> getSecondaries() {
+			return secondaries;
+		}
+	}
 }
