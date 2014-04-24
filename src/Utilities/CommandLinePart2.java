@@ -32,7 +32,7 @@ public class CommandLinePart2 {
 				System.out.println(" DeleteFile chunkHandle ");
 				System.out.println(" DeleteDirectory chunkHandle ");
 				System.out.println(" CreateFile path filename numOfReplicas ");
-				System.out.println(" Append chunkHandle source withSize ");
+				System.out.println(" Append chunkHandle offset source withSize ");
 				System.out.println(" Atomic chunkHandle source withSize ");
 				System.out.println(" Read chunkHandle offset length destination ");
 			} else if (input.contains("CreateDirectory")) {
@@ -67,11 +67,11 @@ public class CommandLinePart2 {
 				myClient.createFile(actuallArgs[0], actuallArgs[1],Integer.parseInt(actuallArgs[2]));
 			} else if (input.contains("Append")) {
 				String [] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length!=3){
+				if (actuallArgs == null || actuallArgs.length!=4){
 					System.out.println(" Please enter appropriate number of arguments. ");
 					
 				}else{
-					File inputFile = new File(actuallArgs[1]);
+					File inputFile = new File(actuallArgs[2]);
 					byte[] b = new byte[(int)inputFile.length()];
 					//read in the input file
 					try{
@@ -81,7 +81,7 @@ public class CommandLinePart2 {
 					}catch(Exception e){
 						e.printStackTrace();
 					}
-					myClient.append(actuallArgs[0],0, b.length, b, Boolean.parseBoolean(actuallArgs[2]));
+					myClient.append(actuallArgs[0],Integer.parseInt(actuallArgs[1]), b.length, b, Boolean.parseBoolean(actuallArgs[3]));
 				}
 
 			} else if (input.contains("Atomic")) {
