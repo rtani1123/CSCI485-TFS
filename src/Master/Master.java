@@ -119,10 +119,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			//connects existing chunkservers to new chunkserver.
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+				if(!(entry.getKey().equals(index))) {
+					((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+				}
 			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
+			System.out.println("Attempting to connect to " + index);
 			if(index == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			else if(index == 2)
@@ -132,7 +135,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		
 			//TODO: Change this to handle multiple chunkservers.
 			CSInfo temp = new CSInfo(tempCS, index);
-			chunkservers.put(index, temp);
+			if(!chunkservers.containsKey((Integer)index))
+				chunkservers.put(index, temp);
 			
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				if(entry.getValue().id != index) {
