@@ -827,19 +827,21 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	public int getRandomWorkingCS (ArrayList<Integer> CSList){
 		Random randInt = new Random();
-		int chosenOne = randInt.nextInt() % CSList.size();
+		int chosenIndex = randInt.nextInt() % CSList.size();
+		int chosenID = CSList.get(chosenIndex);
 		boolean working = false;
 		int attempts = 0;
-		if(chunkservers.get(chosenOne).getStatus() == CSStatus.OK){
+		if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
 			working = true;
 		}
 		else{
 			working = false;
 		}
 		while(!working){
-			chosenOne = randInt.nextInt() % CSList.size();
+			chosenIndex = randInt.nextInt() % CSList.size();
+			chosenID = CSList.get(chosenIndex);
 			attempts++;
-			if(chunkservers.get(chosenOne).getStatus() == CSStatus.OK){
+			if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
 				working = true;
 			}
 			else{
@@ -850,7 +852,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				return -1;
 			}
 		}
-		return CSList.get(chosenOne);
+		return chosenID;
 	}
 
 	public static void main(String[] args) {
