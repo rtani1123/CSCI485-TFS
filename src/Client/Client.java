@@ -426,6 +426,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					}
 				} else {
 					System.out.println("Error. Request type not found.");
+					
+					
 				}
 				pendingRequests.remove(r);
 			}			
