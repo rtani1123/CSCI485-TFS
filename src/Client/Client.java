@@ -16,7 +16,9 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import Interfaces.ChunkserverInterface;
@@ -33,7 +35,8 @@ import Interfaces.MasterInterface;
 public class Client extends UnicastRemoteObject implements ClientInterface {
 	ArrayList<ClientMetaDataItem> clientMetaDataArray; // locations of replicas
 	// and primary lease
-	List<ChunkserverInterface> chunkservers; // chunkservers to contact
+	Map<Integer, ChunkserverInterface> chunkservers;
+//	List<ChunkserverInterface> chunkservers; // chunkservers to contact
 	List<Request> pendingRequests; // application request info for append,
 	// atomic append, and read
 	int clientID; // ID of this client
@@ -59,7 +62,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		clientID = ID;
 		count = 0;
 		chunkservers = Collections
-				.synchronizedList(new ArrayList<ChunkserverInterface>());
+				.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
 
 		setupClientHost();
 	}
@@ -118,7 +121,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 			// TODO: Change this to handle multiple chunkservers.
 			// chunkservers.put(1, tempCS);
-			chunkservers.add(tempCS);
+			chunkservers.put(index,tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -303,9 +306,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	}
 
 	// Method called by master giving chunkhandle and chunkservers
-	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkservers, int reqID) {
+	public void passMetaData(String chunkhandle, int ID, ArrayList<Integer> chunkserversList, int reqID) {
 		try{
-			System.err.println(chunkhandle + " " + ID+ " " +reqID+ " " +chunkservers);
+			System.err.println(chunkhandle + " " + ID+ " " +reqID+ " " +chunkserversList);
 			// reqID of -1 is used for functions such as Creates and Deletes which are not stored in pendingRequests
 			if (reqID != -1) {
 				// Go through the pendingRequests array to find request with the matching reqID
@@ -314,7 +317,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					Request r = pendingRequests.get(i);
 					// if the reqID's are matching
 					if (reqID == r.getID()) {
-						r.setCS(chunkservers);
+						r.setCS(chunkserversList);
 						r.setReceived();
 						boolean exists = false; // boolean to check if this
 						// chunkhandle already exists in the client's metadata
@@ -329,7 +332,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						}
 						// if the chunkhandle was not already in the metadata, add it along with its chunkservers
 						if (!exists) {
-							clientMetaDataArray.add(new ClientMetaDataItem(chunkhandle, ID, chunkservers));
+							clientMetaDataArray.add(new ClientMetaDataItem(chunkhandle, ID, chunkserversList));
 						}
 						// once the corresponding ReqID is found, break out of the outer loop
 						break;
@@ -360,15 +363,17 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			Request r = (Request) pendingRequests.get(i);
 			if (r.getID() == rID) {
 				if ((r.getRequestType()).equals(APPEND)) {
-
+					System.out.println("chunkservers for append in contactCS func: "+r.getChunkservers());
 					for (int cs : r.getChunkservers()) {
+						System.out.println(cs);
 						try {
-							if (chunkservers.get(cs-1).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())) {
+							if (chunkservers.get(cs).append(r.getFullPath(), r.getPayload(), r.getLength(), r.getOffset(), r.getWithSize())) {
 								System.out.println("Successful append");
 							} else {
 								System.out.println("Failed append");
 							}
 						} catch (RemoteException e) {
+							e.printStackTrace();
 							System.out.println("Failed to connect to chunkserver for append");
 						}
 					}
@@ -377,8 +382,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					for (int cs : r.getChunkservers()) {
 						if(r.getID() == cs){
 							try {
-								System.out.println("Trying to connect to chunkserver " + (cs-1));
-								if (chunkservers.get(cs-1).atomicAppend(r.getFullPath(), r.getPayload(),r.getLength(), r.getWithSize())) {
+								System.out.println("Trying to connect to chunkserver " + (cs));
+								if (chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(),r.getLength(), r.getWithSize())) {
 									System.out.println("Successful atomic append");
 								} else {
 									System.out.println("Failed atomic append");
@@ -391,7 +396,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				} else if ((r.getRequestType()).equals(READ)) {
 					for (int cs : r.getChunkservers()) {
 						try {
-							byte[] result = chunkservers.get(cs-1).read(r.getFullPath(), r.getOffset(),r.getLength());
+							byte[] result = chunkservers.get(cs).read(r.getFullPath(), r.getOffset(),r.getLength());
 							File localDest = new File(r.destination);
 							if (localDest.exists()){
 								System.err.println("Local file destination already exist for read.");
