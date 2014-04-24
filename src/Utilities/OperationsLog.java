@@ -33,7 +33,7 @@ public class OperationsLog implements Serializable{
 	 * @param type
 	 * @param chunkhandle
 	 */
-	public void makeLogRecord(long startTime, String type, String chunkhandle, int stage){
+	public void makeLogRecord(long startTime, String chunkhandle, String type, int stage){
 		StringBuffer newRecord = new StringBuffer("$");
 		newRecord.append(startTime);
 		newRecord.append("$");

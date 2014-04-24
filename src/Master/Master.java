@@ -132,15 +132,21 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			else if(index == 3)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
 		
-			//TODO: Change this to handle multiple chunkservers.
-			CSInfo temp = new CSInfo(tempCS, index);
-			chunkservers.put(index, temp);
-			
+			if(chunkservers.get(index) == null) {
+				System.out.println("doesn't exist. creating new");
+				CSInfo temp = new CSInfo(tempCS, index);
+				chunkservers.put(index, temp);
+			}
+			else {
+				System.out.println("updating cs interface " + index);
+				chunkservers.get(index).setCS(tempCS);
+			}
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				if(entry.getValue().id != index) {
-					temp.getCS().connectToChunkserver(entry.getKey());
+					tempCS.connectToChunkserver(entry.getKey());
 				}
 			}
+			
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -436,6 +442,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 1);
 			System.out.println("File successfully removed from file system.");
+			
 		}
 		else
 		{
@@ -470,18 +477,18 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else{
 			ArrayList<Integer> chunkserversL = new ArrayList<Integer>();
-			for (Map.Entry<Integer, CSInfo> entry: chunkservers.entrySet()){
+			for(Map.Entry<Integer, CSInfo> entry: chunkservers.entrySet()){
 				chunkserversL.add(entry.getKey());
 			}
 			if(directory.addElement(directory.pathTokenizer(path),chunkserversL)){
-				for(int CS = 1; CS <= chunkserversL.size(); CS++){
-					if(chunkservers.get(CS).getStatus() == CSStatus.OK){
+				for(Map.Entry<Integer, CSInfo> entry: chunkservers.entrySet()){
+					if(entry.getValue().getStatus() == CSStatus.OK){
 						try{
-							chunkservers.get(CS).getCS().createDirectory(path);
+							entry.getValue().getCS().createDirectory(path);
 						}
 						catch(RemoteException re){
-							System.out.println("Error connecting to chunkserver " + CS);
-							chunkservers.get(CS).setStatus(CSStatus.DOWN);
+							System.out.println("Error connecting to chunkserver " + entry.getKey());
+							entry.getValue().setStatus(CSStatus.DOWN);
 						}
 					}
 				}
@@ -714,6 +721,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	public void restoreChunkserver(int CSID) throws RemoteException {
 		System.out.println("Beginning restoration of " + CSID);
+		System.out.println("log length " + log.getLength());
 		if(log.getLength() == 0){
 			chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
 			chunkservers.get(CSID).setStatus(CSStatus.OK);
@@ -721,31 +729,45 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			return;
 		}
 		long lastGoodTime = chunkservers.get(CSID).getLastGoodTime();
+		
 		String logRecord = log.getReference(0);
 		int count = 0;
-		String[] fields = logRecord.split("//$");
+		String[] fields = logRecord.split("\\$");
+		for(int i = 0; i < fields.length; i++) {
+			System.out.println(i + ": " + fields[i]);
+		}
 		//check to see if the first file should be on the chunkserver
 		Node file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
 		while(!file.chunkServersNum.contains(CSID)){
+			System.out.println("file does not belong on chunk server " + fields[2]);
 			count++;
+			System.out.println("count: " + count);
 			logRecord = log.getReference(count);
-			fields = logRecord.split("//$");
+			fields = logRecord.split("\\$");
 			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
 		}
 		long logTime = Long.parseLong(fields[1]);
 		//for now, this scans through the entire transaction log
 		//it assumes that the transaction log has entries since the last good time
-		while (lastGoodTime > logTime){
+		while (lastGoodTime > logTime && count < log.getLength()-1){
+			System.out.println("no need to redo this transaction");
 			count++;
+			System.out.println("count: " + count);
 			logRecord = log.getReference(count);
-			fields = logRecord.split("$");
+			fields = logRecord.split("\\$");
 			logTime = Long.parseLong(fields[1]);
 		}
 		while (count < log.getLength()){
+			System.out.println("in main while loop");
+			System.out.println("count in main while: " + count);
 			logRecord = log.getReference(count);
-			fields = logRecord.split("$");
+			System.out.println(log.getReference(count));
+			fields = logRecord.split("\\$");
 			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
-			if(fields[4] == "0" || !file.chunkServersNum.contains(CSID)){
+			System.out.println("file: " + file);
+			if(fields[4].equals("0") || (file != null && !file.chunkServersNum.contains(CSID))){
+				System.out.println("field 4 = 0; ignoring; continue, count = " + count);
+				count++;
 				continue;
 			}
 			switch(fields[3]){
@@ -779,6 +801,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				break;
 			case "deleteFile":
 				if(!deleteFileRedo(fields[2], CSID)){
+					System.out.println("trying to delete file.");
 					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
 					return;
 				}
@@ -795,6 +818,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error parsing log file.");
 				break;
 			}
+			count++;
+			System.out.println("count: " + count);
 		}
 		chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
 		chunkservers.get(CSID).setStatus(CSStatus.OK);
@@ -1053,6 +1078,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			return remoteCS;
 		}
 
+		public void setCS(ChunkserverInterface ci) {
+			this.remoteCS = ci;
+		}
 		public int getID(){
 			return id;
 		}
