@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
-import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
@@ -18,20 +16,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import Client.Client;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
-import Utilities.Tree;
 
 public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
 	Map<String, ChunkserverMetadata> CSMetadata = new HashMap<String, ChunkserverMetadata>();
 	Map<Integer, ChunkserverInterface> chunkservers  = new HashMap<Integer, ChunkserverInterface>();
 	MasterInterface myMaster;
-	ClientInterface myClient;
+//	ClientInterface myClient;
+	Map<Integer, ClientInterface> clients;
 	static Integer csIndex;
 	public static final long LEASETIME = 60000;
 
 	public ChunkServer() throws RemoteException {
+		clients = new HashMap<Integer, ClientInterface>();
 		try {
 			if(ChunkserverMetadata.getMetadata()!=null) {
 				CSMetadata = ChunkserverMetadata.getMetadata();
@@ -46,7 +46,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		connectToMaster();
 		myMaster.connectToChunkserver(csIndex);
 		connectToClient();
-		myClient.connectToChunkserver(csIndex);
+		clients.get(11).connectToChunkserver(csIndex);
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex
@@ -98,7 +98,8 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 
-			myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			ClientInterface myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			clients.put(11, myClient);
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
@@ -332,7 +333,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			return true;
 		} else {
 			System.out.println("Unable to append because not the primary");
-			myClient.requestStatus("atomicAppend", chunkhandle, false, csIndex);
+			clients.get(11).requestStatus("atomicAppend", chunkhandle, false, csIndex);
 			return false;
 		}
 	}
