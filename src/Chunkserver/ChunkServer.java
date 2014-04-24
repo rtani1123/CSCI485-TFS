@@ -275,6 +275,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		 * If it's primary, it'll update and call other chunkservers to be updated
 		 */
 		if (System.currentTimeMillis() < CSMetadata.get(chunkhandle).getPrimaryLeaseTime() + LEASETIME) {
+			System.out.println("This is a primary");
 			File f = new File(chunkhandle); 
 			long offset = 0;								
 			try {
@@ -310,6 +311,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
 			int length, boolean withSize, long offset) throws RemoteException {
+		System.out.println("This is a secondary");
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
 
 		try {

@@ -426,6 +426,8 @@ System.out.println("contacting chunks... ");
 					}
 				} else {
 					System.out.println("Error. Request type not found.");
+					
+					
 				}
 				pendingRequests.remove(r);
 			}			
