@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 60000;
+	final static long HEARTBEAT_DELAY = 5000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -135,8 +135,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		
 			//TODO: Change this to handle multiple chunkservers.
 			CSInfo temp = new CSInfo(tempCS, index);
-			if(!chunkservers.containsKey((Integer)index))
-				chunkservers.put(index, temp);
+			chunkservers.put(index, temp);
 			
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				if(entry.getValue().id != index) {
