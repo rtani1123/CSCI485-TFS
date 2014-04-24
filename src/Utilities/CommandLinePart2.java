@@ -110,12 +110,38 @@ public class CommandLinePart2 {
 				}else
 				myClient.read(actuallArgs[0], Integer.parseInt(actuallArgs[1]),Integer.parseInt(actuallArgs[2]), actuallArgs[3]);
 
+			} else if (input.contains("Unit1")) {
+				String [] actualArgs = getArgs(input);
+				if (actualArgs == null || actualArgs.length!=2){
+					System.out.println(" Please enter appropriate number of arguments. ");
+				} else {
+					
+				}
+			} else if (input.contains("Unit2")) {
+				String [] actualArgs = getArgs(input);
+				
+			} else if (input.contains("Unit3")) {
+				String [] actualArgs = getArgs(input);
+				
+			} else if (input.contains("Unit4")) {
+				String [] actualArgs = getArgs(input);
+				
+			} else if (input.contains("Unit5")) {
+				String [] actualArgs = getArgs(input);
+				
+			} else if (input.contains("Unit6")) {
+				String [] actualArgs = getArgs(input);
+				
+			} else if (input.contains("Unit7")) {
+				String [] actualArgs = getArgs(input);
+				
 			}
 			else
 				System.out.println("Not a command");
 		}
 
 	}
+	
 
 	public static String[] getArgs(String in) {
 		String allArgs[] = in.split(" ");

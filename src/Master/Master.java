@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 5000;
+	final static long HEARTBEAT_DELAY = 60000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -62,6 +62,20 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			client.connectToMaster();
 		} catch(RemoteException re) {
 			System.out.println("Cannot connect to client");
+		}
+		try {
+			connectToChunkserver(1);
+			chunkservers.get(1).getCS().connectToMaster();
+		}
+		catch(Exception e) {
+			System.out.println("Chunkserver 1 not running.");
+		}
+		try {
+			connectToChunkserver(2);
+			chunkservers.get(2).getCS().connectToMaster();
+		}
+		catch(Exception e) {
+			System.out.println("Chunkserver 2 not running.");
 		}
 		//client.createDirectory("C:/1");
 	}
@@ -96,6 +110,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Chunkserver methods -> MASTERCHUNK1
 	public void connectToChunkserver(Integer index) {
 		try {
+			//connects existing chunkservers to new chunkserver.
+			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
+				System.out.println("connection from " + index + " to " + entry.getKey());
+				((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
 			if(index == 1)
@@ -121,7 +140,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient() {
 		try {
-			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			client = (ClientInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
@@ -308,7 +327,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				int count = 0;
 				while (count < numReplicas){					
 					Random rand = new Random();
-					int randCS = rand.nextInt() % chunkservers.size() + 1;
+					int randCS = Math.abs((rand.nextInt() % chunkservers.size()));
+					randCS = randCS+1;
 					if(!CSLocations.contains(randCS)){
 						CSLocations.add(randCS);
 						count++;

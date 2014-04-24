@@ -32,11 +32,11 @@ public class Test1 {
 			System.err.println("Error. Invalid number of arguments for Test1.");
 			return;
 		}
-		Part1FS tfs = new Part1FS(Storage.getTree());
+		//Part1FS tfs = new Part1FS(Storage.getTree());
 		int numFolders = Integer.parseInt(args[0]);
 		// set the root directory name
-		tfs.directory.root.name="C:";
-		tfs.createDirectory("C:/1");
+		//tfs.directory.root.name="C:";
+		//tfs.createDirectory("C:/1");
 		for(int i = 2; i <= numFolders; i++){
 			int k = i;
 			StringBuffer path = new StringBuffer(String.valueOf(k));
@@ -48,10 +48,10 @@ public class Test1 {
 				k = (int)Math.floor((double)k/2);
 			}
 			path.insert(0, "C:/");
-			tfs.createDirectory(path.toString());
+			System.out.println(path.toString());
 		}
 		System.out.println("Existing tree structure: ");
-		tfs.directory.getAllPath(tfs.directory.root);
-		Storage.storeTree(tfs.directory);
+		//tfs.directory.getAllPath(tfs.directory.root);
+		//Storage.storeTree(tfs.directory);
 	}
 }
