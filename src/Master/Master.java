@@ -77,6 +77,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		catch(Exception e) {
 			System.out.println("Chunkserver 2 not running.");
 		}
+		try {
+			connectToChunkserver(3);
+			chunkservers.get(3).getCS().connectToMaster();
+		}
+		catch(Exception e) {
+			System.out.println("Chunkserver 3 not running.");
+		}
 		//client.createDirectory("C:/1");
 	}
 
