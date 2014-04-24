@@ -44,7 +44,7 @@ public class Request {
 	 * @param _rq	request type (read)
 	 * @param _fp	full path or chunkhandle
 	 * @param _id	ID of chunkserver with the primary lease
-	 * @param cs	list of replicas
+	 * @param cs	list of chunkserver replicas
 	 */
 	public Request(String _rq, String _fp, int _id, ArrayList<Integer> cs) {
 		requestType = _rq;
