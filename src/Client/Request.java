@@ -3,7 +3,7 @@ package Client;
 import java.util.ArrayList;
 
 /**
- * This class is used by the Client class to store information about a given request from the Application.
+ * The Request class is used by the Client class to store information about a given request from the Application.
  * An instance of this class is created when the Client is told to append, atomic append, or read.
  * 
  *
@@ -22,6 +22,13 @@ public class Request {
 	int offset;
 	boolean withSize;
 	
+	/**
+	 * Request constructor
+	 * @param _rq	request type (append, atomic append, or read)
+	 * @param _fp	full path or chunkhandle
+	 * @param _id	ID of chunkserver with the primary lease
+	 */
+	
 	public Request(String _rq, String _fp, int _id) {
 		requestType = _rq;
 		fullPath = _fp;
@@ -30,7 +37,15 @@ public class Request {
 		chunkservers = new ArrayList<Integer>();
 	}
 	
-	// called by read method in Client if location already stored
+	/**
+	 * Request constructor, used in the read method in Client when it
+	 * already has the location of the requested chunkservers stored 
+	 * in its metadata 
+	 * @param _rq	request type (read)
+	 * @param _fp	full path or chunkhandle
+	 * @param _id	ID of chunkserver with the primary lease
+	 * @param cs	list of replicas
+	 */
 	public Request(String _rq, String _fp, int _id, ArrayList<Integer> cs) {
 		requestType = _rq;
 		fullPath = _fp;
@@ -42,7 +57,10 @@ public class Request {
 		}
 	}
 	
-	// make deep copy of replicas
+	/**
+	 * Make a deep copy of a list of chunkserver IDs and store
+	 * @param cs	list of replicas
+	 */
 	public void setCS (ArrayList<Integer> cs) {
 		// empty list of chunkservers if not empty
 		if(chunkservers.size() != 0){
@@ -56,7 +74,10 @@ public class Request {
 		}
 	}
 	
-	// shallow copy data
+	/**
+	 * Create a shallow copy of the data byte array
+	 * @param data	byte array of data
+	 */
 	public void setData (byte [] data){
 		/*payload = new byte[data.length];
 		for(int i = 0; i < data.length; i++){

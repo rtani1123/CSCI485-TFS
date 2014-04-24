@@ -19,12 +19,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import Chunkserver.ChunkServer;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 
-
+/**
+ * The Client class takes a request from the Application.  It then contacts the
+ * Master and/or Chunkservers appropriately based on the request.  For appends,
+ * atomic appends, or reads it creates a Request object to handle the data
+ * intermediately.  For read requests, it may use a stored ClientMetaDataItem in
+ * place of contacting the Master to save time.
+ */
 public class Client extends UnicastRemoteObject implements ClientInterface {
 	ArrayList<ClientMetaDataItem> clientMetaDataArray; // locations of replicas
 	// and primary lease
