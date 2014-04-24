@@ -105,7 +105,7 @@ public class ChunkServer extends UnicastRemoteObject implements
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			
-			myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			myClient = (ClientInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
