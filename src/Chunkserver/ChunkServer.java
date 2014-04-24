@@ -241,11 +241,16 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return b;
 	}
 	@Override
-	public byte[] read(String chunkhandle, int offset, int length)
-			throws RemoteException {
-		File f = new File(chunkhandle); // might have to parse chunkhandle into
-		// path
-
+	public byte[] read(String chunkhandle, int offset, int length) throws RemoteException {
+		File f = new File(chunkhandle); 
+		if(offset > f.length()){
+			System.out.println("Unable to read because offset exceeds file length");
+			return new byte[0];
+		}
+		else if ((offset + length) > f.length()){
+			length = (int)f.length() - offset;
+			System.out.println("Truncating out of bounds read.");
+		}
 		byte[] b = new byte[length];
 		try {
 			RandomAccessFile raf = new RandomAccessFile(f, "r");
@@ -254,8 +259,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out
-			.println("Error in creating RandomAccessFule in read. Returning byte array of 0 size.");
+			System.out.println("Error in creating RandomAccessFile in read. Returning byte array of 0 size.");
 			return new byte[0];
 		}
 		return b;
