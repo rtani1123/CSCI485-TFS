@@ -357,6 +357,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			System.out.println(path+"/"+fileName);
 			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
+				log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);
 				System.out.println("Successful add to tree. Requesting file create from CS.");
 				int downChunkservers = 0;
 				for(Integer CS : CSLocations){
@@ -386,7 +387,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						System.out.println("Error connecting to client.");
 					}
 					System.out.println("Successful addition of file to file system");
-					log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);
 				}
 			}
 			else{
@@ -424,6 +424,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else if(directory.removeElement(directory.pathTokenizer(chunkhandle)))
 		{
+			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 1);
 			for(Integer CS : file.chunkServersNum){
 				try{
 					System.err.println("Messaging chunkserver " + CS);
@@ -440,7 +441,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
-			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 1);
 			System.out.println("File successfully removed from file system.");
 			
 		}
@@ -481,6 +481,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				chunkserversL.add(entry.getKey());
 			}
 			if(directory.addElement(directory.pathTokenizer(path),chunkserversL)){
+				log.makeLogRecord(System.currentTimeMillis(), path, "createDirectory", 1);
 				for(Map.Entry<Integer, CSInfo> entry: chunkservers.entrySet()){
 					if(entry.getValue().getStatus() == CSStatus.OK){
 						try{
@@ -499,7 +500,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					System.out.println("Error connecting to client.");
 				}
 				System.out.println("Successful directory creation " + path);
-				log.makeLogRecord(System.currentTimeMillis(), path, "createDirectory", 1);
 			}
 			else{
 				try{
@@ -537,6 +537,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		if(directory.removeElement(directory.pathTokenizer(path)))
 		{
+			log.makeLogRecord(System.currentTimeMillis(), path, "deleteDirectory", 1);
+			System.out.println("Directory removed from namespace " + path);
 			for(Integer CS : file.chunkServersNum){
 				try{
 					chunkservers.get(CS).getCS().deleteDirectory(path);
@@ -552,8 +554,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
 			}
-			log.makeLogRecord(System.currentTimeMillis(), path, "deleteDirectory", 1);
-			System.out.println("Directory deletion successful " + path);
 		}
 		else
 		{
@@ -738,14 +738,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		//check to see if the first file should be on the chunkserver
 		Node file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
-		while(!file.chunkServersNum.contains(CSID)){
-			System.out.println("file does not belong on chunk server " + fields[2]);
-			count++;
-			System.out.println("count: " + count);
-			logRecord = log.getReference(count);
-			fields = logRecord.split("\\$");
-			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
-		}
+//		while(!file.chunkServersNum.contains(CSID)){
+//			System.out.println("file does not belong on chunk server " + fields[2]);
+//			count++;
+//			System.out.println("count: " + count);
+//			logRecord = log.getReference(count);
+//			fields = logRecord.split("\\$");
+//			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
+//		}
 		long logTime = Long.parseLong(fields[1]);
 		//for now, this scans through the entire transaction log
 		//it assumes that the transaction log has entries since the last good time
@@ -765,7 +765,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			fields = logRecord.split("\\$");
 			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
 			System.out.println("file: " + file);
-			if(fields[4].equals("0") || (file != null && !file.chunkServersNum.contains(CSID))){
+			if(fields[4].equals("0") || (file == null && !fields[3].contains("delete"))
+					|| (file != null && !file.chunkServersNum.contains(CSID))){
 				System.out.println("field 4 = 0; ignoring; continue, count = " + count);
 				count++;
 				continue;
