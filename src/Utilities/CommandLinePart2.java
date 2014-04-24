@@ -115,7 +115,11 @@ public class CommandLinePart2 {
 				if (actualArgs == null || actualArgs.length!=2){
 					System.out.println(" Please enter appropriate number of arguments. ");
 				} else {
-					
+					int count = 2;
+					System.out.println("C:/1");
+					while(count < Integer.parseInt(actualArgs[0])) {
+						
+					}
 				}
 			} else if (input.contains("Unit2")) {
 				String [] actualArgs = getArgs(input);
