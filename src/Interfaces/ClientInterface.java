@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public interface ClientInterface extends Remote {
 	//functions called by master
-	public void setupClientHost() throws RemoteException;
+	public void setupClientHost(Integer i) throws RemoteException;
 	public void connectToMaster() throws RemoteException;
 	public void connectToChunkserver(Integer index) throws RemoteException;
 	public void requestStatus(String requestType, String fullPath, boolean succeeded, int ID) throws RemoteException;
