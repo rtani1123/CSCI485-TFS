@@ -30,11 +30,10 @@ import Client.Client;
 	1/2/7
  */
 public class UnitTest1 {
-	static Client myClient;
 	public static void main(String[] args) throws RemoteException {
-		myClient = new Client(1);
-		int numFolders = Integer.parseInt(args[0]);
-		int fanOut = Integer.parseInt(args[1]);
+	
+	}
+	public static void unitTest3Func(int numFolders, int fanOut, Client myClient){
 //		String path = "C:/";
 		for(int i = 1; i <= numFolders; i++){
 			int k = i;

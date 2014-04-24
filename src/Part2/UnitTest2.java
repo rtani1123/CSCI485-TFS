@@ -19,17 +19,9 @@ import Utilities.Storage;
 	Assuming the directory structure from the Test1 example above, this Test would create 5 files in each directory 1\2, 1\2\4 and 1\2\5.  The files in each directory would be named File1, File2, and File3.
  */
 public class UnitTest2 {
-	static Client myClient ;
-	public static void main(String args[]) throws RemoteException{
-		myClient = new Client(1);
-		if (args.length != 2)
-		{
-			System.err.println("Error. Invalid number of arguments for Test2.");
-			return;
-		}
-//		Part1FS tfs = new Part1FS(Storage.getTree());
-		String startingPath = args[0];
-		int numFiles = Integer.parseInt(args[1]);
+
+	public static void unitTest3Func(String startingPath, int numFiles, Client myClient) throws RemoteException{
+	
 		ArrayList<String> directories = new ArrayList<String>();
 		ArrayList<String> contents = new ArrayList<String>();
 		directories.add(startingPath);
