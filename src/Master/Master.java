@@ -36,7 +36,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
 	final static long HEARTBEAT_DELAY = 5000;
-	Tree directory;
+	public static Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
 	private MasterThread masterThread;
