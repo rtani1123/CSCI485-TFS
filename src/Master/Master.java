@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 60000;
+	final static long HEARTBEAT_DELAY = 5000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -125,7 +125,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
-			System.out.println("Attempting to connect to " + index);
 			if(index == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
 			else if(index == 2)
@@ -715,6 +714,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	public void restoreChunkserver(int CSID) throws RemoteException {
 		System.out.println("Beginning restoration of " + CSID);
+		if(log.getLength() == 0){
+			chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
+			chunkservers.get(CSID).setStatus(CSStatus.OK);
+			System.out.println("Recovery complete for " + CSID);
+			return;
+		}
 		long lastGoodTime = chunkservers.get(CSID).getLastGoodTime();
 		String logRecord = log.getReference(0);
 		int count = 0;
@@ -1029,7 +1034,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.id = id;
 			this.remoteCS = csi;
 			this.lastHeartbeat = System.currentTimeMillis();
-			this.status = CSStatus.OK;
+			this.status = CSStatus.DOWN;
 		}
 
 		public CSStatus getStatus(){
@@ -1086,20 +1091,24 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					}
 					if (downCS && chunkservers.get(i).getStatus() != CSStatus.DOWN){
 						//chunkserver has gone down
+						System.out.println("down " + i);
 						chunkservers.get(i).setStatus(CSStatus.DOWN);
 					}
 					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.DOWN){
+						System.out.println("need to recover" + i);
 						//initiate chunkserver recovery
 						tasks.add(new Task(TaskType.recoverCS, i));
 						chunkservers.get(i).setStatus(CSStatus.RECOVERING);
 						stateChanged();
 					}
 					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.OK){
+						System.out.println("cs okay " + i);
 						//chunkserver is still ok, so we assume up to date
 						chunkservers.get(i).setLastHB(System.currentTimeMillis());
 						chunkservers.get(i).setLastGoodTime(System.currentTimeMillis());
 					}
 					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.RECOVERING){
+						System.out.println("still recovering " + i);
 						//chunkserver is recovering so we do not assume this is a good time
 						chunkservers.get(i).setLastHB(System.currentTimeMillis());
 					}
