@@ -349,9 +349,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return false;
 	}
 
-	public void fetchAndRewrite(String chunkhandle, int sourceID, boolean withsize) throws RemoteException{
+	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
 		byte [] payload = chunkservers.get(sourceID).readCompltely(chunkhandle);
-		append(chunkhandle, payload, payload.length, 0, withsize);
+		append(chunkhandle, payload, payload.length, 0, false);
 	}
 
 	// called by master
