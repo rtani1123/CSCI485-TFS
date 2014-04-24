@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 5000;
+	final static long HEARTBEAT_DELAY = 60000;
 	Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -121,7 +121,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient() {
 		try {
-			client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
+			client = (ClientInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu/CLIENT");
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {
@@ -308,7 +308,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				int count = 0;
 				while (count < numReplicas){					
 					Random rand = new Random();
-					int randCS = rand.nextInt() % chunkservers.size() + 1;
+					int randCS = Math.abs((rand.nextInt() % chunkservers.size()));
+					randCS = randCS+1;
 					if(!CSLocations.contains(randCS)){
 						CSLocations.add(randCS);
 						count++;
