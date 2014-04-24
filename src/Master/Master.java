@@ -360,6 +360,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				catch(RemoteException re){
 					System.out.println("Connection to client failed.");
 				}
+				return;
 			}
 			else if (numReplicas == availableCS.size()){
 				for(Integer i : availableCS){

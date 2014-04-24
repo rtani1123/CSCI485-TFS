@@ -12,19 +12,21 @@ import Client.Client;
 public class CommandLinePart2 {
 	
 	public static void main(String[] args) throws RemoteException {
-		
+
+		Client myClient = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("Please choose a unique ID for the client.");
-		System.out.print(" > ");
-		String clientIDin = null;
-		try {
-			clientIDin = br.readLine();
-		} catch (IOException e) {
-			e.printStackTrace(System.out);
-			System.exit(1);
-		}
-		Client myClient = new Client(Integer.parseInt(clientIDin));
 		System.out.println(" Welcome to our Tiny File System!");
+		System.out.println(" Please enter Client ID (Start at '11'): ");
+		try {
+			Integer id = Integer.parseInt(br.readLine());
+			myClient = new Client(id);
+		} catch (NumberFormatException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		System.out.println(" If you don't know what to do, ask us! Simply type help ");
 		for (;;) {
 			// get user input
