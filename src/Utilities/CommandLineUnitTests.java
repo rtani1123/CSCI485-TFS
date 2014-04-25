@@ -19,7 +19,6 @@ import Part2.UnitTest7;
 public class CommandLineUnitTests {
 
 	public static void main(String[] args) throws RemoteException {
-
 		Client myClient = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		System.out.println(" Welcome to our Tiny File System!");
