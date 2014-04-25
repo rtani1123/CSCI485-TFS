@@ -48,7 +48,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		
 	}
 
-	//Master calls Chunkserver methods -> CHUNK + csIndex
+	/**
+	 * URL Protocol to establish RMI Server on ChunkserverSide.
+	 */
 	public void setupChunkserverHost() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -70,7 +72,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		} catch (Exception e) {		}
 	}
 
-	//Chunkserver calls Master Methods -> MASTER
+	/**
+	 * Connecting ChunkServer(csIndex) to Master, RMI.
+	 */
 	public void connectToMaster() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -92,7 +96,10 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 	}
 
-	//Chunkserver calls Client Methods -> CLIENT
+	/**
+	 * Connecting ChunkServer(csIndex) to Client(index)
+	 * @param index
+	 */
 	public void connectToClient(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -106,6 +113,10 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 	}
 
+	/**
+	 * Connects ChunkServer(csIndex) to Client(index)
+	 * @param index
+	 */
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -127,11 +138,13 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Chunkserver failure to host");
 		}
 	}
-	@Override
-	public Map<String, Long> refreshMetadata() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
+//	/
+//	@Override
+//	public Map<String, Long> refreshMetadata() throws RemoteException {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 	/*
 	 * (non-Javadoc)
@@ -139,13 +152,24 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	 * @see Interfaces.ChunkserverInterface#primaryLease(java.lang.String,
 	 * java.util.ArrayList)
 	 */
+	/**
+	 * Sets CSMetadata primary lease times as well as appropriate secondary ChunkServers
+	 * @param chunkhandle
+	 * @param CServers
+	 * 
+	 */
 	@Override
 	public void primaryLease(String chunkhandle, ArrayList<Integer> CServers)
 			throws RemoteException {
 		CSMetadata.get(chunkhandle).setPrimaryLeaseTime(System.currentTimeMillis());
 		CSMetadata.get(chunkhandle).setSecondaries(CServers);
 	}
-
+	
+	/**
+	 * Creates a file locally to ChunkServer.
+	 * Chunkserver then stores that data in a local metadata file.
+	 * @param chunkhandle
+	 */
 	@Override
 	public boolean createFile(String chunkhandle) throws RemoteException {
 		File f = new File(chunkhandle);
@@ -165,6 +189,11 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return true;
 	}
 
+	/**
+	 * Creates a directory locally to ChunkServer.
+	 * Chunkserver then stores that data in a local metadata file.
+	 * @param chunkhandle
+	 */
 	@Override
 	public boolean createDirectory(String chunkhandle) throws RemoteException {
 		File f = new File(chunkhandle);
@@ -182,6 +211,11 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return true;
 	}
 
+	/**
+	 * Deletes a file locally from ChunkServer.
+	 * Chunkserver then stores that information in a local metadata file.
+	 * @param chunkhandle
+	 */
 	@Override
 	public boolean deleteFile(String chunkhandle) throws RemoteException {
 		String parsedPath = chunkhandle;
@@ -219,6 +253,11 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return true;
 	}
 
+	/**
+	 * Deletes a directory locally from ChunkServer.
+	 * Chunkserver then stores that information in a local metadata file.
+	 * @param chunkhandle
+	 */
 	@Override
 	public boolean deleteDirectory(String chunkhandle) throws RemoteException {
 		if (deleteFile(chunkhandle)) {
@@ -229,6 +268,11 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 		return true;
 	}
+	
+	/**
+	 * Read file completely
+	 * @param chunkhandle
+	 */
 	@Override
 	public byte [] readCompletely(String chunkhandle) throws RemoteException{
 		File f = new File(chunkhandle);	
@@ -245,6 +289,13 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 		return b;
 	}
+	
+	/**
+	 * Read file at an offset
+	 * @param chunkhandle
+	 * @param offset
+	 * @param length
+	 */
 	@Override
 	public byte[] read(String chunkhandle, int offset, int length) throws RemoteException {
 		File f = new File(chunkhandle); 
@@ -270,6 +321,16 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return b;
 	}
 
+	/**
+	 * Appending to file at location chunkhandle.
+	 * Data: payload
+	 * Length and offset
+	 * @param chunkhandle
+	 * @param payload
+	 * @param length
+	 * @param offset
+	 * @param withSize
+	 */
 	@Override
 	public boolean append(String chunkhandle, byte[] payload, int length,
 			int offset, boolean withSize) throws RemoteException {
@@ -290,7 +351,16 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		ChunkserverMetadata.storeTree(CSMetadata);
 		return true;
 	}
-
+	
+	/**
+	 * Atomic append to file at location chunkhandle.
+	 * Data: payload
+	 * Length, but no offset specified. (determined by TFS)
+	 * @param chunkhandle
+	 * @param payload
+	 * @param length
+	 * @param withSize
+	 */
 	@Override
 	public boolean atomicAppend(String chunkhandle, byte[] payload, int length,
 			boolean withSize) throws RemoteException {
@@ -337,6 +407,14 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 	}
 
+	/**
+	 * Called from the primary chunkserver.
+	 * Pushing data to secondary.
+	 * @param chunkhandle
+	 * @param payload
+	 * @param length
+	 * @param withSize
+	 */
 	@Override
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload,
 			int length, boolean withSize, long offset) throws RemoteException {
@@ -363,6 +441,11 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		return false;
 	}
 
+	/**
+	 * Chunkserver recovery append.
+	 * @param chunkhandle
+	 * @param sourceID
+	 */
 	public void fetchAndRewrite(String chunkhandle, int sourceID) throws RemoteException{
 		try{
 			byte [] payload = chunkservers.get(sourceID).readCompletely(chunkhandle);
@@ -376,7 +459,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 	}
 
-	// called by master
+	/**
+	 * Heartbeat message.
+	 */
 	public void heartbeat() throws RemoteException{
 		myMaster.heartbeat(csIndex);
 	}
