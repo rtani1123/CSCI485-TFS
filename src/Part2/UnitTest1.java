@@ -32,7 +32,9 @@ import Client.Client;
  */
 public class UnitTest1 {
 	public static void main(String[] args) throws RemoteException {
+
 		unitTest1Func(15, 5, null);
+
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
 		for(int i = 1; i <= numFolders; i++){

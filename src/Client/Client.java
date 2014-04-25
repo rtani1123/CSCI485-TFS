@@ -111,7 +111,18 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			System.out.println("Failure to connect to Master");
 		}
 	}
-
+	public void setChunkservers(HashMap<Integer, ChunkserverInterface> chunkservers) {
+		this.chunkservers = chunkservers;
+		for(Map.Entry<Integer, ChunkserverInterface> entry : this.chunkservers.entrySet()) {
+			connectToChunkserver(clientID);
+			try {
+				entry.getValue().connectToClient(clientID);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
