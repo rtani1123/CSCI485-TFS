@@ -520,7 +520,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 									System.out.println("Failed atomic append");
 								}
 							} catch (RemoteException e) {
-								e.printStackTrace();
+//								e.printStackTrace();
 								System.out.println("Failed to connect to chunkserver for atomic append");
 							}
 						}
