@@ -31,7 +31,7 @@ public class Tree implements Serializable {
 //		Node y = myTree.root.find(paths, 1);
 //		System.out.println(y==null);
 	}
-	public ArrayList<String> pathTokenizer(String path){
+	public static ArrayList<String> pathTokenizer(String path){
 		ArrayList<String> result = new ArrayList<String>();
 		while (path.contains("/")){
 			result.add(path.substring(0,path.indexOf("/")));

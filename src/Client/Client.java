@@ -398,8 +398,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 								System.out.println("Failed append");
 							}
 						} catch (RemoteException e) {
-							e.printStackTrace();
-							System.out.println("Failed to connect to chunkserver for append");
+							System.out.println("Failed to connect to chunkserver " +cs +" for append ");
 						}
 					}
 				} else if ((r.getRequestType()).equals(ATOMIC_APPEND)) {

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Node implements Serializable{
-	Map<String, Node> children;
+	public Map<String, Node> children;
 	Node parent = null;
 	public String name="";
 	int primaryChunkserverID = -1;

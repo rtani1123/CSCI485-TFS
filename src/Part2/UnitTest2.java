@@ -3,11 +3,14 @@ package Part2;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
+import java.util.Set;
 
 import Client.Client;
 import Master.Master;
-import Utilities.Storage;
+import Utilities.Node;
+import Utilities.Tree;
 
 /*
  * Test2: Create N files in a directory and its subdirectories until the leaf subdirectories.  Each file in a directory is named File1, File2, ..., FileN
@@ -21,45 +24,19 @@ import Utilities.Storage;
 public class UnitTest2 {
 
 	public static void unitTest3Func(String startingPath, int numFiles, Client myClient) throws RemoteException{
-	
-		ArrayList<String> directories = new ArrayList<String>();
-		ArrayList<String> contents = new ArrayList<String>();
-		directories.add(startingPath);
-		File sp = new File(startingPath);
-		if(!sp.isDirectory())
-		{
-			System.err.println("Error. Not a valid directory.");
-			return;
+		createNFiles(startingPath, numFiles, myClient);
+		Node node = Master.directory.root.find(Tree.pathTokenizer(startingPath), 1);
+		Set<String> allKeys = node.children.keySet();
+		Iterator<String> it = allKeys.iterator();
+		while (it.hasNext()){
+			createNFiles(node.children.get(it.next()).getPath(), numFiles, myClient);
 		}
-		for (int i = 0; i < sp.list().length; i++)
-		{
-			contents.add(startingPath + "/" + sp.list()[i]);
+	}
+	public static void createNFiles(String path, int n, Client myClient) throws RemoteException{
+		Random randomGenerator = new Random();
+		for (int i = 0; i < n ; i ++){
+			int numReplicas = randomGenerator.nextInt(3);
+			myClient.createFile(path, "File"+n, numReplicas);
 		}
-		while(contents.size() != 0)
-		{
-			File f = new File(contents.get(0));
-			if (f.isDirectory())
-			{
-				for (int i = 0; i < f.list().length; i++)
-				{
-					contents.add(contents.get(0) + "/" + f.list()[i]);
-				}
-				directories.add(contents.get(0));
-			}
-			contents.remove(0);
-		}
-		 Random randomGenerator = new Random();
-		//iterate through the directories and create the files
-		for (String s : directories)
-		{
-			for(int i = 0; i < numFiles; i++)
-			{
-				int numReplicas = randomGenerator.nextInt(3);
-				myClient.createFile(s, "File" + (i+1) + ".txt", numReplicas+1);
-			}
-		}
-		System.out.println("Existing tree structure: ");
-		Master.directory.getAllPath(Master.directory.root);
-		
 	}
 }
