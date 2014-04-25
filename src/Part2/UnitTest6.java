@@ -23,7 +23,6 @@ import Utilities.Storage;
 public class UnitTest6 {
 
 	public static void unitTest6Func(String src, String dest, Client myClient) throws RemoteException{
-	
 		//read file
 		File inputFile = new File(src);
 		byte[] b = new byte[(int)inputFile.length()];
@@ -44,8 +43,13 @@ public class UnitTest6 {
 		int lastSlash = dest.lastIndexOf("/", dest.length());
 		String destinationFileName = dest.substring(lastSlash+1, dest.length());
 		String destinationPath = dest.substring(0, lastSlash);
-		myClient.createFile(destinationPath, destinationFileName, 3);
-		//append to file with size
-		myClient.atomicAppend(dest, b.length, b, true);
+		try{
+			myClient.createFile(destinationPath, destinationFileName, 3);
+			//append to file with size
+			myClient.atomicAppend(dest, b.length, b, true);
+		}
+		catch(RemoteException re){
+			System.out.println("Error in connection between client and application - Unit 6");
+		}
 	}
 }

@@ -31,7 +31,9 @@ import Client.Client;
 	1/2/7
  */
 public class UnitTest1 {
+	public static ArrayList<String> unit1Directories = new ArrayList<String>();
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
+		unit1Directories.clear();
 		if(fanOut == 0){
 			for(int i = 1; i <= numFolders; i++){
 				String pathFlat = "C:/" + i;
@@ -42,6 +44,7 @@ public class UnitTest1 {
 					System.out.println("Error in application connection to client.");
 				}
 				System.out.println(pathFlat);
+				unit1Directories.add(pathFlat);
 			}
 		}
 		else{
@@ -63,6 +66,7 @@ public class UnitTest1 {
 					System.out.println("Error in application connection to client.");
 				}
 				System.out.println(path.toString());
+				unit1Directories.add(path.toString());
 			}
 		}
 	}

@@ -24,7 +24,7 @@ import Utilities.Storage;
 public class UnitTest4 {
 	public static void unitTest4Func(String src, String dest, int numReplicas, Client myClient) throws RemoteException{
 		if (numReplicas<1){
-			System.out.println("Please enter a number greater thatn 0 as the number of replicas");
+			System.out.println("Please enter a number greater than 0 as the number of replicas");
 			return;
 		}
 		//create the file

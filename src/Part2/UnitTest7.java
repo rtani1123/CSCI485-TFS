@@ -45,9 +45,7 @@ public class UnitTest7 {
 		int offset = 4;
 		int count = 1;
 		while (offset < f.length()) {
-			System.out
-					.println("Size of file " + count + " is " + sz + " bytes");
-			// byte[] payload = tfs.read(fullPath, offset, sz);
+			System.out.println("Size of file " + count + " is " + sz + " bytes");
 			offset += sz;
 			// read the next file size in
 			if (offset < f.length()) {
@@ -69,6 +67,5 @@ public class UnitTest7 {
 			}
 		}
 		System.out.println(src + " contains " + count + " separate files");
-
 	}
 }
