@@ -196,7 +196,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			master.createDirectory(path, clientID);
 		}
 		catch(RemoteException e){
-			System.out.println("Could not connect to master to create file.");
+			System.out.println("Could not connect to master to create directory.");
 		}
 	}
 
