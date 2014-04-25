@@ -33,24 +33,31 @@ import Client.Client;
 public class UnitTest1 {
 	public static void main(String[] args) throws RemoteException {
 
-		unitTest1Func(15, 5, null);
+		unitTest1Func(4, 0, null);
 		//test1(7, 0);
 
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
-		
-		for(int i = 1; i <= numFolders; i++){
-			int k = i;
-			StringBuffer path = new StringBuffer(String.valueOf(k));
-			k = (int)Math.floor((double)k/fanOut);
-			while (k > 0)
-			{
-				String addMe = k + "/";
-				path.insert(0, addMe);
-				k = (int)Math.floor((double)k/fanOut);
+		if(fanOut == 0){
+			for(int i = 1; i <= numFolders; i++){
+				String pathFlat = "C:/" + i;
+				System.out.println(pathFlat);
 			}
-			path.insert(0, "C:/");
-			System.out.println(path.toString());
+		}
+		else{
+			for(int i = 1; i <= numFolders; i++){
+				int k = i;
+				StringBuffer path = new StringBuffer(String.valueOf(k));
+				k = (int)Math.floor((double)(k-1)/fanOut);
+				while (k > 0)
+				{
+					String addMe = k + "/";
+					path.insert(0, addMe);
+					k = (int)Math.floor((double)(k-1)/fanOut);
+				}
+				path.insert(0, "C:/");
+				System.out.println(path.toString());
+			}
 		}
 		System.out.println("Existing tree structure: ");
 	}
@@ -65,7 +72,7 @@ public class UnitTest1 {
 			int size = current.size();
 			for(int i = 0; i < fanOut; i++) {
 				for(String path : current) {
-					
+
 					i++;
 				}
 				String newPath = current.get(i) + "/" + count;
@@ -76,13 +83,13 @@ public class UnitTest1 {
 				System.out.println(newPath);
 				current.add(newPath);
 				count++;
-				*/
+				 */
 			}
 			for(int i = 0; i < size; i++) {
 				current.remove(i);
 			}
-			
+
 		}
 	}
-	
+
 }
