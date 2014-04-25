@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.rmi.RemoteException;
 
 import Client.Client;
 import Part1.Part1FS;
@@ -21,29 +22,11 @@ import Utilities.Storage;
  */
 public class UnitTest6 {
 
-	public static void unitTest6Func(String src, String dest, Client myClient){
-		
-	}
-	public static void main(String args[]){
-		if (args.length != 2)
-		{
-			System.err.println("Error. Invalid number of arguments for Test6.");
-			return;
-		}
-		Part1FS tfs = new Part1FS(Storage.getTree());
-		String startingFullPath = args[0];
-		String destinationFullPath = args[1];
-		int lastSlash = destinationFullPath.lastIndexOf("/", destinationFullPath.length());
-		String destinationFileName = destinationFullPath.substring(lastSlash+1, destinationFullPath.length());
-		String destinationPath = destinationFullPath.substring(0, lastSlash);
-		if(tfs.directory.root.find(tfs.directory.pathTokenizer(destinationFullPath), 1) == null)
-		{
-			//if the file does not exist on the tfs
-			tfs.createFile(destinationPath, destinationFileName, 1);		
-		}
-		File inputFile = new File(startingFullPath);
+	public static void unitTest6Func(String src, String dest, Client myClient) throws RemoteException{
+	
+		//read file
+		File inputFile = new File(src);
 		byte[] b = new byte[(int)inputFile.length()];
-		//read in the input file
 		try{
 			FileInputStream fis = new FileInputStream(inputFile);
 			fis.read(b);
@@ -57,10 +40,12 @@ public class UnitTest6 {
 			System.err.println("Error reading the file.");
 			ioe.printStackTrace();			
 		}
-		//write to the output file
-		tfs.atomicAppendWithSize(destinationFullPath, b.length, b);
-		System.out.println("Successful append of " + b.length + " bytes of payload to " + destinationFullPath);
-		Storage.storeTree(tfs.directory);
-		
+		//create file
+		int lastSlash = dest.lastIndexOf("/", dest.length());
+		String destinationFileName = dest.substring(lastSlash+1, dest.length());
+		String destinationPath = dest.substring(0, lastSlash);
+		myClient.createFile(destinationPath, destinationFileName, 3);
+		//append to file with size
+		myClient.atomicAppend(dest, b.length, b, true);
 	}
 }

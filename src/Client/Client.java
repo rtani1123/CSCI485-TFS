@@ -50,6 +50,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public static final String APPEND = "append";
 	public static final String ATOMIC_APPEND = "atomicAppend";
 	public static final String READ = "read";
+	public static final String READ_COMPLETELY = "readCompletely";
 	//	public static Client myClient=null;
 	public static void main(String[] args) throws RemoteException {
 
@@ -370,7 +371,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				master.read(chunkhandle, clientID, count);
 				countLock.release();
 			} catch (RemoteException e) {
-				System.out.println("Could not connect to master to atomic append.");
+				System.out.println("Could not connect to master to read.");
 				// Remove request if could not connect to master
 				int ind = -1;
 				for (int x = 0; x < pendingRequests.size(); x++) {
@@ -386,6 +387,50 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	public void readCompletely(String chunkhandle, String destination) throws RemoteException {
+		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
+		if (index > -1) { // if the index is found, do not contact master.
+			try {
+				countLock.acquire();
+				count++;
+				// this constructor adds the request knowing that it already has
+				// the server locations
+				ClientMetaDataItem i = (ClientMetaDataItem) clientMetaDataArray.get(index);
+				Request r = new Request(READ_COMPLETELY, chunkhandle, count,i.chunkservers);
+				r.setDestination(destination);
+				pendingRequests.add(r);
+				countLock.release();
+				contactChunks(r.getReqID());
+			} catch (InterruptedException e) {
+				System.out.println("Interrupted Exception in read completely method");
+			}
+		} else {
+			int id = -1;
+			try {
+				countLock.acquire();
+				id = ++count;
+				Request temp = new Request(READ_COMPLETELY, chunkhandle, count);
+				temp.setDestination(destination);
+				pendingRequests.add(temp);
+				master.read(chunkhandle, clientID, count);
+				countLock.release();
+			} catch (RemoteException e) {
+				System.out.println("Could not connect to master to read completely.");
+				// Remove request if could not connect to master
+				int ind = -1;
+				for (int x = 0; x < pendingRequests.size(); x++) {
+					if (pendingRequests.get(x).getReqID() == id) {
+						ind = x;
+						break;
+					}
+				}
+				pendingRequests.remove(ind);
+			} catch (InterruptedException e) {
+				System.out.println("Interrupted Exception in read completely method");
+			}
+		}
+	}
+	
 	/**
 	 * Client status request called from Chunkserver and Master.
 	 * 
@@ -558,14 +603,44 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						pendingRequests.remove(r);
 
 					}
-				} else {
+				} else if ((r.getRequestType()).equals(READ_COMPLETELY)) {
+					//for (int cs : r.getChunkservers()) {
+					Random rand = new Random();
+					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
+					System.out.println("Reading completely from chunkserver " + r.getChunkservers().get(randIndex));
+					try {
+						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).readCompletely(r.getFullPath());
+						System.out.println(r.reqID);
+						System.out.println(r.fullPath);
+						System.out.println(r.destination);
+						File localDest = new File(r.destination);
+						if (localDest.exists()){
+							System.err.println("Local file destination already exist for read completely.");
+						}
+						else{
+							localDest.createNewFile();
+							FileOutputStream fos = new FileOutputStream(localDest);
+							fos.write(result);
+							fos.flush();
+							fos.close();
+						}
+						pendingRequests.remove(r);
+					} catch (RemoteException e) {
+						System.out.println("Failed to connect to chunkserver for read completely");
+					}
+					catch(FileNotFoundException fnfe){
+						System.err.println("Local destination file for read completely unable to be created.");
+					}
+					catch(IOException ioe){
+						System.err.println("Error creating or writing to local file for read completely ouput.");
+						pendingRequests.remove(r);
+					}
+				}
+				else {
 					System.out.println("Error. Request type not found.");
-
-
 				}
 				pendingRequests.remove(r);
 			}			
 		}
 	}
-
 }

@@ -50,6 +50,7 @@ public class CommandLinePart2 {
 				System.out.println(" Atomic chunkHandle source withSize ");
 				System.out
 						.println(" Read chunkHandle offset length destination ");
+				System.out.println(" Read chunkHandle destination");
 			} else if (input.contains("CreateDirectory")) {
 				String[] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length != 1) {
@@ -140,7 +141,15 @@ public class CommandLinePart2 {
 							Integer.parseInt(actuallArgs[2]), actuallArgs[3]);
 				}
 
-			} else if (input.contains("Unit1")) {
+			} else if(input.contains("Completely")) {
+				String[] actualArgs = getArgs(input);
+				if(actualArgs == null || actualArgs.length != 2) {
+					System.out.println(" Please enter appropriate number of arguments. ");
+				} else {
+					myClient.readCompletely(actualArgs[0], actualArgs[1]);
+				}
+			}
+			else if (input.contains("Unit1")) {
 				String[] actualArgs = getArgs(input);
 				if (actualArgs == null || actualArgs.length != 2) {
 					System.out

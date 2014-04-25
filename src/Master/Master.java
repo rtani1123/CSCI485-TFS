@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 20000;
+	final static long HEARTBEAT_DELAY = 5000;
 	public static Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -174,7 +174,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println("Connection to Client " + index + " Success");
 			HashMap<Integer, ChunkserverInterface> csTemp = new HashMap<Integer, ChunkserverInterface>();
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				csTemp.put(entry.getKey(), entry.getValue().getCS());
+				if(entry.getValue().getStatus() == CSStatus.OK)
+					csTemp.put(entry.getKey(), entry.getValue().getCS());
 			}
 			client.setChunkservers(csTemp);
 			client.connectToMaster();
@@ -783,7 +784,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				try {
 					chunkservers.get(CSID).getCS().connectToClient(entry.getKey());
 					entry.getValue().connectToChunkserver(CSID);
-					System.out.println("Chunkserver " + entry.getKey() + " connected to Client " + entry.getKey());
+					System.out.println("Chunkserver " + CSID + " connected to Client " + entry.getKey());
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1028,7 +1029,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			working = false;
 		}
 		while(!working){
-			chosenIndex = randInt.nextInt() % CSList.size();
+			chosenIndex = Math.abs(randInt.nextInt() % CSList.size());
 			chosenID = CSList.get(chosenIndex);
 			attempts++;
 			if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
