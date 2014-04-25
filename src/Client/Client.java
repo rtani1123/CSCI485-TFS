@@ -289,7 +289,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			try {
 				countLock.acquire();
 				id = ++count;
-				pendingRequests.add(new Request(READ, chunkhandle, count));
+				Request temp = new Request(READ, chunkhandle, count);
+				temp.setDestination(destination);
+				temp.setLength(length);
+				temp.setOffset(offset);
+				pendingRequests.add(temp);
 				master.read(chunkhandle, clientID, count);
 				countLock.release();
 			} catch (RemoteException e) {
@@ -423,6 +427,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					System.out.println("Reading from chunkserver " + randCS);
 					try {
 						byte[] result = chunkservers.get(randCS).read(r.getFullPath(), r.getOffset(),r.getLength());
+						System.out.println(r.reqID);
+						System.out.println(r.fullPath);
+						System.out.println(r.destination);
 						File localDest = new File(r.destination);
 						if (localDest.exists()){
 							System.err.println("Local file destination already exist for read.");
