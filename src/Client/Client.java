@@ -113,8 +113,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		this.chunkservers = chunkservers;
 		for(Map.Entry<Integer, ChunkserverInterface> entry : this.chunkservers.entrySet()) {
 			connectToChunkserver(clientID);
+			System.out.println("Connection to " + entry.getKey() + " successful.");
 			try {
 				entry.getValue().connectToClient(clientID);
+				System.out.println("Chunkserver " + entry.getKey() + " connected to Client " + clientID);
 			} catch (RemoteException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

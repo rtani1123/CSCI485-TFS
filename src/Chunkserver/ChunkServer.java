@@ -99,7 +99,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 			ClientInterface myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:" + index + "/CLIENT" + index);
 			clients.put(index, myClient);
-			System.out.println("Connection to Client Success");
+			System.out.println("Connection to Client " + index + " Success");
 
 		} catch(Exception re) {
 			System.out.println("Client failure to host");
