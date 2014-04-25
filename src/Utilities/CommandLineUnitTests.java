@@ -8,6 +8,13 @@ import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 
 import Client.Client;
+import Part2.UnitTest1;
+import Part2.UnitTest2;
+import Part2.UnitTest3;
+import Part2.UnitTest4;
+import Part2.UnitTest5;
+import Part2.UnitTest6;
+import Part2.UnitTest7;
 
 public class CommandLineUnitTests {
 
@@ -41,146 +48,73 @@ public class CommandLineUnitTests {
 				System.exit(1);
 			}
 			if (input.equals("help")) {
-				System.out.println(" UnitTest1 chunkHandle ");
-				System.out.println(" UnitTest2 chunkHandle ");
-				System.out.println(" UnitTest3 chunkHandle ");
-				System.out.println(" UnitTest4 path filename numOfReplicas ");
-				System.out.println(" UnitTest5 chunkHandle offset source withSize ");
-				System.out.println(" UnitTest6 chunkHandle source withSize ");
-				System.out.println(" UnitTest7 chunkHandle offset length destination ");
-				System.out.println(" UnitTest8 chunkHandle destination");
-			} else if (input.contains("CreateDirectory")) {
+				System.out.println(" UnitTest1 numFolders fanOut ");
+				System.out.println(" UnitTest2 startingPath numFiles ");
+				System.out.println(" UnitTest3 path ");
+				System.out.println(" UnitTest4 src dest numOfReplicas ");
+				System.out.println(" UnitTest5 src dest ");
+				System.out.println(" UnitTest6 src dest ");
+				System.out.println(" UnitTest7 src dest ");
+				System.out.println(" UnitTest8 ");
+			} else if (input.contains("UnitTest1")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 1) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
-				} else
-					myClient.createDirectory(actuallArgs[0]);
-			} else if (input.contains("DeleteFile")) {
+				if (actuallArgs == null || actuallArgs.length != 2)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest1.unitTest1Func(Integer.parseInt(actuallArgs[0]),
+							Integer.parseInt(actuallArgs[1]), myClient);
+			} else if (input.contains("UnitTest2")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 1) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
+				if (actuallArgs == null || actuallArgs.length != 2)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest2.unitTest2Func(actuallArgs[0],
+							Integer.parseInt(actuallArgs[1]), myClient);
 
-				} else
-					myClient.deleteFileMaster(actuallArgs[0]);
-
-			} else if (input.contains("DeleteDirectory")) {
-				System.out.println("delete directory called");
+			} else if (input.contains("UnitTest3")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 1) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
+				if (actuallArgs == null || actuallArgs.length != 1)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest3.unitTest3Func(actuallArgs[0], myClient);
 
-				} else
-					myClient.deleteDirectory(actuallArgs[0]);
-
-			} else if (input.contains("CreateFile")) {
+			} else if (input.contains("UnitTest4")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 3) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
-
-				} else
-					myClient.createFile(actuallArgs[0], actuallArgs[1],
-							Integer.parseInt(actuallArgs[2]));
-			} else if (input.contains("Append")) {
+				if (actuallArgs == null || actuallArgs.length != 3)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest4.unitTest4Func(actuallArgs[0], actuallArgs[1],
+							Integer.parseInt(actuallArgs[2]), myClient);
+			} else if (input.contains("UnitTest5")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 4) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
-
-				} else {
-					File inputFile = new File(actuallArgs[2]);
-					byte[] b = new byte[(int) inputFile.length()];
-					// read in the input file
-					try {
-						FileInputStream fis = new FileInputStream(inputFile);
-						fis.read(b);
-						fis.close();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					myClient.append(actuallArgs[0],
-							Integer.parseInt(actuallArgs[1]), b.length, b,
-							Boolean.parseBoolean(actuallArgs[3]));
-				}
-
-			} else if (input.contains("Atomic")) {
+				if (actuallArgs == null || actuallArgs.length != 2)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest5.unitTest5Func(actuallArgs[0], actuallArgs[1],
+							myClient);
+			} else if (input.contains("UnitTest6")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 3) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
-
-				} else {
-					File inputFile = new File(actuallArgs[1]);
-					byte[] b = new byte[(int) inputFile.length()];
-					// read in the input file
-					try {
-						FileInputStream fis = new FileInputStream(inputFile);
-						fis.read(b);
-						fis.close();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					myClient.atomicAppend(actuallArgs[0], b.length, b,
-							Boolean.parseBoolean(actuallArgs[2]));
-				}
-
-			} else if (input.contains("Read")) {
+				if (actuallArgs == null || actuallArgs.length != 2)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest6.unitTest6Func(actuallArgs[0], actuallArgs[1],
+							myClient);
+			} else if (input.contains("UnitTest7")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 4) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
-				} else {
-					System.out.println(actuallArgs[3]);
-					myClient.read(actuallArgs[0],
-							Integer.parseInt(actuallArgs[1]),
-							Integer.parseInt(actuallArgs[2]), actuallArgs[3]);
-				}
-
-			} else if(input.contains("Completely")) {
-				String[] actualArgs = getArgs(input);
-				if(actualArgs == null || actualArgs.length != 2) {
-					System.out.println(" Please enter appropriate number of arguments. ");
-				} else {
-					myClient.readCompletely(actualArgs[0], actualArgs[1]);
-				}
+				if (actuallArgs == null || actuallArgs.length != 2)
+					System.out.println("Wrong number of arguments");
+				else
+					UnitTest7.unitTest7Func(actuallArgs[0], actuallArgs[1],
+							myClient);
+			} else if (input.contains("UnitTest8")) {
+				// String[] actuallArgs = getArgs(input);
+				// if (actuallArgs == null || actuallArgs.length != 2)
+				// System.out.println("Wrong number of arguments");
+				// else
+				// UnitTest8.unitTest8Func(actuallArgs[0], actuallArgs[1],
+				// myClient);
 			}
-			else if (input.contains("Unit1")) {
-				String[] actualArgs = getArgs(input);
-				if (actualArgs == null || actualArgs.length != 2) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
-				} else {
-					int count = 2;
-					System.out.println("C:/1");
-					while (count < Integer.parseInt(actualArgs[0])) {
-
-					}
-				}
-			} else if (input.contains("Unit2")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit3")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit4")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit5")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit6")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit7")) {
-				String[] actualArgs = getArgs(input);
-
-			} else
-				System.out.println("Not a command");
 		}
-
 	}
 
 	public static String[] getArgs(String in) {
