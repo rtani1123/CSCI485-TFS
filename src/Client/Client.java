@@ -626,13 +626,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						}
 						pendingRequests.remove(r);
 					} catch (RemoteException e) {
-						System.out.println("Failed to connect to chunkserver for read");
+						System.out.println("Failed to connect to chunkserver for read completely");
 					}
 					catch(FileNotFoundException fnfe){
-						System.err.println("Local destination file for read unable to be created.");
+						System.err.println("Local destination file for read completely unable to be created.");
 					}
 					catch(IOException ioe){
-						System.err.println("Error creating or writing to local file for read ouput.");
+						System.err.println("Error creating or writing to local file for read completely ouput.");
 						pendingRequests.remove(r);
 					}
 				}
