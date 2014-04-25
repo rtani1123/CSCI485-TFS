@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class Storage {
+	static Integer lock = -1;
 	static public Tree getTree() {
 		String filename = "tree.txt";
 		Tree myTree = null;
@@ -76,19 +77,23 @@ public class Storage {
 		return myLog;
 	}
 
-	static public void storeLog(OperationsLog inLog) {
+	synchronized static public void storeLog(OperationsLog inLog) {
 		String filename = "log.txt";
 		FileOutputStream fos = null;
 		ObjectOutputStream out = null;
-		try {
-			fos = new FileOutputStream(filename);
-			out = new ObjectOutputStream(fos);
-			out.writeObject(inLog);
-			out.close();
-			System.out.println("Operation log Persisted");
-		} catch (IOException ex) {
-			System.out.println("Error in storing operation log");
-			ex.printStackTrace();
+		synchronized (lock){
+			try {
+				fos = new FileOutputStream(filename);
+				out = new ObjectOutputStream(fos);
+				
+					out.writeObject(inLog);
+				
+				out.close();
+				System.out.println("Operation log Persisted");
+			} catch (IOException ex) {
+				System.out.println("Error in storing operation log");
+				ex.printStackTrace();
+			}
 		}
 	}
 }

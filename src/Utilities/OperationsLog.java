@@ -19,7 +19,7 @@ import java.util.List;
  * String: ($startTimestamp$fileOrDirectory$type$stage$)
  */
 public class OperationsLog implements Serializable{
-
+	static Integer lock = -1;
 	List<StringBuffer> log;
 	FileOutputStream fout;
 	ObjectOutputStream cos;
@@ -35,7 +35,7 @@ public class OperationsLog implements Serializable{
 	 * @param type
 	 * @param chunkhandle
 	 */
-	public void makeLogRecord(long startTime, String chunkhandle, String type, int stage){
+	synchronized public void makeLogRecord(long startTime, String chunkhandle, String type, int stage){
 		StringBuffer newRecord = new StringBuffer("$");
 		newRecord.append(startTime);
 		newRecord.append("$");
@@ -45,7 +45,9 @@ public class OperationsLog implements Serializable{
 		newRecord.append("$");
 		newRecord.append(stage);
 		newRecord.append("$");
-		log.add(newRecord);
+		synchronized(lock) {
+			log.add(newRecord);
+		}
 	}
 	
 	public String getReference(int index){
