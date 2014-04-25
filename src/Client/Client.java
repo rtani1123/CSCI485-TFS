@@ -70,7 +70,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		master.connectToClient(clientID);
 	}
 
-	// Master calls Client methods -> MASTERCLIENT
+	/**
+	 * URL Protocol to establish RMI Server on Client-side.
+	 */
 	public void setupClientHost(Integer clientID) throws RemoteException {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -87,7 +89,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		// now run Master.
 	}
 
-	// Client Calls Master code -> CLIENTMASTER
+	/**
+	 * Connecting Client(clientID) to Master, RMI.
+	 */
 	public void connectToMaster() throws RemoteException {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -111,6 +115,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			System.out.println("Failure to connect to Master");
 		}
 	}
+	
+	/**
+	 * When the client connects, it requests the most current list of chunkservers from the Master.
+	 * The client then automatically attempts to connect to each chunkserver in a reciprocal RMI instance.
+	 * @param chunkservers
+	 */
 	public void setChunkservers(HashMap<Integer, ChunkserverInterface> chunkservers) {
 		this.chunkservers = chunkservers;
 		for(Map.Entry<Integer, ChunkserverInterface> entry : this.chunkservers.entrySet()) {
@@ -125,6 +135,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 		}
 	}
+	
+	/**
+	 * Connection to Chunkserver method.
+	 * @param index
+	 */
 	public void connectToChunkserver(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
@@ -152,17 +167,30 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	}
 
 
-
+	/**
+	 * The application requests a file to be created on numReplicas chunkservers.
+	 * Request passed to Master.
+	 * @param path
+	 * @param fileName
+	 * @param numReplicas
+	 */
 	// called by the application
-	public void createFile(String Path, String fileName, int numReplicas)
+	public void createFile(String path, String fileName, int numReplicas)
 			throws RemoteException {
 		try {
-			master.createFile(Path, fileName, numReplicas, clientID);
+			master.createFile(path, fileName, numReplicas, clientID);
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to create file.");
 		}
 	}
 
+	/**
+	 * The application requests a directory to be created.
+	 * Created on all chunkservers.
+	 * Request passed to Master.
+	 * @param path
+	 */
+	// called by the application
 	public void createDirectory(String path) throws RemoteException {
 		try {
 			master.createDirectory(path, clientID);
@@ -172,6 +200,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * The application requests a file to be deleted from the namespace and all instances of it in chunkservers.
+	 * Request passed to Master.
+	 * @param chunkhandle
+	 */
 	// called by the application
 	public void deleteFileMaster(String chunkhandle) throws RemoteException {
 		try {
@@ -181,6 +214,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * The application requests a directory be deleted from the namespace and all instances of it in chunkservers.
+	 * Request passed to Master.
+	 * @param path
+	 */
 	// called by the application
 	public void deleteDirectory(String path) throws RemoteException {
 		try {
@@ -192,6 +230,19 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * Append request from Application.
+	 * User specifies destination, offset, length of data and byte array which is derived
+	 * from a source file on user's local machine which is converted to bytes.
+	 * 
+	 * Request passed to Master.
+	 * 
+	 * @param chunkhandle
+	 * @param offset
+	 * @param length
+	 * @param data
+	 * @param withSize
+	 */
 	// called by the application
 	public void append(String chunkhandle, int offset, int length, byte[] data,
 			boolean withSize) throws RemoteException { // if no metadata is
@@ -228,6 +279,19 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * Atomic append request from Application.
+	 * User specifies destination, length of data and byte array which is derived
+	 * from a source file on user's local machine which is converted to bytes.
+	 * 
+	 * Request passed to Master.
+	 * 
+	 * @param chunkhandle
+	 * @param length
+	 * @param data
+	 * @param withSize
+	 */
+	
 	// called by the application
 	public void atomicAppend(String chunkhandle, int length, byte[] data, boolean withSize) throws RemoteException {
 		int id = -1;
@@ -257,6 +321,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * Application calls read file.  File is pulled from a chunkserver to the client, written
+	 * to a new file on Client local machine, specified by Application.
+	 * 
+	 * @param chunkhandle
+	 * @param offset
+	 * @param length
+	 * @param destination
+	 * 
+	 */
 	// called by the application
 	public void read(String chunkhandle, int offset, int length, String destination)
 			throws RemoteException {
@@ -313,6 +387,14 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * Client status request called from Chunkserver and Master.
+	 * 
+	 * @param requestType
+	 * @param fullPath
+	 * @param succeeded
+	 * @param ID
+	 */
 	// called by master
 	public void requestStatus(String requestType, String fullPath,
 			boolean succeeded, int ID) throws RemoteException {
@@ -325,6 +407,17 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * Master calls passMetaData which gives Client metadata, parameters of which are noted.
+	 * This method references a request ID which has already been processed by the Client in another method
+	 * (append, atomic append, etc).  Finishes method with a call to contactChunks, passing the request id
+	 * for the request to be serviced.
+	 * 
+	 * @param chunkhandle
+	 * @param pID
+	 * @param chunkserversList
+	 * @param reqID
+	 */
 	// Method called by master giving chunkhandle and chunkservers
 	public void passMetaData(String chunkhandle, int pID, ArrayList<Integer> chunkserversList, int reqID) {
 		try{
@@ -370,6 +463,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * Returns -1 if the passed chunkhandle does not exist in the current client metadata.
+	 * Else, it returns the value of the client metadata index that contains the passed chunkhandle.
+	 * @param chunkhandle
+	 * @return 
+	 */
 
 	// return index of metadata for chunkhandle if already known
 	// otherwise return -1
@@ -381,6 +480,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		return -1;
 	}
 
+	/**
+	 * Sends request to chunkservers for either Append, Atomic Append or Read requests.
+	 * @param rID
+	 */
 	// call this to contact chunkservers
 	private void contactChunks(int rID) {
 		System.out.println("contacting chunks... ");
