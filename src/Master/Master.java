@@ -16,6 +16,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 //import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -321,6 +322,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					tasks.remove(0);
 					return true;
 				}
+			}
+			catch (ConcurrentModificationException cme) {
+				System.out.println("Concurrent Modificiation Exception in Master Scheduler");
+				cme.printStackTrace();
+				return true;
 			}
 			catch (RemoteException e){
 				System.out.println("Remote Exception connecting from Master.");
