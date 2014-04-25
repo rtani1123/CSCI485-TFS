@@ -72,8 +72,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public void setupClientHost(Integer clientID) throws RemoteException {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			Registry registry = LocateRegistry.createRegistry(1099);
-			String loc = "rmi://dblab-43.vlab.usc.edu"+":"+clientID+"/CLIENT" + clientID;
+			Registry registry = LocateRegistry.createRegistry(clientID);
+			String loc = "rmi://dblab-29.vlab.usc.edu"+":"+clientID+"/CLIENT" + clientID;
+			System.out.println("loc is " + loc);
 			Naming.rebind(loc, this);
 			System.out.println("Client Host Setup Success");
 		} catch (MalformedURLException re) {
