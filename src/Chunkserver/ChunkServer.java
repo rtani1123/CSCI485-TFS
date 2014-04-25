@@ -392,6 +392,10 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			ChunkserverMetadata.storeTree(CSMetadata);
 			for (int i = 0; i < CSMetadata.get(chunkhandle).getSecondaries().size(); i++) {
 				try{
+					System.out.println(CSMetadata.get(chunkhandle));
+					System.out.println(CSMetadata.get(chunkhandle).getSecondaries());
+					System.out.println(CSMetadata.get(chunkhandle).getSecondaries().get(i));
+					
 					chunkservers.get(CSMetadata.get(chunkhandle).getSecondaries().get(i)).atomicAppendSecondary(chunkhandle, payload, length, withSize,offset );
 				}
 				catch (RemoteException re){
