@@ -5,7 +5,7 @@ import java.rmi.*;
 public interface MasterInterface extends Remote {
 	//functions called by the client
 	public void setupMasterHost() throws RemoteException;
-	public void connectToClient() throws RemoteException;
+	public void connectToClient(Integer index) throws RemoteException;
 	public void connectToChunkserver(Integer index) throws RemoteException;
 	public void createFile(String path, String fileName, int numReplicas, int clientID) throws RemoteException;
 	public void deleteFileMaster(String chunkhandle, int clientID) throws RemoteException;

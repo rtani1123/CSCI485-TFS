@@ -66,12 +66,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		startThread();		
 		setupMasterHost();
 
-		connectToClient();
-		try {
-			clients.get(11).connectToMaster();
-		} catch(RemoteException re) {
-			System.out.println("Cannot connect to client");
-		}
+//		try {
+//			clients.get(11).connectToMaster();
+//		} catch(RemoteException re) {
+//			System.out.println("Cannot connect to client");
+//		}
 		try {
 			connectToChunkserver(1);
 			chunkservers.get(1).getCS().connectToMaster();
@@ -168,10 +167,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	}
 
 	//Master calls Client methods -> MASTERCLIENT
-	public void connectToClient() {
+	public void connectToClient(Integer index) {
 		try {
-			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
-			clients.put(11, client);
+			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:"+index +"/CLIENT"+index);
+			clients.put(index, client);
 			System.out.println("Connection to Client 11 Success");
 
 		} catch(Exception re) {
