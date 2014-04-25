@@ -31,16 +31,16 @@ import Client.Client;
 	1/2/7
  */
 public class UnitTest1 {
-	public static void main(String[] args) throws RemoteException {
-
-		unitTest1Func(4, 0, null);
-		//test1(7, 0);
-
-	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
 		if(fanOut == 0){
 			for(int i = 1; i <= numFolders; i++){
 				String pathFlat = "C:/" + i;
+				try{
+					myClient.createDirectory(pathFlat);
+				}
+				catch(RemoteException re){
+					System.out.println("Error in application connection to client.");
+				}
 				System.out.println(pathFlat);
 			}
 		}
@@ -56,40 +56,14 @@ public class UnitTest1 {
 					k = (int)Math.floor((double)(k-1)/fanOut);
 				}
 				path.insert(0, "C:/");
+				try{
+					myClient.createDirectory(path.toString());
+				}
+				catch(RemoteException re){
+					System.out.println("Error in application connection to client.");
+				}
 				System.out.println(path.toString());
 			}
 		}
-		System.out.println("Existing tree structure: ");
 	}
-	public static void test1(int numFolders, int fanOut) {
-		ArrayList<String> current = new ArrayList<String>();
-		int count = 0;
-		String base = "C:";
-		System.out.println("C:/1");
-		current.add(new String("C:/1"));
-		while(count < numFolders) {
-			System.out.println("current = " + current);
-			int size = current.size();
-			for(int i = 0; i < fanOut; i++) {
-				for(String path : current) {
-
-					i++;
-				}
-				String newPath = current.get(i) + "/" + count;
-				current.add(newPath);
-				count++;
-				System.out.println(newPath);
-				/*String newPath = current.get(i)+"/" + count;
-				System.out.println(newPath);
-				current.add(newPath);
-				count++;
-				 */
-			}
-			for(int i = 0; i < size; i++) {
-				current.remove(i);
-			}
-
-		}
-	}
-
 }
