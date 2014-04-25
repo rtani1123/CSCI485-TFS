@@ -13,17 +13,17 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import Client.Client;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
 
 public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
-	Map<String, ChunkserverMetadata> CSMetadata = new HashMap<String, ChunkserverMetadata>();
-	Map<Integer, ChunkserverInterface> chunkservers  = new HashMap<Integer, ChunkserverInterface>();
+	Map<String, ChunkserverMetadata> CSMetadata = Collections.synchronizedMap(new HashMap<String, ChunkserverMetadata>());
+	Map<Integer, ChunkserverInterface> chunkservers  = Collections.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
 	MasterInterface myMaster;
 //	ClientInterface myClient;
 	Map<Integer, ClientInterface> clients;
@@ -31,7 +31,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	public static final long LEASETIME = 60000;
 
 	public ChunkServer() throws RemoteException {
-		clients = new HashMap<Integer, ClientInterface>();
+		clients = Collections.synchronizedMap(new HashMap<Integer, ClientInterface>());
 		try {
 			if(ChunkserverMetadata.getMetadata()!=null) {
 				CSMetadata = ChunkserverMetadata.getMetadata();
@@ -40,7 +40,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("No Chunkserver Metadata found for " + csIndex);
 		}
 		
-		chunkservers = new HashMap<Integer, ChunkserverInterface>();
+		chunkservers = Collections.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
 		setupChunkserverHost();
 
 		connectToMaster();
@@ -87,8 +87,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			 * 
 			 * For this, the master is hosted on dblab-29.
 			 */
-			myMaster = (MasterInterface) Naming
-					.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
+			myMaster = (MasterInterface) Naming.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
 			System.out.println("Connection to Master Success");
 
 		} catch (Exception re) {
