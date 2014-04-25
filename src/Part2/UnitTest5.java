@@ -1,4 +1,15 @@
 package Part2;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.rmi.RemoteException;
+
+import Client.Client;
+import Part1.Part1FS;
+import Utilities.Storage;
+
 /*
 	 *  Read the content of a TFS file and store it on the specified file on the local machine.
 	Input:  TFS file, local file path
@@ -8,5 +19,9 @@ package Part2;
 	Similar to Test5 from Part 1 with one difference:  It must be able to retrieve a file if at least one of its replicas is available.
  */
 public class UnitTest5 {
+	public static void unitTest5Func(String src, String dest, Client myClient) throws RemoteException{
+		//TODO : add read completely to client side
+		myClient.read(src, 0, 10, dest);
+	}
 
 }
