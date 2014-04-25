@@ -39,9 +39,9 @@ public class Request {
 	}
 
 	/**
-	 * Request constructor, used in the read method in Client when it
-	 * already has the location of the requested chunkservers stored 
-	 * in its metadata 
+	 * Request constructor, used in the read and read completely methods
+	 * in Client when it already has the location of the requested 
+	 * chunkservers stored in its metadata 
 	 * @param rq	request type (read)
 	 * @param fp	full path or chunkhandle
 	 * @param rID	request ID
