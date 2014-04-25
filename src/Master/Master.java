@@ -1013,13 +1013,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Returns a random chunkserver index when passed a list of Chunkservers.
-	 * @param CSList
+	 * @param chunkServersNum
 	 * @return
 	 */
-	public int getRandomWorkingCS (ArrayList<Integer> CSList){
+	public int getRandomWorkingCS (List<Integer> chunkServersNum){
 		Random randInt = new Random();
-		int chosenIndex = Math.abs(randInt.nextInt() % CSList.size());
-		int chosenID = CSList.get(chosenIndex);
+		int chosenIndex = Math.abs(randInt.nextInt() % chunkServersNum.size());
+		int chosenID = chunkServersNum.get(chosenIndex);
 		boolean working = false;
 		int attempts = 0;
 		if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
@@ -1029,8 +1029,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			working = false;
 		}
 		while(!working){
-			chosenIndex = Math.abs(randInt.nextInt() % CSList.size());
-			chosenID = CSList.get(chosenIndex);
+			chosenIndex = Math.abs(randInt.nextInt() % chunkServersNum.size());
+			chosenID = chunkServersNum.get(chosenIndex);
 			attempts++;
 			if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
 				working = true;

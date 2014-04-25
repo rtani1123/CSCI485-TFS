@@ -1,6 +1,8 @@
 package Client;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The Request class is used by the Client class to store information about a given request from the Application.
@@ -17,7 +19,7 @@ public class Request {
 	int primaryID;		// ID of chunkserver with primary lease
 	enum rState{SentToMaster, ReceivedLocations, SentToChunk, Completed}
 	rState state;
-	ArrayList<Integer> chunkservers;
+	List<Integer> chunkservers;
 	byte[] payload;
 	int length;
 	int offset;
@@ -35,7 +37,7 @@ public class Request {
 		fullPath = fp;
 		reqID = rID;
 		state = rState.SentToMaster;
-		chunkservers = new ArrayList<Integer>();
+		chunkservers = Collections.synchronizedList(new ArrayList<Integer>());
 	}
 
 	/**
@@ -47,12 +49,12 @@ public class Request {
 	 * @param rID	request ID
 	 * @param cs	list of chunkserver replicas
 	 */
-	public Request(String rq, String fp, int rID, ArrayList<Integer> cs) {
+	public Request(String rq, String fp, int rID, List<Integer> cs) {
 		requestType = rq;
 		fullPath = fp;
 		reqID = rID;
 		state = rState.ReceivedLocations;
-		chunkservers = new ArrayList<Integer>();
+		chunkservers = Collections.synchronizedList(new ArrayList<Integer>());
 		for (int i = 0; i < cs.size(); i++) {
 			chunkservers.add(cs.get(i));
 		}
@@ -60,9 +62,9 @@ public class Request {
 
 	/**
 	 * Make a deep copy of a list of chunkserver IDs and store
-	 * @param cs	list of replicas
+	 * @param chunkserversList	list of replicas
 	 */
-	public void setCS (ArrayList<Integer> cs) {
+	public void setCS (List<Integer> chunkserversList) {
 		// empty list of chunkservers if not empty
 		if(chunkservers.size() != 0){
 			for(int i = 0; i < chunkservers.size(); i++){
@@ -70,8 +72,8 @@ public class Request {
 			}
 		}
 		// deep copy into list of chunkservers
-		for (int i = 0; i < cs.size(); i++) {
-			chunkservers.add(cs.get(i));
+		for (int i = 0; i < chunkserversList.size(); i++) {
+			chunkservers.add(chunkserversList.get(i));
 		}
 	}
 
@@ -147,7 +149,7 @@ public class Request {
 	public byte[] getPayload() {
 		return payload;
 	}
-	public ArrayList<Integer> getChunkservers() {
+	public List<Integer> getChunkservers() {
 		return chunkservers;
 	}
 	public boolean getWithSize(){

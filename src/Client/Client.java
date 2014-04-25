@@ -122,7 +122,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * The client then automatically attempts to connect to each chunkserver in a reciprocal RMI instance.
 	 * @param chunkservers
 	 */
-	public void setChunkservers(HashMap<Integer, ChunkserverInterface> CS) {
+	public void setChunkservers(Map<Integer, ChunkserverInterface> CS) {
 		for(Map.Entry<Integer, ChunkserverInterface> entry : CS.entrySet()) {
 			chunkservers.put(entry.getKey(), entry.getValue());
 			connectToChunkserver(entry.getKey());
@@ -463,7 +463,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * @param reqID
 	 */
 	// Method called by master giving chunkhandle and chunkservers
-	public void passMetaData(String chunkhandle, int pID, ArrayList<Integer> chunkserversList, int reqID) {
+	public void passMetaData(String chunkhandle, int pID, List<Integer> chunkserversList, int reqID) {
 		try{
 			System.err.println(chunkhandle + " " + pID+ " " +reqID+ " " +chunkserversList);
 			// reqID of -1 is used for functions such as Creates and Deletes which are not stored in pendingRequests

@@ -1,6 +1,7 @@
 package Client;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The ClientMetaDataItem class stores the replica chunkserver IDs and ID
@@ -17,14 +18,14 @@ public class ClientMetaDataItem {
 	 * ClientMetaDataItem constructor
 	 * @param _chunkhandle	full path or chunkhandle
 	 * @param _ID			ID of chunkserver with the primary lease
-	 * @param _chunkservers	list of chunkserver replicas
+	 * @param chunkserversList	list of chunkserver replicas
 	 */
-	public ClientMetaDataItem(String _chunkhandle, int _ID, ArrayList<Integer> _chunkservers){
+	public ClientMetaDataItem(String _chunkhandle, int _ID, List<Integer> chunkserversList){
 		chunkhandle = _chunkhandle;
 		ID = _ID;
 		chunkservers = new ArrayList<Integer>();
-		for (int i = 0; i <  _chunkservers.size(); i++) {
-			int z = (int)  _chunkservers.get(i);
+		for (int i = 0; i <  chunkserversList.size(); i++) {
+			int z = (int)  chunkserversList.get(i);
 			chunkservers.add(z);
 		}
 	}
@@ -34,7 +35,7 @@ public class ClientMetaDataItem {
 	}
 	
 	// getters
-	public ArrayList<Integer> getChunkservers() {
+	public List<Integer> getChunkservers() {
 		return chunkservers;
 	}
 	
