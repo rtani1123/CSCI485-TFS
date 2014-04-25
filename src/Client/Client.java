@@ -514,7 +514,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 								System.out.println(r.payload);
 								System.out.println(r.getLength());
 								System.out.println(r.getWithSize());
-								System.out.println(chunkservers.get(cs));
+								System.out.println(chunkservers.keySet());
 								if (chunkservers.get(cs).atomicAppend(r.getFullPath(), r.getPayload(),r.getLength(), r.getWithSize())) {
 									System.out.println("Successful atomic append");
 								} else {
