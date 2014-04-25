@@ -35,7 +35,7 @@ public class UnitTest1 {
 		unitTest1Func(15, 3, new Client(11));
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
-		for(int i = 1; i <= numFolders; i++){
+		for(int i = 0; i < numFolders; i++){
 			int k = i;
 			StringBuffer path = new StringBuffer(String.valueOf(k));
 			k = (int)Math.floor((double)(k)/fanOut);
