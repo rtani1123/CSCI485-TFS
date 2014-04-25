@@ -23,7 +23,7 @@ import Utilities.Tree;
  */
 public class UnitTest2 {
 
-	public static void unitTest3Func(String startingPath, int numFiles, Client myClient) throws RemoteException{
+	public static void unitTest2Func(String startingPath, int numFiles, Client myClient) throws RemoteException{
 		createNFiles(startingPath, numFiles, myClient);
 		Node node = Master.directory.root.find(Tree.pathTokenizer(startingPath), 1);
 		Set<String> allKeys = node.children.keySet();

@@ -1,5 +1,8 @@
 package Part2;
 
+import java.rmi.RemoteException;
+
+import Client.Client;
 import Part1.Part1FS;
 import Utilities.Storage;
 
@@ -24,18 +27,8 @@ import Utilities.Storage;
  */
 public class UnitTest3 {
 	
-	public static void main(String args[]){
-		if (args.length != 1)
-		{
-			System.err.println("Error. Invalid number of arguments for Test3.");
-			return;
-		}
-		Part1FS tfs = new Part1FS(Storage.getTree());
-		String startingPath = args[0];
-		//maybe throw in some fail safe here?
-		tfs.deleteDirectory(startingPath);
-		System.out.println("Existing tree structure: ");
-		tfs.directory.getAllPath(tfs.directory.root);
-		Storage.storeTree(tfs.directory);
+	
+	public static void unitTest3Func(String path, Client myClient) throws RemoteException{
+		myClient.deleteFileMaster(path);
 	}
 }
