@@ -121,17 +121,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * The client then automatically attempts to connect to each chunkserver in a reciprocal RMI instance.
 	 * @param chunkservers
 	 */
-	public void setChunkservers(HashMap<Integer, ChunkserverInterface> chunkservers) {
-		this.chunkservers = chunkservers;
-		for(Map.Entry<Integer, ChunkserverInterface> entry : this.chunkservers.entrySet()) {
+	public void setChunkservers(HashMap<Integer, ChunkserverInterface> CS) {
+		for(Map.Entry<Integer, ChunkserverInterface> entry : CS.entrySet()) {
+			chunkservers.put(entry.getKey(), entry.getValue());
 			connectToChunkserver(entry.getKey());
 			System.out.println("Connection to " + entry.getKey() + " successful.");
 			try {
 				entry.getValue().connectToClient(clientID);
 				System.out.println("Chunkserver " + entry.getKey() + " connected to Client " + clientID);
 			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Client connection to Chunkserver " + entry.getKey() + " failed");
 			}
 		}
 	}

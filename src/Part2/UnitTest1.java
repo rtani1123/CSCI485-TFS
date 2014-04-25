@@ -33,11 +33,12 @@ import Client.Client;
 public class UnitTest1 {
 	public static void main(String[] args) throws RemoteException {
 
-		//unitTest1Func(15, 5, null);
-		test1(7, 0);
+		unitTest1Func(15, 5, null);
+		//test1(7, 0);
 
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
+		
 		for(int i = 1; i <= numFolders; i++){
 			int k = i;
 			StringBuffer path = new StringBuffer(String.valueOf(k));
