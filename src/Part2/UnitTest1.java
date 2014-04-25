@@ -32,13 +32,15 @@ import Client.Client;
  */
 public class UnitTest1 {
 	public static void main(String[] args) throws RemoteException {
-		test1(15, 3);
+
+		unitTest1Func(15, 5, null);
+
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
 		for(int i = 1; i <= numFolders; i++){
 			int k = i;
 			StringBuffer path = new StringBuffer(String.valueOf(k));
-			k = (int)Math.floor((double)(k)/fanOut);
+			k = (int)Math.floor((double)k/fanOut);
 			while (k > 0)
 			{
 				String addMe = k + "/";
@@ -48,6 +50,7 @@ public class UnitTest1 {
 			path.insert(0, "C:/");
 			System.out.println(path.toString());
 		}
+		System.out.println("Existing tree structure: ");
 	}
 	public static void test1(int numFolders, int fanOut) {
 		ArrayList<String> current = new ArrayList<String>();
