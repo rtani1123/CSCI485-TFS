@@ -44,7 +44,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public enum TaskType {recoverCS, createF, deleteF, createD, deleteD, read, append, aAppend};
 	//ClientInterface client;
 	Map<Integer, ClientInterface> clients;
-	HashMap<Integer, CSInfo> chunkservers;
+	Map<Integer, CSInfo> chunkservers;
 	Heartbeat heartbeat;
 
 	public Master() throws RemoteException{
@@ -57,8 +57,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			log = new OperationsLog();
 		}
 		
-		chunkservers = new HashMap<Integer, CSInfo>();
-		clients = new HashMap<Integer, ClientInterface>();
+		chunkservers = Collections.synchronizedMap(new HashMap<Integer, CSInfo>());
+		clients = Collections.synchronizedMap(new HashMap<Integer, ClientInterface>());
 		stateChange = new Semaphore(1, true); // binary semaphore
 		tasks = Collections.synchronizedList(new ArrayList<Task>());
 		heartbeat = new Heartbeat();

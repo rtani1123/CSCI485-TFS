@@ -2,13 +2,15 @@ package Utilities;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class Tree implements Serializable {
 	public Node root;
 	public static void main(String[] args) {
-		ArrayList<String> paths = new ArrayList<String>();
+		List<String> paths = Collections.synchronizedList(new ArrayList<String>());
 		Tree myTree= new Tree();
 //		ArrayList<Integer> chunkServersNum = new ArrayList<>();
 //		chunkServersNum.add(1);
@@ -31,8 +33,8 @@ public class Tree implements Serializable {
 //		Node y = myTree.root.find(paths, 1);
 //		System.out.println(y==null);
 	}
-	public static ArrayList<String> pathTokenizer(String path){
-		ArrayList<String> result = new ArrayList<String>();
+	public static List<String> pathTokenizer(String path){
+		List<String> result = Collections.synchronizedList(new ArrayList<String>());
 		while (path.contains("/")){
 			result.add(path.substring(0,path.indexOf("/")));
 			path= path.substring(path.indexOf("/")+1);
@@ -51,7 +53,7 @@ public class Tree implements Serializable {
 	}
 	
 	public boolean addElement(ArrayList<String> paths, ArrayList<Integer> chunckServersNum){
-		ArrayList<String >tempPaths = new ArrayList<String>();
+		List<String >tempPaths = Collections.synchronizedList(new ArrayList<String>());
 		for (int j = 0; j <paths.size()-1; j++)
 			tempPaths.add( paths.get(j));
 		Node x = root.find(tempPaths, 1);
@@ -81,7 +83,7 @@ public class Tree implements Serializable {
 	}
 	public void getAllPath(Node node){
 		System.out.println(node.getPath());
-		Set<String> allKeys = node.children.keySet();
+		Set<String> allKeys = Collections.synchronizedSet(node.children.keySet());
 		Iterator<String> it = allKeys.iterator();
 		while (it.hasNext()){
 			getAllPath(node.children.get(it.next()));

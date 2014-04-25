@@ -2,7 +2,9 @@ package Utilities;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Node implements Serializable{
@@ -12,19 +14,19 @@ public class Node implements Serializable{
 	int primaryChunkserverID = -1;
 	long primaryLeaseIssueTime = -1;
 	
-	public ArrayList<Integer> chunkServersNum;
+	public List<Integer> chunkServersNum;
 	
 	public Node(){
-		chunkServersNum = new ArrayList<Integer>();
-		children = new HashMap<String, Node>();
+		chunkServersNum = Collections.synchronizedList(new ArrayList<Integer>());
+		children = Collections.synchronizedMap(new HashMap<String, Node>());
 	}
 	
 	//i should be 1 always!
-	public Node find (ArrayList<String> paths, int i){
-		if (paths.size() == i)
+	public Node find (List<String> tempPaths, int i){
+		if (tempPaths.size() == i)
 			return this;
-		if (this.children.containsKey(paths.get(i)))
-			return children.get(paths.get(i)).find(paths, i+1);
+		if (this.children.containsKey(tempPaths.get(i)))
+			return children.get(tempPaths.get(i)).find(tempPaths, i+1);
 		return null;
 	}
 	

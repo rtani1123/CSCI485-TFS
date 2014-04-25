@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The OperationsLog class provides functionality for the master to use a 
@@ -18,12 +20,12 @@ import java.util.ArrayList;
  */
 public class OperationsLog implements Serializable{
 
-	ArrayList<StringBuffer> log;
+	List<StringBuffer> log;
 	FileOutputStream fout;
 	ObjectOutputStream cos;
 
 	public OperationsLog() {
-		log = new ArrayList<StringBuffer>();
+		log = Collections.synchronizedList(new ArrayList<StringBuffer>());
 	}
 	
 	/**
