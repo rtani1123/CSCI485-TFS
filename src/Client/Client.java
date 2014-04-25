@@ -528,11 +528,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				} else if ((r.getRequestType()).equals(READ)) {
 					//for (int cs : r.getChunkservers()) {
 					Random rand = new Random();
-					int randCS = Math.abs((rand.nextInt() % r.getChunkservers().size()));
-					randCS++;
-					System.out.println("Reading from chunkserver " + randCS);
+					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
+					System.out.println("Reading from chunkserver " + r.getChunkservers().get(randIndex));
 					try {
-						byte[] result = chunkservers.get(randCS).read(r.getFullPath(), r.getOffset(),r.getLength());
+						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).read(r.getFullPath(), r.getOffset(),r.getLength());
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
 						System.out.println(r.destination);
