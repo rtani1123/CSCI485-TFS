@@ -35,7 +35,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";
 	final static long MINUTE = 60000;
-	final static long HEARTBEAT_DELAY = 5000;
+	final static long HEARTBEAT_DELAY = 20000;
 	public static Tree directory;
 	OperationsLog log;
 	Semaphore stateChange;
@@ -66,11 +66,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		startThread();		
 		setupMasterHost();
 
-//		try {
-//			clients.get(11).connectToMaster();
-//		} catch(RemoteException re) {
-//			System.out.println("Cannot connect to client");
-//		}
+		try {
+			connectToClient(11);
+		} catch(Exception e) {
+			System.out.println("Cannot connect to client");
+		}
 		try {
 			connectToChunkserver(1);
 			chunkservers.get(1).getCS().connectToMaster();
@@ -171,7 +171,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:"+index +"/CLIENT"+index);
 			clients.put(index, client);
-			System.out.println("Connection to Client 11 Success");
+			System.out.println("Connection to Client " + index + " Success");
 			HashMap<Integer, ChunkserverInterface> csTemp = new HashMap<Integer, ChunkserverInterface>();
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				csTemp.put(entry.getKey(), entry.getValue().getCS());
@@ -271,6 +271,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		System.out.println("Master received heartbeat response from " + CSID);
 	}
 
+	/**
+	 * Scheduler
+	 * @return
+	 */
 	protected boolean pickAndExecuteAnAction(){
 		// scheduler checks, return true if something to do
 		if(tasks.size() != 0){
@@ -323,6 +327,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return false;
 	}
 
+	/**
+	 * Action functions for the Master
+	 */
+	
 	/**
 	 * Function createFileA creates a new file in the master namespace.
 	 * It is exclusively a handshake and does not transfer data, although it does result in
@@ -757,9 +765,34 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}	
 	}
 
+	/**
+	 * Restore chunkserver is passed the ID for the chunkserver that has gone down and is now recovering.
+	 * @param CSID
+	 * @throws RemoteException
+	 */
 	public void restoreChunkserver(int CSID) throws RemoteException {
 		System.out.println("Beginning restoration of " + CSID);
 		System.out.println("log length " + log.getLength());
+		if(!clients.isEmpty()) {
+			/* Iterate through clients detected by the master.
+			 * Connect Chunkserver(CSID) to all clients.
+			 * Connect all clients to Chunkserver(CSID)
+			*/
+			for(Map.Entry<Integer, ClientInterface> entry : this.clients.entrySet()) {
+				try {
+					chunkservers.get(CSID).getCS().connectToClient(entry.getKey());
+					entry.getValue().connectToChunkserver(CSID);
+					System.out.println("Chunkserver " + entry.getKey() + " connected to Client " + entry.getKey());
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		/*
+		 * If log length is 0, no transactions have been sent to the master.
+		 */
 		if(log.getLength() == 0){
 			chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
 			chunkservers.get(CSID).setStatus(CSStatus.OK);
@@ -859,6 +892,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		System.out.println("Recovery complete for " + CSID);
 	}
 
+	/**
+	 * The Chunkserver Restoration algorithm will call this method if a chunkserver needs to run
+	 * a createDirectory to catch up with current version of data.
+	 * @param path
+	 * @param chunkserverID
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().createDirectory(path);
@@ -872,6 +913,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return true;
 	}
 
+	/**
+	 * The Chunkserver Restoration algorithm will call this method if a chunkserver needs to
+	 * create a file it should have.
+	 * @param chunkhandle
+	 * @param chunkserverID
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().createFile(chunkhandle);
@@ -885,6 +934,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return true;
 	}
 
+	/**
+	 * The Chunkserver Restoration algorithm will call this method if the recovering chunkserver has a
+	 * file that, according to the Master, should not exist in the namespace.
+	 * @param chunkhandle
+	 * @param chunkserverID
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().deleteFile(chunkhandle);
@@ -898,6 +955,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return true;
 	}
 
+	/**
+	 * The Chunkserver Restoration algorithm will call this method if the recovering chunkserver has a
+	 * directory that, according to the Master, should not exist in the namespace.
+	 * @param path
+	 * @param chunkserverID
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean deleteDirectoryRedo(String path, int chunkserverID) throws RemoteException {
 		try{
 			chunkservers.get(chunkserverID).getCS().deleteDirectory(path);
@@ -911,6 +976,15 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return true;
 	}
 
+	/**
+	 * The Chunkserver Restoration algorithm will call this method if the recovering chunkserver is
+	 * behind on an append request.  The system will look for replicas that have the file with up-to-date
+	 * timestamps.
+	 * @param chunkhandle
+	 * @param chunkserverID
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean fetchAndRewrite(String chunkhandle, int chunkserverID) throws RemoteException {
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle), 1);
 		int source = file.chunkServersNum.get(0);
@@ -935,6 +1009,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return true;
 	}
 
+	/**
+	 * Returns a random chunkserver index when passed a list of Chunkservers.
+	 * @param CSList
+	 * @return
+	 */
 	public int getRandomWorkingCS (ArrayList<Integer> CSList){
 		Random randInt = new Random();
 		int chosenIndex = Math.abs(randInt.nextInt() % CSList.size());
@@ -1143,6 +1222,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 
+	/**
+	 * Heartbeat class runs on its own Thread, and periodically messages chunkservers to determine
+	 * their status.
+	 */
 	private class Heartbeat extends Thread{
 		long lastHBTime;
 
