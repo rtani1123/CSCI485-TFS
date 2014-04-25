@@ -94,12 +94,12 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	}
 
 	//Chunkserver calls Client Methods -> CLIENT
-	public void connectToClient() {
+	public void connectToClient(Integer index) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 
-			ClientInterface myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu/CLIENT");
-			clients.put(11, myClient);
+			ClientInterface myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:" + index + "/CLIENT" + index);
+			clients.put(index, myClient);
 			System.out.println("Connection to Client Success");
 
 		} catch(Exception re) {

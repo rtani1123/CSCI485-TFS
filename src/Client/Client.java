@@ -66,6 +66,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
 
 		setupClientHost(clientID);
+		connectToMaster();
+		master.connectToClient(clientID);
 	}
 
 	// Master calls Client methods -> MASTERCLIENT
@@ -73,9 +75,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			Registry registry = LocateRegistry.createRegistry(clientID);
-			String loc = "rmi://dblab-43.vlab.usc.edu"+":"+clientID+"/CLIENT" + clientID;
-			System.out.println("loc is " + loc);
-			Naming.rebind(loc, this);
+			Naming.rebind("rmi://dblab-43.vlab.usc.edu:"+clientID+"/CLIENT" + clientID, this);
 			System.out.println("Client Host Setup Success");
 		} catch (MalformedURLException re) {
 			System.out.println("Bad connection - MalformedURLException");
