@@ -45,8 +45,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 		connectToMaster();
 		myMaster.connectToChunkserver(csIndex);
-		connectToClient();
-		clients.get(11).connectToChunkserver(csIndex);
+		
 	}
 
 	//Master calls Chunkserver methods -> CHUNK + csIndex

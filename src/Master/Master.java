@@ -172,7 +172,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:"+index +"/CLIENT"+index);
 			clients.put(index, client);
 			System.out.println("Connection to Client 11 Success");
-
+			HashMap<Integer, ChunkserverInterface> csTemp = new HashMap<Integer, ChunkserverInterface>();
+			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
+				csTemp.put(entry.getKey(), entry.getValue().getCS());
+			}
+			client.setChunkservers(csTemp);
 		} catch(Exception re) {
 			System.out.println("Error in connection to client");
 		}
