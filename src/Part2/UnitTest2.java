@@ -24,19 +24,18 @@ import Utilities.Tree;
 public class UnitTest2 {
 
 	public static void unitTest2Func(String startingPath, int numFiles, Client myClient) throws RemoteException{
-		createNFiles(startingPath, numFiles, myClient);
-		Node node = Master.directory.root.find(Tree.pathTokenizer(startingPath), 1);
-		Set<String> allKeys = node.children.keySet();
-		Iterator<String> it = allKeys.iterator();
-		while (it.hasNext()){
-			createNFiles(node.children.get(it.next()).getPath(), numFiles, myClient);
-		}
-	}
-	public static void createNFiles(String path, int n, Client myClient) throws RemoteException{
-		Random randomGenerator = new Random();
-		for (int i = 0; i < n ; i ++){
-			int numReplicas = randomGenerator.nextInt(3);
-			myClient.createFile(path, "File"+n, numReplicas);
+		for(String directory: UnitTest1.unit1Directories){
+			if(directory.contains(startingPath)){
+				for (int i = 0; i < numFiles; i++){
+					try{
+						myClient.createFile(directory, "File" + i + ".txt", 3);
+						System.out.println("Creating File" + i + ".txt in directory " + directory);
+					}
+					catch(RemoteException re){
+						System.out.println("Error connecting to client to make request - Unit 2");
+					}
+				}
+			}
 		}
 	}
 }
