@@ -177,6 +177,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				csTemp.put(entry.getKey(), entry.getValue().getCS());
 			}
 			client.setChunkservers(csTemp);
+			client.connectToMaster();
 		} catch(Exception re) {
 			System.out.println("Error in connection to client");
 		}

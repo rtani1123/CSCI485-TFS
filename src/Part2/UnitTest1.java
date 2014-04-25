@@ -33,7 +33,8 @@ import Client.Client;
 public class UnitTest1 {
 	public static void main(String[] args) throws RemoteException {
 
-		unitTest1Func(15, 5, null);
+		//unitTest1Func(15, 5, null);
+		test1(7, 0);
 
 	}
 	public static void unitTest1Func(int numFolders, int fanOut, Client myClient){
@@ -54,14 +55,18 @@ public class UnitTest1 {
 	}
 	public static void test1(int numFolders, int fanOut) {
 		ArrayList<String> current = new ArrayList<String>();
-		int count = 1;
+		int count = 0;
 		String base = "C:";
-		System.out.println("C:");
-		current.add(new String("C:"));
-		while(count <= numFolders) {
+		System.out.println("C:/1");
+		current.add(new String("C:/1"));
+		while(count < numFolders) {
 			System.out.println("current = " + current);
 			int size = current.size();
 			for(int i = 0; i < fanOut; i++) {
+				for(String path : current) {
+					
+					i++;
+				}
 				String newPath = current.get(i) + "/" + count;
 				current.add(newPath);
 				count++;
