@@ -711,8 +711,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		else if (file.getPrimaryLeaseTime() > (System.currentTimeMillis() - MINUTE))
 		{
 			try{
+				ArrayList<Integer> liveCS = new ArrayList<Integer>();
+				for (Integer potentialCS : file.chunkServersNum){
+					if(chunkservers.get(potentialCS).getStatus() == CSStatus.OK){
+						liveCS.add(potentialCS);
+					}
+				}
 				System.out.println("Primary lease exists for " + file.getPrimaryChunkserver());
-				clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
+				clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), liveCS, reqID);
 			}
 			catch(RemoteException re){
 				System.out.println("Error connecting to client.");
@@ -756,8 +762,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			primaryLeaseSuccess = true;
 			if(primaryLeaseSuccess){
 				try{
+					ArrayList<Integer> liveCS = new ArrayList<Integer>();
+					for (Integer potentialCS : file.chunkServersNum){
+						if(chunkservers.get(potentialCS).getStatus() == CSStatus.OK){
+							liveCS.add(potentialCS);
+						}
+					}
 					System.out.println("Passing metadata for atomic append to client.");
-					clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), file.chunkServersNum, reqID);
+					clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), liveCS, reqID);
 				}
 				catch(RemoteException re){
 					System.out.println("Error connecting to client.");
