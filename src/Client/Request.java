@@ -12,17 +12,17 @@ import java.util.List;
  */
 
 public class Request {
-	String requestType;
-	String fullPath;
-	String destination;
-	int reqID;
+	String requestType; //Type is APPEND, ATOMIC APPEND, READ, etc..
+	String fullPath; //chunkhandle
+	String destination; //destination of READ location if necessary
+	int reqID; //unique ID of request
 	int primaryID;		// ID of chunkserver with primary lease
 	enum rState{SentToMaster, ReceivedLocations, SentToChunk, Completed}
 	rState state;
-	List<Integer> chunkservers;
-	byte[] payload;
-	int length;
-	int offset;
+	List<Integer> chunkservers; //list of available chunkservers
+	byte[] payload; //data to be appended if necessary
+	int length; //length of data 
+	int offset; //offset at which to append or read
 	boolean withSize;
 
 	/**
