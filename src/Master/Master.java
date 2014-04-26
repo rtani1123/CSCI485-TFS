@@ -42,6 +42,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	Map<Integer, CSInfo> chunkservers;
 	Heartbeat heartbeat;
 
+	/**
+	 * Constructor for the Master does the following:
+	 * 	- Initializes a list of chunkservers and clients to which to connect.
+	 *  - Initializes a list of tasks to be processed by Master agent code.
+	 *  @see Master.Heartbeat - Starts the heartbeat process for chunkservers
+	 *  - Automatically attempts to connect to initial client (ID hardcoded to 11), as well as 3 chunkservers.
+	 * @throws RemoteException
+	 */
 	public Master() throws RemoteException{
 		if(Storage.getTree() != null) {
 			directory = Storage.getTree();
@@ -108,6 +116,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println("Bad connection - Misc Exception");
 		}
 	}
+	/**
+	 * Connects to Chunkserver ID.
+	 * @param id - ID of Chunkserver to which to connect.  Referenced in Map<Integer, CSInfo> chunkservers
+	 */
 	//Master calls Chunkserver methods -> MASTERCHUNK1
 	public void connectToChunkserver(Integer id) {
 		try {
@@ -154,6 +166,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 
+	/**
+	 * Connects to Client ID
+	 * @param id - Client to which to be connected.  Referenced in Map<Integer, ClientInterface> clients
+	 */
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient(Integer id) {
 		try {
@@ -180,6 +196,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChange.release();
 	}
 
+	/**
+	 * Starts the master agent thread.
+	 */
 	public synchronized void startThread() {
 		if (masterThread == null) {
 			masterThread = new MasterThread();
@@ -189,6 +208,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 
+	/**
+	 * Stops the master agent.
+	 */
 	public void stopThread() {
 		if (masterThread != null) {
 			masterThread.stopAgent();
@@ -200,6 +222,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * Messages from Clients or Chunkservers
 	 * */
 
+	/**
+	 * Adds createFile task to scheduler.
+	 */
 	public void createFile(String path, String fileName, int numReplicas,
 			int clientID) throws RemoteException {
 		tasks.add(new Task(TaskType.createF,path,fileName,numReplicas,clientID));
@@ -208,6 +233,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds deleteFileMaster task to scheduler.
+	 */
 	public void deleteFileMaster(String chunkhandle, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.deleteF,chunkhandle,clientID));
@@ -216,6 +244,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds createDirectory task to scheduler.
+	 */
 	public void createDirectory(String path, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.createD,path,clientID));
@@ -223,6 +254,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		System.out.println("Master received createDirectory request for " + path);
 		stateChanged();
 	}
+	
+	/**
+	 * Adds deleteDirectory task to scheduler.
+	 */
 	public void deleteDirectory(String path, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.deleteD,path,clientID));
@@ -231,6 +266,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds append task to scheduler.
+	 */
 	public void append(String chunkhandle, int clientID, int reqID) throws RemoteException {
 		tasks.add(new Task(TaskType.append,chunkhandle,clientID, reqID));
 		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "append", 0);
@@ -238,6 +276,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds atomicAppend task to scheduler.
+	 */
 	public void atomicAppend(String chunkhandle, int clientID, int reqID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID,reqID));
@@ -246,6 +287,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds read task to scheduler.
+	 */
 	public void read(String chunkhandle, int clientID, int reqID) throws RemoteException{
 		tasks.add(new Task(TaskType.read,chunkhandle,clientID,reqID));
 		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "read", 0);
@@ -1087,11 +1131,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return chosenID;
 	}
 
+	/**
+	 * Main class for the Master.
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
 			Master master = new Master();
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Error in creating Master instance");
 		}
 	}
@@ -1236,7 +1283,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		
 		/**
 		 * Returns the status of the chunkserver.
-		 * @return
+		 * @return enum chunkserver status.
 		 */
 		public CSStatus getStatus(){
 			return status;
@@ -1244,7 +1291,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		/**
 		 * Returns last good time;
-		 * @return
+		 * @return last good time.
 		 */
 		public long getLastGoodTime(){
 			return lastGoodTime;
@@ -1260,7 +1307,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		/**
 		 * Returns ChunkserverInterface object in the CSInfo class.
-		 * @return
+		 * @return ChunkserverInterface.
 		 */
 		public ChunkserverInterface getCS(){
 			return remoteCS;
