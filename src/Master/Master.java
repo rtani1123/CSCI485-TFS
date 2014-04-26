@@ -125,6 +125,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
+			//Connects to Chunkserver(ID)
 			if(id == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + id.toString());
 			else if(id == 2)
@@ -164,6 +165,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			clients.put(id, client);
 			System.out.println("Connection to Client " + id + " Success");
 			HashMap<Integer, ChunkserverInterface> csTemp = new HashMap<Integer, ChunkserverInterface>();
+			//iterates over existing CHUNKSERVERS and sends them to client id.
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				if(entry.getValue().getStatus() == CSStatus.OK)
 					csTemp.put(entry.getKey(), entry.getValue().getCS());
@@ -342,6 +344,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public void createFileA(String path, String fileName, int numReplicas, int clientID) throws RemoteException
 	{
 		directory.getAllPath(directory.root);
+		//Creates a node with the path
 		Node file = directory.root.find(directory.pathTokenizer(path + "/" + fileName), 1);	
 		if (file != null){
 			//if the file exists, we return an error
@@ -357,9 +360,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			//pick the number of replicas
 			ArrayList<Integer> availableCS = new ArrayList<Integer>();
 			ArrayList<Integer> CSLocations = new ArrayList<Integer>();
+			
+			//sets ALL chunkservers as available.
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()){
 				availableCS.add(entry.getKey());
 			}
+			
+			//don't allow requests that requests more cs than available.
 			if (numReplicas > availableCS.size()){
 				System.out.println("Error. Number of replicas exceeds number of chunkservers.");
 				try{
@@ -370,11 +377,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 				return;
 			}
+			//sets all chunkservers as destinations for create file.
 			else if (numReplicas == availableCS.size()){
 				for(Integer i : availableCS){
 					CSLocations.add(i);
 				}
 			}
+			//adds random chunkservers to destinations.
 			else{
 				int count = 0;
 				while (count < numReplicas){					
@@ -387,21 +396,25 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
-				log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);
-				Storage.storeLog(log);
+				log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);  //creates log record
+				Storage.storeLog(log);	//stores log record.
 				System.out.println("Successful add to tree. Requesting file create from CS.");
 				int downChunkservers = 0;
+				
+				//Iterates over chunkserver locations to create file.
 				for(Integer CS : CSLocations){
 					try{
-						chunkservers.get(CS).getCS().createFile(path + "/" + fileName);
+						chunkservers.get(CS).getCS().createFile(path + "/" + fileName);	
 						chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 					}
+					//If a chunkserver is down, its status is set to DOWN.
 					catch(RemoteException re){
 						System.out.println("createFileA: Error connecting to chunkserver " + CS);
 						chunkservers.get(CS).setStatus(CSStatus.DOWN);
 						downChunkservers++;
 					}
 				}
+				//No chunkservers available.
 				if(downChunkservers == numReplicas){
 					System.out.println("Element addition to file system failed. No available chunkservers.");
 					try{
@@ -411,6 +424,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						System.out.println("Connection to client failed.");
 					}					
 				}
+				//Master requests status from client.
 				else{
 					try{
 						clients.get(clientID).requestStatus("createFile", path + "/" + fileName, true, -1);
@@ -445,6 +459,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	public void deleteFileMasterA(String chunkhandle, int clientID) throws RemoteException
 	{
 		Node file = directory.root.find(directory.pathTokenizer(chunkhandle),1);
+		//if path nonexistent, rollback.
 		if(file == null){
 			System.out.println("Cannot delete nonexistent path " + chunkhandle);
 			try{
@@ -454,10 +469,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				System.out.println("Error connecting to client.");
 			}
 		}
+		//Else if the path exists, then...
 		else if(directory.removeElement(directory.pathTokenizer(chunkhandle)))
 		{
 			log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "deleteFile", 1);
 			Storage.storeLog(log);
+			//Iterates over # of chunkservers to send the delete file request.
+			//Sets the last good time.
 			for(Integer CS : file.chunkServersNum){
 				try{
 					System.err.println("Messaging chunkserver " + CS);
@@ -635,6 +653,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 			try{
+				System.out.println("append print of livecs: " + liveCS);
 				clients.get(clientID).passMetaData(chunkhandle, -1, liveCS, reqID);
 				System.out.println("Metadata sent to client.");
 			}
@@ -674,6 +693,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						liveCS.add(potentialCS);
 					}
 				}
+				System.out.println("read print of livecs: " + liveCS);
 				clients.get(clientID).passMetaData(chunkhandle, -1, liveCS, reqID);
 				System.out.println("Metadata sent to client.");
 			}
@@ -718,6 +738,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					}
 				}
 				System.out.println("Primary lease exists for " + file.getPrimaryChunkserver());
+				System.out.println("atomic append print of livecs: " + liveCS);
 				clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), liveCS, reqID);
 			}
 			catch(RemoteException re){
@@ -769,6 +790,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						}
 					}
 					System.out.println("Passing metadata for atomic append to client.");
+					System.out.println("pl success print of livecs: " + liveCS);
 					clients.get(clientID).passMetaData(chunkhandle, file.getPrimaryChunkserver(), liveCS, reqID);
 				}
 				catch(RemoteException re){
@@ -1256,7 +1278,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						chunkservers.get(i).getCS().heartbeat();
 					} catch (RemoteException e) {
 						downCS = true;
-						System.out.println("Could not connect to chunkserver " + i + " for Heartbeat");
 					}
 					if (downCS && chunkservers.get(i).getStatus() != CSStatus.DOWN){
 						//chunkserver has gone down

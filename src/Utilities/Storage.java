@@ -44,7 +44,6 @@ public class Storage {
 			out = new ObjectOutputStream(fos);
 			out.writeObject(inTree);
 			out.close();
-			System.out.println("Namespace Tree Persisted");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -89,7 +88,6 @@ public class Storage {
 					out.writeObject(inLog);
 				
 				out.close();
-				System.out.println("Operation log Persisted");
 			} catch (IOException ex) {
 				System.out.println("Error in storing operation log");
 				ex.printStackTrace();
