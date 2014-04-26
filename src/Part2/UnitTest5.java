@@ -4,7 +4,7 @@ import java.rmi.RemoteException;
 import Client.Client;
 
 
-/*
+/**
 	 *  Read the content of a TFS file and store it on the specified file on the local machine.
 	Input:  TFS file, local file path
 	Functionality:  If the TFS file does not exist then return an error message.  

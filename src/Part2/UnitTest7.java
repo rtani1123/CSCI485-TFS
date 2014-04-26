@@ -7,7 +7,7 @@ import java.rmi.RemoteException;
 
 import Client.Client;
 
-/*
+/**
  * Test 7:  Count the number of logical files stored in a TFS file using Test6 and printout the results.
  Input:  A TFS file generated using Test6
  Functionality:  If the input TFS file does not exist then return an error.  Otherwise, counts the number of logical files stored in a TFS file (generated using Test6) by reading the size and payload pairs in the specified file name.

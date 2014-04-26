@@ -24,6 +24,16 @@ import Utilities.Tree;
 import Utilities.Storage;
 import Interfaces.MasterInterface;
 
+/**
+ * "The Master maintains all file system metadata.  This includes the namespace, access control information,
+ * mapping from files to chunks, and the current locations of chunks.  It also controls system-wide activities
+ * such as lease management, garbage collection of orphaned chunks and chunk migration between chunkservers.
+ * The master periodically communicates with each chunkserver in HeartBeat messsages to give it instructions
+ * and collect its state."
+ * 	Ghemawat, S., Gobioff, H., & Leung, S. T. (2003). <i> The Google File System </i>.  Retrieved from
+ * 	http://static.googleusercontent.com/media/research.google.com/en//archive/gfs-sosp2003.pdf
+ *
+ */
 public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	final static String NOT_FOUND ="Sorry, but the file you had requesting was not found";

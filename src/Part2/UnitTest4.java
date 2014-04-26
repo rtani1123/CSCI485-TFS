@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 import Client.Client;
 
 
-/*
+/**
 	 * Test4:  Store a file on the local machine in a target TFS file specified by its path. 
 	Input:  local file path, TFS file
 	Functionality:  If the TFS file exists then reutrn an error message.  Otherwise, create the TFS file, read the conent of the local file and store it in the TFS File.

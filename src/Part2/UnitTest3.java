@@ -3,7 +3,7 @@ package Part2;
 import java.rmi.RemoteException;
 import Client.Client;
 
-/*
+/**
  * Test3:  Delete a hierarchical directory structure including the files in those directories.
 	Input:  Path 
 	Functionality:  The input path identifies the directory whose content along with itself must be deleted.

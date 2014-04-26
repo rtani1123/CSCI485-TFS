@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 import Client.Client;
 
 
-/*
+/**
  * Test6:  Append the size and content of a file stored on the local machine in a target TFS file specified by its path.
 	Input: local file path, TFS file
 	Functionality:  If the TFS file does not exists then create the specified file.  Read the content of the local file, compute the number of bytes read, seek to the end of the TFS file, append a 4 byte integer pertaining to the image size, append the content in memory after these four bytes, and close the TFS file.

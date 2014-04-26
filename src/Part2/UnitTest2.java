@@ -3,7 +3,7 @@ package Part2;
 import java.rmi.RemoteException;
 import Client.Client;
 
-/*
+/**
  * Test2: Create N files in a directory and its subdirectories until the leaf subdirectories.  Each file in a directory is named File1, File2, ..., FileN
 	Input:  Path, N
 	Functionality:  The Path identifies the root directory and its subdirectories that should have X files.  It might be "1\2" in the above example.

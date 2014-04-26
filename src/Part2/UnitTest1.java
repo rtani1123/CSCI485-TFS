@@ -4,7 +4,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 import Client.Client;
-/*
+/**
  * Unit1:  Create a hierarchical directory structure with a specified fanout.
 	This is an extended version of Test 1 that creates more than two sub-directories per directory.
 	The exact number is the input value fanout.  The input values must be greater than or equal to zero.
