@@ -20,7 +20,14 @@ import java.util.Map;
 import Interfaces.ChunkserverInterface;
 import Interfaces.ClientInterface;
 import Interfaces.MasterInterface;
-
+/**
+ * This class handles chunkserver responsibilities. Each instance of chunkserver has a unique ID
+ * which is used by master, clients and other chunservers to connect to it.
+ * Each ChunkServer has a local CSMetadata object. Every time metadata changes it flushes that to disk.
+ * If it goes down and comes up again, it restore the CSmetadata file, if exists, to know which files it has. 
+ * @author boghrati
+ *
+ */
 public class ChunkServer extends UnicastRemoteObject implements ChunkserverInterface {
 	Map<String, ChunkserverMetadata> CSMetadata = Collections.synchronizedMap(new HashMap<String, ChunkserverMetadata>());
 	Map<Integer, ChunkserverInterface> chunkservers  = Collections.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
@@ -79,9 +86,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 	/**
 	 * Format for connection should be "rmi:DOMAIN/ChunkserverID".
-	 * ChunkserverID will be different for each instance of Chunkserver
-	 * one detail to mention is that CSMaster will not be the same as
-	 * MasterCS. There's actually a completely different callfor master
+	 * ChunkserverID will be different for each instance of ChunkServer
+	 * One detail to mention is that CSMaster will not be the same as
+	 * MasterCS. There's actually a completely different call for master
 	 * calling CS functions than CS calling master functions.
 	 * 
 	 * For this, the master is hosted on dblab-29.
@@ -155,7 +162,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	
 	/**
 	 * Creates a file locally to ChunkServer.
-	 * Chunkserver then stores that data in a local metadata file.
+	 * ChunkServer then stores that data in a local metadata file.
 	 * @param chunkhandle
 	 */
 	@Override
@@ -323,7 +330,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	}
 
 	/**
-	 * Appending to file at location chunkhandle.
+	 * Appends to file at location chunkhandle and stores write time stamp in CSMetaData
 	 * Data: payload
 	 * @param chunkhandle
 	 * @param payload
@@ -360,7 +367,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	}
 	
 	/**
-	 * Atomic append to file at location chunkhandle.
+	 * Atomic append to file at location chunkhandle. It store the write time stamp in CSMetaData.
 	 * Data: payload
 	 * No offset specified. (determined by TFS)
 	 * @param chunkhandle
@@ -464,7 +471,8 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	}
 
 	/**
-	 * Chunkserver recovery append.
+	 * ChunkServer recovery append.
+	 * Reads the whole data from ChunkServer with ID equal to sourceID and rewrite its own local file.
 	 * @param chunkhandle
 	 * @param sourceID
 	 */
@@ -482,7 +490,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		System.out.println("Successful fetch and rewrite");
 	}
 	/**
-	 * Getting number of separate files in one file
+	 * Gets number of separate files in a given file
 	 * @param fullPath
 	 */
 	@Override
