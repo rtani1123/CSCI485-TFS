@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Used by the Chunkservers to store relevant information about files they have created.  
+ * Used by Chunkservers to store relevant information about files they have created.  
  * It is used to maintain a connection to secondaries for an atomic append. There is one 
  * instance of this class for each file stored in a Chunkserver. It holds write timestamps 
- * in addition to serving as a node in the Chunkserver's directory structure. This class 
+ * in addition to serving as a node in a Chunkserver's directory structure. This class 
  * may be stored on the disk to facilitate Chunkserver restoration after a failure
  * and it provides static methods to read and write chunkhandle-ChunkserverMetadata maps to disk.
  * Each chunkhandle used in this class represents the full path for a given file.
