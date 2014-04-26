@@ -143,12 +143,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
 		
 			if(chunkservers.get(index) == null) {
-				System.out.println("doesn't exist. creating new");
 				CSInfo temp = new CSInfo(tempCS, index);
 				chunkservers.put(index, temp);
 			}
 			else {
-				System.out.println("updating cs interface " + index);
+				System.out.println("Updating existing Chunkserver " + index);
 				chunkservers.get(index).setCS(tempCS);
 				chunkservers.get(index).setStatus(CSStatus.DOWN);
 			}
@@ -272,7 +271,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			//if the chunkserver was up to date, assume it is still up to date
 			chunkservers.get(CSID).setLastGoodTime(System.currentTimeMillis());
 		}
-		System.out.println("Master received heartbeat response from " + CSID);
 	}
 
 	/**
@@ -398,7 +396,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					}
 				}
 			}
-			System.out.println(path+"/"+fileName);
 			if(directory.addElement(directory.pathTokenizer(path+"/"+fileName),CSLocations)){
 				log.makeLogRecord(System.currentTimeMillis(), path+"/"+fileName, "createFile", 1);
 				Storage.storeLog(log);
@@ -785,7 +782,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 */
 	public void restoreChunkserver(int CSID) throws RemoteException {
 		System.out.println("Beginning restoration of " + CSID);
-		System.out.println("log length " + log.getLength());
 		if(!clients.isEmpty()) {
 			/* Iterate through clients detected by the master.
 			 * Connect Chunkserver(CSID) to all clients.
@@ -817,17 +813,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		String logRecord = log.getReference(0);
 		int count = 0;
 		String[] fields = logRecord.split("\\$");
-		for(int i = 0; i < fields.length; i++) {
-			System.out.println(i + ": " + fields[i]);
-		}
+		
 		Node file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
 
 		long logTime = Long.parseLong(fields[1]);
 		//for now, this scans through the entire transaction log
 		//it assumes that the transaction log has entries since the last good time
 		while (lastGoodTime > logTime && count < log.getLength()){
-			System.out.println("no need to redo this transaction");			
-			System.out.println("count: " + count);
 			logRecord = log.getReference(count);
 			fields = logRecord.split("\\$");
 			logTime = Long.parseLong(fields[1]);
@@ -835,16 +827,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		}
 		while (count < log.getLength()){
-			System.out.println("in main while loop");
-			System.out.println("count in main while: " + count);
 			logRecord = log.getReference(count);
 			System.out.println(log.getReference(count));
 			fields = logRecord.split("\\$");
 			file = directory.root.find(directory.pathTokenizer(fields[2]), 1);
-			System.out.println("file: " + file);
 			if(fields[4].equals("0") || (file == null && !fields[3].contains("delete"))
 					|| (file != null && !file.chunkServersNum.contains(CSID))){
-				System.out.println("field 4 = 0; ignoring; continue, count = " + count);
 				count++;
 				continue;
 			}
@@ -880,7 +868,6 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				break;
 			case "deleteFile":
 				if(!deleteFileRedo(fields[2], CSID)){
-					System.out.println("trying to delete file.");
 					chunkservers.get(CSID).setStatus(CSStatus.DOWN);
 					return;
 				}
@@ -1253,31 +1240,29 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					boolean downCS = false;
 					try {
 						chunkservers.get(i).getCS().heartbeat();
-						System.out.println("Master sent heartbeat to " + i);
 					} catch (RemoteException e) {
 						downCS = true;
-						System.out.println("Could not connect to chunkserver " + i + " for heartbeat");
+						System.out.println("Could not connect to chunkserver " + i + " for Heartbeat");
 					}
 					if (downCS && chunkservers.get(i).getStatus() != CSStatus.DOWN){
 						//chunkserver has gone down
-						System.out.println("down " + i);
+						System.out.println("Chunkserver " + i + " status set to DOWN.");
 						chunkservers.get(i).setStatus(CSStatus.DOWN);
 					}
 					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.DOWN){
-						System.out.println("need to recover" + i);
+						System.out.println("Need to Recover Chunkserver " + i);
 						//initiate chunkserver recovery
 						tasks.add(new Task(TaskType.recoverCS, i));
 						chunkservers.get(i).setStatus(CSStatus.RECOVERING);
 						stateChanged();
 					}
 					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.OK){
-						System.out.println("cs okay " + i);
 						//chunkserver is still ok, so we assume up to date
 						chunkservers.get(i).setLastHB(System.currentTimeMillis());
 						chunkservers.get(i).setLastGoodTime(System.currentTimeMillis());
 					}
 					else if (!downCS && chunkservers.get(i).getStatus() == CSStatus.RECOVERING){
-						System.out.println("still recovering " + i);
+						System.out.println("Still recovering Chunkserver" + i);
 						//chunkserver is recovering so we do not assume this is a good time
 						chunkservers.get(i).setLastHB(System.currentTimeMillis());
 					}
