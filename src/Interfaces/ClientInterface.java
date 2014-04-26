@@ -11,7 +11,7 @@ public interface ClientInterface extends Remote {
 	public void setupClientHost(Integer i) throws RemoteException;
 	public void connectToMaster() throws RemoteException;
 	public void setChunkservers(Map<Integer, ChunkserverInterface> chunkservers) throws RemoteException;
-	public void connectToChunkserver(Integer index) throws RemoteException;
+	public void connectToChunkserver(Integer id) throws RemoteException;
 	public void requestStatus(String requestType, String fullPath, boolean succeeded, int ID) throws RemoteException;
 	public void passMetaData(String chunkhandle, int ID, List<Integer> chunkServersNum, int reqID) throws RemoteException;//chunkhandle, int id of primary, list of chunkservers
 
