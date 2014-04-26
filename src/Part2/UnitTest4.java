@@ -5,10 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.rmi.RemoteException;
-
 import Client.Client;
-import Part1.Part1FS;
-import Utilities.Storage;
+
 
 /*
 	 * Test4:  Store a file on the local machine in a target TFS file specified by its path. 
