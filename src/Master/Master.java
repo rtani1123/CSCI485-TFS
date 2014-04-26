@@ -74,10 +74,12 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		try {
 			connectToChunkserver(1);
 			chunkservers.get(1).getCS().connectToMaster();
-		
+		} catch(Exception e) {		}
+		try {
 			connectToChunkserver(2);
 			chunkservers.get(2).getCS().connectToMaster();
-		
+		} catch(Exception e) {		}
+		try {
 			connectToChunkserver(3);
 			chunkservers.get(3).getCS().connectToMaster();
 		}
@@ -113,34 +115,34 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 	//Master calls Chunkserver methods -> MASTERCHUNK1
-	public void connectToChunkserver(Integer index) {
+	public void connectToChunkserver(Integer id) {
 		try {
 			//connects existing chunkservers to new chunkserver.
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				if(!(entry.getKey().equals(index)) && entry.getValue().getStatus() != CSStatus.DOWN) {
-					((CSInfo)entry.getValue()).getCS().connectToChunkserver(index);
+				if(!(entry.getKey().equals(id)) && entry.getValue().getStatus() != CSStatus.DOWN) {
+					((CSInfo)entry.getValue()).getCS().connectToChunkserver(id);
 				}
 			}
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
-			if(index == 1)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
-			else if(index == 2)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
-			else if(index == 3)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
+			if(id == 1)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + id.toString());
+			else if(id == 2)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + id.toString());
+			else if(id == 3)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + id.toString());
 		
-			if(chunkservers.get(index) == null) {
-				CSInfo temp = new CSInfo(tempCS, index);
-				chunkservers.put(index, temp);
+			if(chunkservers.get(id) == null) {
+				CSInfo temp = new CSInfo(tempCS, id);
+				chunkservers.put(id, temp);
 			}
 			else {
-				System.out.println("Updating existing Chunkserver " + index);
-				chunkservers.get(index).setCS(tempCS);
-				chunkservers.get(index).setStatus(CSStatus.DOWN);
+				System.out.println("Updating existing Chunkserver " + id);
+				chunkservers.get(id).setCS(tempCS);
+				chunkservers.get(id).setStatus(CSStatus.DOWN);
 			}
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
-				if(entry.getValue().id != index) {
+				if(entry.getValue().id != id) {
 					tempCS.connectToChunkserver(entry.getKey());
 				}
 			}
@@ -148,19 +150,19 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
-			System.out.println("Connection to Chunkserver " + index + " Success" );
+			System.out.println("Connection to Chunkserver " + id + " Success" );
 
 		} catch(Exception re) {
-			System.out.println("Error in connect to Chunkserver " + index);
+			System.out.println("Error in connect to Chunkserver " + id);
 		}
 	}
 
 	//Master calls Client methods -> MASTERCLIENT
-	public void connectToClient(Integer index) {
+	public void connectToClient(Integer id) {
 		try {
-			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:"+index +"/CLIENT"+index);
-			clients.put(index, client);
-			System.out.println("Connection to Client " + index + " Success");
+			ClientInterface client = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:"+id +"/CLIENT"+id);
+			clients.put(id, client);
+			System.out.println("Connection to Client " + id + " Success");
 			HashMap<Integer, ChunkserverInterface> csTemp = new HashMap<Integer, ChunkserverInterface>();
 			for(Map.Entry<Integer, CSInfo> entry : chunkservers.entrySet()) {
 				if(entry.getValue().getStatus() == CSStatus.OK)
