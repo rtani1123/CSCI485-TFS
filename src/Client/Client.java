@@ -616,6 +616,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
 					System.out.println("Reading completely from chunkserver " + r.getChunkservers().get(randIndex));
 					try {
+						System.out.println("This are all chunkserver that client can read form: "+chunkservers.keySet());
 						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).readCompletely(r.getFullPath());
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
