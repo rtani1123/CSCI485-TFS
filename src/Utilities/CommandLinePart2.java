@@ -50,7 +50,8 @@ public class CommandLinePart2 {
 				System.out.println(" Atomic chunkHandle source withSize ");
 				System.out
 						.println(" Read chunkHandle offset length destination ");
-				System.out.println(" Read chunkHandle destination");
+				System.out.println(" Completely chunkHandle destination");
+				System.out.println(" NumFiles chunkHandle");
 			} else if (input.contains("CreateDirectory")) {
 				String[] actuallArgs = getArgs(input);
 				if (actuallArgs == null || actuallArgs.length != 1) {
@@ -148,37 +149,13 @@ public class CommandLinePart2 {
 				} else {
 					myClient.readCompletely(actualArgs[0], actualArgs[1]);
 				}
-			}
-			else if (input.contains("Unit1")) {
+			} else if(input.contains("NumFiles")) {
 				String[] actualArgs = getArgs(input);
-				if (actualArgs == null || actualArgs.length != 2) {
-					System.out
-							.println(" Please enter appropriate number of arguments. ");
+				if(actualArgs == null || actualArgs.length != 1) {
+					System.out.println(" Please enter appropriate number of arguments. ");
 				} else {
-					int count = 2;
-					System.out.println("C:/1");
-					while (count < Integer.parseInt(actualArgs[0])) {
-
-					}
+					myClient.numFiles(actualArgs[0]);
 				}
-			} else if (input.contains("Unit2")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit3")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit4")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit5")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit6")) {
-				String[] actualArgs = getArgs(input);
-
-			} else if (input.contains("Unit7")) {
-				String[] actualArgs = getArgs(input);
-
 			} else
 				System.out.println("Not a command");
 		}
