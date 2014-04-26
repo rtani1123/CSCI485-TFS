@@ -50,8 +50,12 @@ public class OperationsLog implements Serializable{
 		}
 	}
 	
-	public String getReference(int index){
-		return log.get(index).toString();
+	synchronized public String getReference(int index){
+		String reference;
+		synchronized(lock){
+			reference = log.get(index).toString();
+		}
+		return reference;
 	}
 	
 	public int getLength(){
