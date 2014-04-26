@@ -257,6 +257,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Sends heartbeat to chunkserver.  If the chunkserver is up, also set the last good time to current system timestamp.
+	 * @param CSID
+	 */
 	public void heartbeat(int CSID) throws RemoteException {
 		chunkservers.get(CSID).setLastHB(System.currentTimeMillis());
 		if(chunkservers.get(CSID).getStatus() == CSStatus.OK){
@@ -366,7 +370,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				availableCS.add(entry.getKey());
 			}
 			
-			//don't allow requests that requests more cs than available.
+			//don't allow requests that requests more chunkservers than available.
 			if (numReplicas > availableCS.size()){
 				System.out.println("Error. Number of replicas exceeds number of chunkservers.");
 				try{
@@ -933,7 +937,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * a createDirectory to catch up with current version of data.
 	 * @param path
 	 * @param chunkserverID
-	 * @return
+	 * @return true if message sent to chunkserver; false if message send failed.
 	 * @throws RemoteException
 	 */
 	public boolean createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
@@ -954,7 +958,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * create a file it should have.
 	 * @param chunkhandle
 	 * @param chunkserverID
-	 * @return
+	 * @return true if chunkserver(ID) is up for the message-pass; if not, return false.
 	 * @throws RemoteException
 	 */
 	public boolean createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
@@ -975,7 +979,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * file that, according to the Master, should not exist in the namespace.
 	 * @param chunkhandle
 	 * @param chunkserverID
-	 * @return
+	 * @return true if chunkserver(ID) is up for the message-pass; if not, return false.
 	 * @throws RemoteException
 	 */
 	public boolean deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
@@ -1221,19 +1225,35 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.lastHeartbeat = System.currentTimeMillis();
 			this.status = CSStatus.OK;
 		}
-
+		
+		/**
+		 * Returns the status of the chunkserver.
+		 * @return
+		 */
 		public CSStatus getStatus(){
 			return status;
 		}
 
+		/**
+		 * Returns last good time;
+		 * @return
+		 */
 		public long getLastGoodTime(){
 			return lastGoodTime;
 		}
 
+		/**
+		 * Returns last heartbeat time.
+		 * @return long lastHeartbeat.
+		 */
 		public long getLastHB(){
 			return lastHeartbeat;
 		}
 
+		/**
+		 * Returns ChunkserverInterface object in the CSInfo class.
+		 * @return
+		 */
 		public ChunkserverInterface getCS(){
 			return remoteCS;
 		}
