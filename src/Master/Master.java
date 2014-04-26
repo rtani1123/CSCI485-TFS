@@ -38,6 +38,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	final static long MINUTE = 60000;
 	final static long HEARTBEAT_DELAY = 5000;
 	public static Tree directory;
+	static Integer tempLock = -1;
 	OperationsLog log;
 	Semaphore stateChange;
 	private MasterThread masterThread;
@@ -732,7 +733,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					System.out.println("Error connecting to client.");
 				}
 			}
-			file.issuePrimaryLease(randomCS, System.currentTimeMillis());
+			synchronized(tempLock) {
+				file.issuePrimaryLease(randomCS, System.currentTimeMillis());
+			}
 			boolean primaryLeaseSuccess;
 			ArrayList<Integer> secondaries = new ArrayList<Integer>();
 			for(Integer CS: file.chunkServersNum){
@@ -742,7 +745,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 			try{
 				System.out.println("Issued primary lease to " + file.getPrimaryChunkserver());
-				chunkservers.get(randomCS).getCS().primaryLease(chunkhandle, secondaries);
+				synchronized(tempLock) {
+					chunkservers.get(randomCS).getCS().primaryLease(chunkhandle, secondaries);
+				}
 			}
 			catch(RemoteException re){
 				System.out.println("atomicAppendA: Error connecting to chunkserver " + 1);

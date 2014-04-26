@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Node implements Serializable{
+	static Integer lock = -1;
 	public Map<String, Node> children;
 	Node parent = null;
 	public String name="";
@@ -40,8 +41,10 @@ public class Node implements Serializable{
 	}
 	
 	public void issuePrimaryLease(int CSID, long time){
-		primaryChunkserverID = CSID;
-		primaryLeaseIssueTime = time;
+		synchronized(lock) {
+			primaryChunkserverID = CSID;
+			primaryLeaseIssueTime = time;
+		}
 	}
 	
 	public int getPrimaryChunkserver(){
