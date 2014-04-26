@@ -72,7 +72,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (RemoteException e) {
 			System.out.println("Chunkserver unable to connect to " +csIndex);
-		} catch (Exception e) {		}
+		} catch (Exception e) {	
+			System.out.println("Exception happens in set up connection");
+		}
 	}
 
 	/**
@@ -97,7 +99,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 	/**
 	 * Connecting ChunkServer(csIndex) to Client(index)
-	 * @param index
+	 * @param id
 	 */
 	public void connectToClient(Integer id) {
 		try {
@@ -114,7 +116,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 	/**
 	 * Connects ChunkServer(csIndex) to Client(index)
-	 * @param index
+	 * @param id
 	 */
 	public void connectToChunkserver(Integer id) {
 		try {
@@ -172,6 +174,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			e.printStackTrace();
 			return false;
 		}
+		System.out.println("File creation successful: "+chunkhandle);
 		return true;
 	}
 
@@ -191,9 +194,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			}
 		} catch (Exception e) {
 			System.out.println("Directory creation unsuccessful");
-			e.printStackTrace();
 			return false;
 		}
+		System.out.println("Directory creation successful: " +chunkhandle);
 		return true;
 	}
 
@@ -207,7 +210,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		String parsedPath = chunkhandle;
 		try {
 			File dFile = new File(parsedPath);
-			System.out.println("Now Deleting " + parsedPath);
+			System.out.println("Now Deleting: " + parsedPath);
 			String[] files = null;
 			if (dFile.isDirectory())
 				files = dFile.list();
@@ -262,16 +265,21 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	@Override
 	public byte [] readCompletely(String chunkhandle) throws RemoteException{
 		File f = new File(chunkhandle);	
-		
 		byte[] b = new byte[(int)f.length()];
+		RandomAccessFile raf = null ;
 		try {
-			RandomAccessFile raf = new RandomAccessFile(f,"r");
+			raf = new RandomAccessFile(f,"r");
 			raf.readFully(b);
 			raf.close();
 		} catch (Exception e) {
-			e.printStackTrace();
 			System.err.println("File read completely exception for " +chunkhandle);
 			return new byte[0];
+		}finally{
+			try {
+				raf.close();
+			} catch (IOException e) {
+				System.out.println("Unable to close the raf file");
+			}
 		}
 		return b;
 	}
@@ -294,8 +302,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Truncating out of bounds read.");
 		}
 		byte[] b = new byte[length];
+		RandomAccessFile raf=null;
 		try {
-			RandomAccessFile raf = new RandomAccessFile(f, "r");
+			raf = new RandomAccessFile(f, "r");
 			raf.seek(offset);
 			raf.readFully(b);
 			raf.close();
@@ -303,6 +312,12 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			e.printStackTrace();
 			System.out.println("Error in creating RandomAccessFile in read. Returning byte array of 0 size.");
 			return new byte[0];
+		}finally{
+			try {
+				raf.close();
+			} catch (IOException e) {
+				System.out.println("Unable to close the raf file");
+			}
 		}
 		return b;
 	}
@@ -320,9 +335,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	public boolean append(String chunkhandle, byte[] payload, int length,
 			int offset, boolean withSize) throws RemoteException {
 		File f = new File(chunkhandle);
-		System.out.println("Chunkserver append was called.");
+		RandomAccessFile raf = null;
 		try {
-			RandomAccessFile raf = new RandomAccessFile(f, "rws");
+			raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
 			System.err.println("Append offset by: " + offset);
 			raf.write(payload);
@@ -331,7 +346,14 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Append was unsuccessful");
 			e.printStackTrace();
 			return false;
+		}finally{
+			try {
+				raf.close();
+			} catch (IOException e) {
+				System.out.println("Unable to close the raf file");
+			}
 		}
+		System.out.println("Append successful");
 		CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
 		ChunkserverMetadata.storeTree(CSMetadata);
 		return true;
@@ -355,9 +377,10 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		if (System.currentTimeMillis() < CSMetadata.get(chunkhandle).getPrimaryLeaseTime() + LEASETIME) {
 			System.out.println("This is a primary");
 			File f = new File(chunkhandle); 
-			long offset = 0;								
+			long offset = 0;
+			RandomAccessFile raf = null;
 			try {
-				RandomAccessFile raf = new RandomAccessFile(f, "rws");
+				raf = new RandomAccessFile(f, "rws");
 				System.err.println("Atomic append seek length " + raf.length());
 				raf.seek(raf.length());
 				offset = raf.length();
@@ -371,8 +394,13 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 				raf.close();
 			} catch (Exception e) {
 				System.out.println("atomic append unsuccessful");
-				e.printStackTrace();
 				return false;
+			}finally{
+				try {
+					raf.close();
+				} catch (IOException e) {
+					System.out.println("Unable to close the raf file");
+				}
 			}
 			CSMetadata.get(chunkhandle).setWriteTime(System.currentTimeMillis());
 			ChunkserverMetadata.storeTree(CSMetadata);
@@ -387,6 +415,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 					System.out.println("Unable to push to secondary " + CSMetadata.get(chunkhandle).getSecondaries().get(i) + " because unavailable.");
 				}
 			}
+			System.out.println("Successful atomic append");
 			return true;
 		} else {
 			System.out.println("Unable to append because not the primary");
@@ -407,9 +436,9 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			int length, boolean withSize, long offset) throws RemoteException {
 		System.out.println("This is a secondary");
 		File f = new File(chunkhandle); // might have to parse chunkhandle into
-
+		RandomAccessFile raf = null;
 		try {
-			RandomAccessFile raf = new RandomAccessFile(f, "rws");
+			raf = new RandomAccessFile(f, "rws");
 			raf.seek(offset);
 			if (withSize) {
 				ByteBuffer bb = ByteBuffer.allocate(4);
@@ -423,6 +452,12 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("atomic append unsuccessful");
 			e.printStackTrace();
 			return false;
+		}finally{
+			try {
+				raf.close();
+			} catch (IOException e) {
+				System.out.println("Unable to close the raf file");
+			}
 		}
 
 		return false;
@@ -444,10 +479,14 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		catch (Exception e){
 			System.out.println("Fetch and rewrite failure");
 		}
+		System.out.println("Successful fetch and rewrite");
 	}
+	/**
+	 * Getting number of separate files in one file
+	 * @param fullPath
+	 */
 	@Override
 	public byte [] numFiles(String fullPath) throws RemoteException{
-		
 		File f = new File(fullPath);
 		if (!f.exists())
 		{
@@ -466,7 +505,6 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		int count = 1;
 		while(offset < f.length())
 		{
-			System.out.println("Size of file " + count + " is " + sz + " bytes");
 			offset += sz;
 			if(offset < f.length())
 			{
@@ -479,7 +517,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		}
 		ByteBuffer b = ByteBuffer.allocate(4);
 		b.putInt(count);
-		System.out.println(fullPath + " contains " + count + " separate files");
+		System.out.println("Number of separate files are "+count);
 		return b.array();
 	}
 

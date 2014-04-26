@@ -119,7 +119,7 @@ public class Request {
 
 	/**
 	 * 
-	 * @return
+	 * @return true if request has received locations of task destinations.
 	 */
 	public boolean isReceived() {
 		if (state == rState.ReceivedLocations) return true;
@@ -128,7 +128,7 @@ public class Request {
 
 	/**
 	 * 
-	 * @return
+	 * @return true if sent to chunkserver.
 	 */
 	public boolean isSentToChunk() {
 		if (state == rState.SentToChunk) return true;
@@ -137,7 +137,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return if request is completed.
 	 */
 	public boolean isComplete() {
 		if (state == rState.Completed) return true;
@@ -170,7 +170,7 @@ public class Request {
 	// getters
 	/**
 	 * 
-	 * @return
+	 * @return full path of destination.
 	 */
 	public String getFullPath() {
 		return fullPath;
@@ -178,7 +178,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return primary chunkserver ID.
 	 */
 	public int getPrimaryID() {
 		return primaryID;
@@ -186,7 +186,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return request ID.
 	 */
 	public int getReqID() {
 		return reqID;
@@ -194,7 +194,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return length of file in request.
 	 */
 	public int getLength() {
 		return length;
@@ -202,7 +202,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return Integer offset.
 	 */
 	public int getOffset() {
 		return offset;
@@ -210,7 +210,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return request type.
 	 */
 	public String getRequestType() {
 		return requestType;
@@ -218,7 +218,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return payload
 	 */
 	public byte[] getPayload() {
 		return payload;
@@ -226,7 +226,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return list of chunkservers
 	 */
 	public List<Integer> getChunkservers() {
 		return chunkservers;
@@ -234,7 +234,7 @@ public class Request {
 	
 	/**
 	 * 
-	 * @return
+	 * @return withSize.
 	 */
 	public boolean getWithSize(){
 		return withSize;

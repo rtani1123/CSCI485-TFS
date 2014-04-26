@@ -42,6 +42,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	Map<Integer, CSInfo> chunkservers;
 	Heartbeat heartbeat;
 
+	/**
+	 * Constructor for the Master does the following:
+	 * 	- Initializes a list of chunkservers and clients to which to connect.
+	 *  - Initializes a list of tasks to be processed by Master agent code.
+	 *  @see Master.Heartbeat - Starts the heartbeat process for chunkservers
+	 *  - Automatically attempts to connect to initial client (ID hardcoded to 11), as well as 3 chunkservers.
+	 * @throws RemoteException
+	 */
 	public Master() throws RemoteException{
 		if(Storage.getTree() != null) {
 			directory = Storage.getTree();
@@ -108,6 +116,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			System.out.println("Bad connection - Misc Exception");
 		}
 	}
+	/**
+	 * Connects to Chunkserver ID.
+	 * @param id - ID of Chunkserver to which to connect.  Referenced in Map<Integer, CSInfo> chunkservers
+	 */
 	//Master calls Chunkserver methods -> MASTERCHUNK1
 	public void connectToChunkserver(Integer id) {
 		try {
@@ -154,6 +166,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 
+	/**
+	 * Connects to Client ID
+	 * @param id - Client to which to be connected.  Referenced in Map<Integer, ClientInterface> clients
+	 */
 	//Master calls Client methods -> MASTERCLIENT
 	public void connectToClient(Integer id) {
 		try {
@@ -180,6 +196,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChange.release();
 	}
 
+	/**
+	 * Starts the master agent thread.
+	 */
 	public synchronized void startThread() {
 		if (masterThread == null) {
 			masterThread = new MasterThread();
@@ -189,6 +208,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 	}
 
+	/**
+	 * Stops the master agent.
+	 */
 	public void stopThread() {
 		if (masterThread != null) {
 			masterThread.stopAgent();
@@ -200,6 +222,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * Messages from Clients or Chunkservers
 	 * */
 
+	/**
+	 * Adds createFile task to scheduler.
+	 */
 	public void createFile(String path, String fileName, int numReplicas,
 			int clientID) throws RemoteException {
 		tasks.add(new Task(TaskType.createF,path,fileName,numReplicas,clientID));
@@ -208,6 +233,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds deleteFileMaster task to scheduler.
+	 */
 	public void deleteFileMaster(String chunkhandle, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.deleteF,chunkhandle,clientID));
@@ -216,6 +244,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds createDirectory task to scheduler.
+	 */
 	public void createDirectory(String path, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.createD,path,clientID));
@@ -223,6 +254,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		System.out.println("Master received createDirectory request for " + path);
 		stateChanged();
 	}
+	
+	/**
+	 * Adds deleteDirectory task to scheduler.
+	 */
 	public void deleteDirectory(String path, int clientID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.deleteD,path,clientID));
@@ -231,6 +266,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds append task to scheduler.
+	 */
 	public void append(String chunkhandle, int clientID, int reqID) throws RemoteException {
 		tasks.add(new Task(TaskType.append,chunkhandle,clientID, reqID));
 		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "append", 0);
@@ -238,6 +276,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds atomicAppend task to scheduler.
+	 */
 	public void atomicAppend(String chunkhandle, int clientID, int reqID)
 			throws RemoteException {
 		tasks.add(new Task(TaskType.aAppend,chunkhandle,clientID,reqID));
@@ -246,6 +287,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Adds read task to scheduler.
+	 */
 	public void read(String chunkhandle, int clientID, int reqID) throws RemoteException{
 		tasks.add(new Task(TaskType.read,chunkhandle,clientID,reqID));
 		log.makeLogRecord(System.currentTimeMillis(), chunkhandle, "read", 0);
@@ -255,7 +299,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Sends heartbeat to chunkserver.  If the chunkserver is up, also set the last good time to current system timestamp.
-	 * @param CSID
+	 * @param CSID - Chunkserver ID to be sent heartbeat.
 	 */
 	public void heartbeat(int CSID) throws RemoteException {
 		chunkservers.get(CSID).setLastHB(System.currentTimeMillis());
@@ -336,11 +380,11 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * It is exclusively a handshake and does not transfer data, although it does result in
 	 * creation of the file on the chunkservers. The default number of replicas is three (one copy on each
 	 * chunkserver), and the maximum number of replicas is also 3.
-	 * @param path
-	 * @param fileName
-	 * @param numReplicas
-	 * @param clientID
-	 * @throws RemoteException
+	 * @param path - Path of file to be created
+	 * @param fileName - name of file.
+	 * @param numReplicas - number of replicas to be created.
+	 * @param clientID - ID of client sending request.
+	 * @throws RemoteException 
 	 */
 	public void createFileA(String path, String fileName, int numReplicas, int clientID) throws RemoteException
 	{
@@ -453,8 +497,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * The function deleteFileMasterA deletes all metadata for a given file from the master.
 	 * It also orders the chunkservers storing the file itself to remove the file and its 
 	 * corresponding metadata.
-	 * @param chunkhandle
-	 * @param clientID
+	 * @param chunkhandle - Path + name of file referenced.
+	 * @param clientID - ID of Client calling to delete file.
 	 * @throws RemoteException
 	 */
 	public void deleteFileMasterA(String chunkhandle, int clientID) throws RemoteException
@@ -513,8 +557,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	/**
 	 * The function createDirectoryA creates a directory within the master namespace.
 	 * It also orders for the directory to be created on all chunkservers.
-	 * @param path
-	 * @param clientID
+	 * @param path - path of directory to be created.
+	 * @param clientID - ID of client calling createDirectory
 	 * @throws RemoteException
 	 */
 	public void createDirectoryA(String path, int clientID) throws RemoteException{
@@ -573,8 +617,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * The function deleteDirectoryA immediately deletes the given directory and
 	 * all of its contents from both the master namespace and any replicas that 
 	 * store it.
-	 * @param path
-	 * @param clientID
+	 * @param path - path of directory to be deleted.
+	 * @param clientID - ID of client calling deleteDirectory
 	 * @throws RemoteException
 	 */
 	public void deleteDirectoryA(String path, int clientID) throws RemoteException
@@ -629,8 +673,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * The appendA function returns metadata sufficient for an append to the client
 	 * that has requested it. The parameter for primaryLease passed to the client is 
 	 * null because no primary lease is required.
-	 * @param chunkhandle
-	 * @param clientID
+	 * @param chunkhandle - chunkhandle of the file to which to be appended
+	 * @param clientID - ID of client calling file append
 	 * @throws RemoteException
 	 */
 	public void appendA(String chunkhandle, int clientID, int reqID) throws RemoteException
@@ -670,8 +714,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * The readA function sends metadata for the appropriate chunkhandle to the 
 	 * client that requested it. Like append, it sends a null parameter for the primary
 	 * lease chunkserver.
-	 * @param chunkhandle
-	 * @param clientID
+	 * @param chunkhandle - chunkhandle of file to be read.
+	 * @param clientID - ID of client sending read request
+	 * @param reqID - request ID.
 	 * @throws RemoteException
 	 */
 	public void readA(String chunkhandle, int clientID, int reqID) throws RemoteException {
@@ -712,8 +757,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * to the client. If the primary lease does not exist, it picks a random chunkserver
 	 * that is storing the replica for the file and issues a primary lease before 
 	 * messaging the client.
-	 * @param chunkhandle
-	 * @param clientID
+	 * @param chunkhandle - chunkhandle of file to which to be atomically appended.
+	 * @param clientID - ID of client calling atomicAppend.
+	 * @param reqID - request ID.
 	 * @throws RemoteException
 	 */
 	public void atomicAppendA(String chunkhandle, int clientID, int reqID) throws RemoteException
@@ -814,7 +860,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Restore chunkserver is passed the ID for the chunkserver that has gone down and is now recovering.
-	 * @param CSID
+	 * @param CSID - Chunkserver ID to be restored.
 	 * @throws RemoteException
 	 */
 	public void restoreChunkserver(int CSID) throws RemoteException {
@@ -932,8 +978,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	/**
 	 * The Chunkserver Restoration algorithm will call this method if a chunkserver needs to run
 	 * a createDirectory to catch up with current version of data.
-	 * @param path
-	 * @param chunkserverID
+	 * @param path - path of directory to be created.
+	 * @param chunkserverID - ID of chunkserver that needs directory.
 	 * @return true if message sent to chunkserver; false if message send failed.
 	 * @throws RemoteException
 	 */
@@ -954,8 +1000,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	/**
 	 * The Chunkserver Restoration algorithm will call this method if a chunkserver needs to
 	 * create a file it should have.
-	 * @param chunkhandle
-	 * @param chunkserverID
+	 * @param chunkhandle - chunkhandle path to be created.
+	 * @param chunkserverID - ID of chunkserver that needs file.
 	 * @return true if chunkserver(ID) is up for the message-pass; if not, return false.
 	 * @throws RemoteException
 	 */
@@ -975,8 +1021,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	/**
 	 * The Chunkserver Restoration algorithm will call this method if the recovering chunkserver has a
 	 * file that, according to the Master, should not exist in the namespace.
-	 * @param chunkhandle
-	 * @param chunkserverID
+	 * @param chunkhandle - chunkhandle of file to be deleted.
+	 * @param chunkserverID - ID of chunkserver that needs to delete a file.
 	 * @return true if chunkserver(ID) is up for the message-pass; if not, return false.
 	 * @throws RemoteException
 	 */
@@ -996,8 +1042,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	/**
 	 * The Chunkserver Restoration algorithm will call this method if the recovering chunkserver has a
 	 * directory that, according to the Master, should not exist in the namespace.
-	 * @param path
-	 * @param chunkserverID
+	 * @param path - path of directory to be deleted.
+	 * @param chunkserverID - id of chunkserver that needs to delete a directory.
 	 * @return true if chunkserver(ID) is up for the message-pass; if not, 
 	 * error in connecting to chunkserver and return false.
 	 * @throws RemoteException
@@ -1019,8 +1065,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * The Chunkserver Restoration algorithm will call this method if the recovering chunkserver is
 	 * behind on an append request.  The system will look for replicas that have the file with up-to-date
 	 * timestamps.
-	 * @param chunkhandle
-	 * @param chunkserverID
+	 * @param chunkhandle - chunkhandle that needs to re-append.
+	 * @param chunkserverID - ID of chunkserver that needs append to file chunkhandle.
 	 * @return true if chunkserver(ID) is up for the message-pass; if not, 
 	 * error in connecting to chunkserver and return false.
 	 * @throws RemoteException
@@ -1051,7 +1097,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Returns a random chunkserver index when passed a list of Chunkservers.
-	 * @param chunkServersNum
+	 * @param chunkServersNum - list of chunkservers passed.
 	 * @return integer of random chunkserver, created by Random, indexed by
 	 * chunkServersNum.get(chosenIndex), referenced by chunkservers.get(chosenID)
 	 */
@@ -1085,11 +1131,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		return chosenID;
 	}
 
+	/**
+	 * Main class for the Master.
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
 			Master master = new Master();
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Error in creating Master instance");
 		}
 	}
@@ -1234,7 +1283,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		
 		/**
 		 * Returns the status of the chunkserver.
-		 * @return
+		 * @return enum chunkserver status.
 		 */
 		public CSStatus getStatus(){
 			return status;
@@ -1242,7 +1291,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		/**
 		 * Returns last good time;
-		 * @return
+		 * @return last good time.
 		 */
 		public long getLastGoodTime(){
 			return lastGoodTime;
@@ -1258,7 +1307,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		/**
 		 * Returns ChunkserverInterface object in the CSInfo class.
-		 * @return
+		 * @return ChunkserverInterface.
 		 */
 		public ChunkserverInterface getCS(){
 			return remoteCS;
