@@ -49,6 +49,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public static final String ATOMIC_APPEND = "atomicAppend";
 	public static final String READ = "read";
 	public static final String READ_COMPLETELY = "readCompletely";
+	public static final String NUM_FILES = "numFiles";
 
 	public static final long METADATA_LIFESPAN = 10000;
 	//	public static Client myClient=null;
@@ -393,7 +394,55 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 		}
 	}
-
+	public void numFiles(String chunkhandle){
+		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
+		// metadata exists and has not expired; do not contact master
+		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) > System.currentTimeMillis()) { 
+			try {
+				countLock.acquire();
+				count++;
+				// this constructor adds the request knowing that it already has
+				// the server locations
+				ClientMetaDataItem i = (ClientMetaDataItem) clientMetaDataArray.get(index);
+				Request r = new Request(NUM_FILES, chunkhandle, count,i.chunkservers);
+				pendingRequests.add(r);
+				countLock.release();
+				contactChunks(r.getReqID());
+			} catch (InterruptedException e) {
+				System.out.println("Interrupted Exception in read completely method");
+			}
+		} 
+		// metadata does not exist or has expired
+		else{
+			// metadata exists but has expired
+			if(index > -1){
+				clientMetaDataArray.remove(index);
+			}
+			int id = -1;
+			try {
+				countLock.acquire();
+				id = ++count;
+				Request temp = new Request(NUM_FILES, chunkhandle, count);
+				pendingRequests.add(temp);
+				master.read(chunkhandle, clientID, count);
+				countLock.release();
+			} catch (RemoteException e) {
+				System.out.println("Could not connect to master to read completely.");
+				masterState.stateChanged();
+				// Remove request if could not connect to master
+				int ind = -1;
+				for (int x = 0; x < pendingRequests.size(); x++) {
+					if (pendingRequests.get(x).getReqID() == id) {
+						ind = x;
+						break;
+					}
+				}
+				pendingRequests.remove(ind);
+			} catch (InterruptedException e) {
+				System.out.println("Interrupted Exception in read completely method");
+			}
+		}
+	}
 	/**
 	 * Application calls read file completely.  File is pulled from a chunkserver to the client, written
 	 * to a new file on Client local machine, specified by Application.
@@ -655,6 +704,25 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					}
 					catch(FileNotFoundException fnfe){
 						System.err.println("Local destination file for read completely unable to be created.");
+					}
+					catch(IOException ioe){
+						System.err.println("Error creating or writing to local file for read completely ouput.");
+						pendingRequests.remove(r);
+					}
+				}else if ((r.getRequestType()).equals(NUM_FILES)) {
+					//for (int cs : r.getChunkservers()) {
+					Random rand = new Random();
+					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
+					System.out.println("Reading number of files from chunkserver " + r.getChunkservers().get(randIndex));
+					try {
+						System.out.println("This are all chunkserver that client can get information form: "+r.getChunkservers().toString());
+						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).numFiles(r.getFullPath());
+						System.out.println(r.reqID);
+						System.out.println(r.fullPath);
+						pendingRequests.remove(r);
+						System.out.println(result.toString());
+					} catch (RemoteException e) {
+						System.out.println("Failed to connect to chunkserver for read completely");
 					}
 					catch(IOException ioe){
 						System.err.println("Error creating or writing to local file for read completely ouput.");

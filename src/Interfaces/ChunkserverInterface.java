@@ -54,4 +54,5 @@ public interface ChunkserverInterface extends Remote{
 	//functions called by other CS
 	public boolean atomicAppendSecondary(String chunkhandle, byte[] payload, int length, boolean withSize, long offset) throws RemoteException;
 	public byte[] readCompletely(String chunkhandle)throws RemoteException;
+	public byte[] numFiles(String chunkhandle)throws RemoteException;
 }
