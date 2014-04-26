@@ -1,16 +1,7 @@
 package Part2;
 
-import java.io.File;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
-
 import Client.Client;
-import Master.Master;
-import Utilities.Node;
-import Utilities.Tree;
 
 /*
  * Test2: Create N files in a directory and its subdirectories until the leaf subdirectories.  Each file in a directory is named File1, File2, ..., FileN

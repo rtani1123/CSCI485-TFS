@@ -1,10 +1,7 @@
 package Part2;
 
 import java.rmi.RemoteException;
-
 import Client.Client;
-import Part1.Part1FS;
-import Utilities.Storage;
 
 /*
  * Test3:  Delete a hierarchical directory structure including the files in those directories.

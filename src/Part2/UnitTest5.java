@@ -1,14 +1,8 @@
 package Part2;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.rmi.RemoteException;
-
 import Client.Client;
-import Part1.Part1FS;
-import Utilities.Storage;
+
 
 /*
 	 *  Read the content of a TFS file and store it on the specified file on the local machine.
