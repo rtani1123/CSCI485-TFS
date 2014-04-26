@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.ByteBuffer;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -612,6 +613,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		System.out.println("contacting chunks... ");
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
+			if(r.getChunkservers().size()==0){
+				System.out.println("There is no available chunkserver to contact with, please try again in a few mintues.");
+				break;
+			}
+				
 			if (r.getReqID() == rID) {
 				if ((r.getRequestType()).equals(APPEND)) {
 					System.out.println("chunkservers for append in contactCS func: "+r.getChunkservers());
@@ -726,7 +732,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
 						pendingRequests.remove(r);
-						System.out.println(result.toString());
+						ByteBuffer wrapped = ByteBuffer.wrap(result);
+						int resInt = wrapped.getInt();
+						System.out.println("Number of separate files are: " + resInt);
 					} catch (RemoteException e) {
 						System.out.println("Failed to connect to chunkserver for read completely");
 					}
