@@ -70,30 +70,18 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 		try {
 			connectToClient(11);
-		} catch(Exception e) {
-			System.out.println("Cannot connect to client");
-		}
+		} catch(Exception e) {		}
 		try {
 			connectToChunkserver(1);
 			chunkservers.get(1).getCS().connectToMaster();
-		}
-		catch(Exception e) {
-			System.out.println("Chunkserver 1 not running.");
-		}
-		try {
+		
 			connectToChunkserver(2);
 			chunkservers.get(2).getCS().connectToMaster();
-		}
-		catch(Exception e) {
-			System.out.println("Chunkserver 2 not running.");
-		}
-		try {
+		
 			connectToChunkserver(3);
 			chunkservers.get(3).getCS().connectToMaster();
 		}
-		catch(Exception e) {
-			System.out.println("Chunkserver 3 not running.");
-		}
+		catch(Exception e) {		}
 		//client.createDirectory("C:/1");
 	}
 
