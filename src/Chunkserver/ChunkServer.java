@@ -100,13 +100,13 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	 * Connecting ChunkServer(csIndex) to Client(index)
 	 * @param index
 	 */
-	public void connectToClient(Integer index) {
+	public void connectToClient(Integer id) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 
-			ClientInterface myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:" + index + "/CLIENT" + index);
-			clients.put(index, myClient);
-			System.out.println("Connection to Client " + index + " Success");
+			ClientInterface myClient = (ClientInterface)Naming.lookup("rmi://dblab-43.vlab.usc.edu:" + id + "/CLIENT" + id);
+			clients.put(id, myClient);
+			System.out.println("Connection to Client " + id + " Success");
 
 		} catch(Exception re) {
 			System.out.println("Client failure to host");
@@ -117,25 +117,25 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	 * Connects ChunkServer(csIndex) to Client(index)
 	 * @param index
 	 */
-	public void connectToChunkserver(Integer index) {
+	public void connectToChunkserver(Integer id) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
-			System.out.println("Connected to " + index);
-			if(index == 1)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
-			else if(index == 2)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
-			else if(index == 3)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
-			chunkservers.put(index, tempCS);
+			System.out.println("Connected to " + id);
+			if(id == 1)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + id.toString());
+			else if(id == 2)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + id.toString());
+			else if(id == 3)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + id.toString());
+			chunkservers.put(id, tempCS);
 			
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
 
 		} catch(Exception re) {
-			System.out.println("Failed connection to Chunkserver " + index);
+			System.out.println("Failed connection to Chunkserver " + id);
 		}
 	}
 	
