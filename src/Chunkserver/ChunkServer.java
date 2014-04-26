@@ -396,7 +396,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 					System.out.println(CSMetadata.get(chunkhandle));
 					System.out.println(CSMetadata.get(chunkhandle).getSecondaries());
 					System.out.println(CSMetadata.get(chunkhandle).getSecondaries().get(i));
-					
+					System.out.println(chunkservers.keySet());
 					chunkservers.get(CSMetadata.get(chunkhandle).getSecondaries().get(i)).atomicAppendSecondary(chunkhandle, payload, length, withSize,offset );
 				}
 				catch (RemoteException re){
