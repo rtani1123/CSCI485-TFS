@@ -99,7 +99,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 	/**
 	 * Connecting ChunkServer(csIndex) to Client(index)
-	 * @param index
+	 * @param id
 	 */
 	public void connectToClient(Integer id) {
 		try {
@@ -116,7 +116,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 
 	/**
 	 * Connects ChunkServer(csIndex) to Client(index)
-	 * @param index
+	 * @param id
 	 */
 	public void connectToChunkserver(Integer id) {
 		try {

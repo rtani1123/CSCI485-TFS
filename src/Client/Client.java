@@ -123,7 +123,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	/**
 	 * When the client connects, it requests the most current list of chunkservers from the Master.
 	 * The client then automatically attempts to connect to each chunkserver in a reciprocal RMI instance.
-	 * @param chunkservers
+	 * @param CS
 	 */
 	public void setChunkservers(Map<Integer, ChunkserverInterface> CS) {
 		for(Map.Entry<Integer, ChunkserverInterface> entry : CS.entrySet()) {
@@ -141,7 +141,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 	/**
 	 * Connection to Chunkserver method.
-	 * @param index
+	 * @param id
 	 */
 	public void connectToChunkserver(Integer id) {
 		try {
@@ -588,10 +588,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 	/**
-	 * Returns -1 if the passed chunkhandle does not exist in the current client metadata.
-	 * Else, it returns the value of the client metadata index that contains the passed chunkhandle.
+	 * 
 	 * @param chunkhandle
-	 * @return 
+	 * @return Returns -1 if the passed chunkhandle does not exist in the current client metadata.
+	 * Else, it returns the value of the client metadata index that contains the passed chunkhandle.
 	 */
 
 	// return index of metadata for chunkhandle if already known
