@@ -15,6 +15,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import Interfaces.ChunkserverInterface;
@@ -158,7 +159,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	 * 
 	 */
 	@Override
-	public void primaryLease(String chunkhandle, ArrayList<Integer> CServers)
+	public void primaryLease(String chunkhandle, List<Integer> CServers)
 			throws RemoteException {
 		CSMetadata.get(chunkhandle).setPrimaryLeaseTime(System.currentTimeMillis());
 		CSMetadata.get(chunkhandle).setSecondaries(CServers);
