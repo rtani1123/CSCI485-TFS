@@ -8,6 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import Utilities.OperationsLog;
@@ -16,7 +18,7 @@ import Utilities.Tree;
 public class ChunkserverMetadata implements Serializable {
 	long primaryLeaseTime;
 	long writeTime;
-	ArrayList<Integer> secondaries = new ArrayList<Integer>();
+	List<Integer> secondaries = Collections.synchronizedList(new ArrayList<Integer>());
 	String chunkhandle;
 
 	public ChunkserverMetadata(String chunkhandle){
@@ -33,7 +35,7 @@ public class ChunkserverMetadata implements Serializable {
 		primaryLeaseTime = time;
 	}
 
-	public void setSecondaries(ArrayList<Integer> secondaries){
+	public void setSecondaries(List<Integer> secondaries){
 		this.secondaries = secondaries;
 	}
 
@@ -45,7 +47,7 @@ public class ChunkserverMetadata implements Serializable {
 		return primaryLeaseTime;
 	}
 
-	public ArrayList<Integer> getSecondaries() {
+	public List<Integer> getSecondaries() {
 		return secondaries;
 	}
 

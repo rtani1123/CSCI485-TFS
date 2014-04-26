@@ -1,6 +1,7 @@
 package Client;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
 public class ClientMetaDataItem {
 	String chunkhandle;
 	int ID;
-	ArrayList<Integer> chunkservers;
+	List<Integer> chunkservers;
 	
 	/**
 	 * ClientMetaDataItem constructor
@@ -23,7 +24,7 @@ public class ClientMetaDataItem {
 	public ClientMetaDataItem(String _chunkhandle, int _ID, List<Integer> chunkserversList){
 		chunkhandle = _chunkhandle;
 		ID = _ID;
-		chunkservers = new ArrayList<Integer>();
+		chunkservers = Collections.synchronizedList(new ArrayList<Integer>());
 		for (int i = 0; i <  chunkserversList.size(); i++) {
 			int z = (int)  chunkserversList.get(i);
 			chunkservers.add(z);
