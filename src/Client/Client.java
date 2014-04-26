@@ -498,6 +498,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 							if ((clientMetaDataArray.get(j).chunkhandle).equals(chunkhandle)) {
 								exists = true;
 								(clientMetaDataArray.get(j)).setID(pID); 
+								(clientMetaDataArray.get(j)).setChunkservers(chunkserversList);
 								// update the primary lease in case it is different/has changed
 								break;
 							}
