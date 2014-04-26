@@ -28,7 +28,9 @@ import Interfaces.MasterInterface;
  * Master and/or Chunkservers appropriately based on the request.  For appends,
  * atomic appends, or reads it creates a Request object to handle the data
  * intermediately.  For read requests, it may use a stored ClientMetaDataItem in
- * place of contacting the Master to save time.
+ * place of contacting the Master to save time. This MetadataItem will expire after
+ * a set period of time, in which case the Client will have to contact the Master
+ * to get the most current metadata.
  */
 public class Client extends UnicastRemoteObject implements ClientInterface {
 	ArrayList<ClientMetaDataItem> clientMetaDataArray; // locations of replicas
