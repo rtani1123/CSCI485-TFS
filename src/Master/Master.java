@@ -638,8 +638,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			}
 		}
 		else{
+			ArrayList<Integer> liveCS = new ArrayList<Integer>();
+			for (Integer potentialCS : file.chunkServersNum){
+				if(chunkservers.get(potentialCS).getStatus() == CSStatus.OK){
+					liveCS.add(potentialCS);
+				}
+			}
 			try{
-				clients.get(clientID).passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
+				clients.get(clientID).passMetaData(chunkhandle, -1, liveCS, reqID);
 				System.out.println("Metadata sent to client.");
 			}
 			catch(RemoteException re){
@@ -672,7 +678,13 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		else{
 			try{
-				clients.get(clientID).passMetaData(chunkhandle, -1, file.chunkServersNum, reqID);
+				ArrayList<Integer> liveCS = new ArrayList<Integer>();
+				for (Integer potentialCS : file.chunkServersNum){
+					if(chunkservers.get(potentialCS).getStatus() == CSStatus.OK){
+						liveCS.add(potentialCS);
+					}
+				}
+				clients.get(clientID).passMetaData(chunkhandle, -1, liveCS, reqID);
 				System.out.println("Metadata sent to client.");
 			}
 			catch(RemoteException re){
