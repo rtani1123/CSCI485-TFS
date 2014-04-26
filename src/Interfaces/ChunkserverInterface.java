@@ -39,8 +39,8 @@ public interface ChunkserverInterface extends Remote{
 	//functions called by the master
 	public void setupChunkserverHost() throws RemoteException;
 	public void connectToMaster() throws RemoteException;
-	public void connectToClient(Integer index) throws RemoteException;
-	public void connectToChunkserver(Integer index) throws RemoteException;
+	public void connectToClient(Integer id) throws RemoteException;
+	public void connectToChunkserver(Integer id) throws RemoteException;
 	//public Map<String, Long> refreshMetadata() throws RemoteException;
 	public void primaryLease(String chunkhandle, List<Integer> CServers) throws RemoteException;
 	public boolean createFile(String chunkhandle) throws RemoteException;

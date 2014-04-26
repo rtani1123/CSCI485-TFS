@@ -140,29 +140,29 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * Connection to Chunkserver method.
 	 * @param index
 	 */
-	public void connectToChunkserver(Integer index) {
+	public void connectToChunkserver(Integer id) {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
 
-			if(index == 1)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + index.toString());
-			else if(index == 2)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + index.toString());
-			else if(index == 3)
-				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + index.toString());
+			if(id == 1)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + id.toString());
+			else if(id == 2)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-05.vlab.usc.edu:124/CHUNK" + id.toString());
+			else if(id == 3)
+				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + id.toString());
 
 			// TODO: Change this to handle multiple chunkservers.
 			// chunkservers.put(1, tempCS);
-			chunkservers.put(index,tempCS);
+			chunkservers.put(id,tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
-			System.out.println("Connection to Chunkserver " + index
+			System.out.println("Connection to Chunkserver " + id
 					+ " Success");
 
 		} catch (Exception re) {
-			System.out.println("Failure to connect to Chunkserver " + index);
+			System.out.println("Failure to connect to Chunkserver " + id);
 		}
 	}
 
