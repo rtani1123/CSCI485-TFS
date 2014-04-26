@@ -28,7 +28,7 @@ public class UnitTest2 {
 			if(directory.contains(startingPath)){
 				for (int i = 0; i < numFiles; i++){
 					try{
-						myClient.createFile(directory, "File" + i + ".txt", 2);
+						myClient.createFile(directory, "File" + i + ".txt", 3);
 						System.out.println("Creating File" + i + ".txt in directory " + directory);
 					}
 					catch(RemoteException re){
