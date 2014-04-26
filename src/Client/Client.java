@@ -146,7 +146,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
 			ChunkserverInterface tempCS = null;
-
+			//connect based on unique Chunkserver ID
 			if(id == 1)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-36.vlab.usc.edu:123/CHUNK" + id.toString());
 			else if(id == 2)
@@ -154,8 +154,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			else if(id == 3)
 				tempCS = (ChunkserverInterface)Naming.lookup("rmi://dblab-29.vlab.usc.edu:125/CHUNK" + id.toString());
 
-			// TODO: Change this to handle multiple chunkservers.
-			// chunkservers.put(1, tempCS);
+		
 			chunkservers.put(id,tempCS);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
@@ -248,7 +247,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * @param data
 	 * @param withSize
 	 */
-	// called by the application
+	// called by the application. For Appends, the request is stored in an internal Client Array
 	public void append(String chunkhandle, int offset, int length, byte[] data,
 			boolean withSize) throws RemoteException { // if no metadata is
 		// stored on the
@@ -259,18 +258,19 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		try {
 			countLock.acquire();
 			id = ++count;
+			//instantiate a new request with all the append information and store it in the array of pendingRequests.
 			Request r = new Request(APPEND, chunkhandle, count);
-			r.setData(data);
-			r.setLength(length);
-			r.setOffset(offset);
-			r.setWithSize(withSize);
+			r.setData(data); //set data to append
+			r.setLength(length); //set length of data
+			r.setOffset(offset); //set offset where data is to be appeneded
+			r.setWithSize(withSize); //set boolean whether size information is being passed
 			pendingRequests.add(r);
 			master.append(chunkhandle, clientID, count);
 			countLock.release();
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to append.");
 			masterState.stateChanged();
-			// Remove request if could not connect to master
+			// Remove request from the list of pending requests if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
 				if ((pendingRequests.get(x)).getReqID() == id) {
@@ -298,16 +298,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * @param withSize
 	 */
 
-	// called by the application
+	// called by the application. For Atomic Appends, the request is stored in an internal Client Array
 	public void atomicAppend(String chunkhandle, int length, byte[] data, boolean withSize) throws RemoteException {
 		int id = -1;
 		try {
 			countLock.acquire();
-			id = ++count;
+			id = ++count; //set a unique ID for the request
 			Request r = new Request(ATOMIC_APPEND, chunkhandle, count);
-			r.setData(data);
-			r.setLength(length);
-			r.setWithSize(withSize);
+			r.setData(data); //set data to be appended atomically
+			r.setLength(length); //set length of data
+			r.setWithSize(withSize); //set boolean determining whether size is given
 			pendingRequests.add(r);
 			master.atomicAppend(chunkhandle, clientID, count);
 			countLock.release();
@@ -338,7 +338,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * @param destination
 	 * 
 	 */
-	// called by the application
+	// called by the application. For Read, the request is stored in an internal Client Array. The client first checks its own MetaData to see if it already
+	//has valid information on the chunkhandle, otherwise it contacts master.
 	public void read(String chunkhandle, int offset, int length, String destination)
 			throws RemoteException {
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandlealready exists,otherwise it returns -1;
@@ -364,11 +365,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		} 
 		// metadata does not exist or has expired
 		else {
-			// metadata exists but has expired
+			// if metadata exists but has expired, remove it.
 			if(index > -1){
 				clientMetaDataArray.remove(index);
 			}
 			int id = -1;
+			//create a new request that needs to be sent to master and add it to the list of pending requests.
 			try {
 				countLock.acquire();
 				id = ++count;
@@ -396,6 +398,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 		}
 	}
+	
+	//Function to get the number of files appended (Test 7)
 	public void numFiles(String chunkhandle){
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
 		// metadata exists and has not expired; do not contact master
@@ -421,7 +425,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				clientMetaDataArray.remove(index);
 			}
 			int id = -1;
-			try {
+			try { //create a new request to master and add it to the list of pending requests.
 				countLock.acquire();
 				id = ++count;
 				Request temp = new Request(NUM_FILES, chunkhandle, count);
