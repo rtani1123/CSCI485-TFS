@@ -659,8 +659,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 		public void run() {
 			boolean goOn = true;
+			stateChanged = new Semaphore(1, true);
 			while(goOn) {
-				stateChanged = new Semaphore(1, true);
 				try {
 					stateChanged.acquire();
 					connectToMaster();
