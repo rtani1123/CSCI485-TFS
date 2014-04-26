@@ -14,6 +14,7 @@ public class ClientMetaDataItem {
 	String chunkhandle;
 	int ID;
 	List<Integer> chunkservers;
+	long timestamp;
 	
 	/**
 	 * ClientMetaDataItem constructor
@@ -21,14 +22,19 @@ public class ClientMetaDataItem {
 	 * @param _ID			ID of chunkserver with the primary lease
 	 * @param chunkserversList	list of chunkserver replicas
 	 */
-	public ClientMetaDataItem(String _chunkhandle, int _ID, List<Integer> chunkserversList){
+	public ClientMetaDataItem(String _chunkhandle, int _ID, List<Integer> chunkserversList, long timestamp){
 		chunkhandle = _chunkhandle;
 		ID = _ID;
+		this.timestamp = timestamp;
 		chunkservers = Collections.synchronizedList(new ArrayList<Integer>());
 		for (int i = 0; i <  chunkserversList.size(); i++) {
 			int z = (int)  chunkserversList.get(i);
 			chunkservers.add(z);
 		}
+	}
+	
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
 	}
 	
 	public void setID(int id) {
@@ -56,5 +62,9 @@ public class ClientMetaDataItem {
 	
 	public int getID() {
 		return ID;
+	}
+	
+	public long getTimestamp() {
+		return timestamp;
 	}
 }

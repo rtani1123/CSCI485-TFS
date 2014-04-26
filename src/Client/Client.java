@@ -52,6 +52,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public static final String ATOMIC_APPEND = "atomicAppend";
 	public static final String READ = "read";
 	public static final String READ_COMPLETELY = "readCompletely";
+
+	public static final long METADATA_LIFESPAN = 60000;
 	//	public static Client myClient=null;
 	public static void main(String[] args) throws RemoteException {
 
@@ -116,7 +118,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			System.out.println("Failure to connect to Master");
 		}
 	}
-	
+
 	/**
 	 * When the client connects, it requests the most current list of chunkservers from the Master.
 	 * The client then automatically attempts to connect to each chunkserver in a reciprocal RMI instance.
@@ -135,7 +137,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 		}
 	}
-	
+
 	/**
 	 * Connection to Chunkserver method.
 	 * @param index
@@ -295,7 +297,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * @param data
 	 * @param withSize
 	 */
-	
+
 	// called by the application
 	public void atomicAppend(String chunkhandle, int length, byte[] data, boolean withSize) throws RemoteException {
 		int id = -1;
@@ -339,13 +341,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	// called by the application
 	public void read(String chunkhandle, int offset, int length, String destination)
 			throws RemoteException {
-		int index = alreadyInClientMetaData(chunkhandle); // method returns
-		// index of item if
-		// the chunkhandle
-		// already exists,
-		// otherwise it
-		// returns -1;
-		if (index > -1) { // if the index is found, do not contact master.
+		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandlealready exists,otherwise it returns -1;
+		// metadata exists and has not expired; do not contact master
+		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) < System.currentTimeMillis()) { 
 			try {
 				countLock.acquire();
 				count++;
@@ -363,7 +361,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			} catch (InterruptedException e) {
 				System.out.println("Interrupted Exception in read method");
 			}
-		} else {
+		} 
+		// metadata does not exist or has expired
+		else {
+			// metadata exists but has expired
+			if(index > -1){
+				clientMetaDataArray.remove(index);
+			}
 			int id = -1;
 			try {
 				countLock.acquire();
@@ -403,7 +407,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 */
 	public void readCompletely(String chunkhandle, String destination) throws RemoteException {
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
-		if (index > -1) { // if the index is found, do not contact master.
+		// metadata exists and has not expired; do not contact master
+		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) < System.currentTimeMillis()) { 
 			try {
 				countLock.acquire();
 				count++;
@@ -418,7 +423,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			} catch (InterruptedException e) {
 				System.out.println("Interrupted Exception in read completely method");
 			}
-		} else {
+		} 
+		// metadata does not exist or has expired
+		else{
+			// metadata exists but has expired
+			if(index > -1){
+				clientMetaDataArray.remove(index);
+			}
 			int id = -1;
 			try {
 				countLock.acquire();
@@ -445,7 +456,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}
 		}
 	}
-	
+
 	/**
 	 * Client status request called from Chunkserver and Master.
 	 * 
@@ -505,7 +516,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						}
 						// if the chunkhandle was not already in the metadata, add it along with its chunkservers
 						if (!exists) {
-							clientMetaDataArray.add(new ClientMetaDataItem(chunkhandle, pID, chunkserversList));
+							clientMetaDataArray.add(new ClientMetaDataItem(chunkhandle, pID, chunkserversList, System.currentTimeMillis()));
 						}
 						// once the corresponding ReqID is found, break out of the outer loop
 						break;
@@ -581,7 +592,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 									System.out.println("Failed atomic append");
 								}
 							} catch (RemoteException e) {
-//								e.printStackTrace();
+								//								e.printStackTrace();
 								System.out.println("Failed to connect to chunkserver for atomic append");
 							}
 						}
@@ -660,11 +671,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			}			
 		}
 	}
-	
+
 	private class MasterState extends Thread{
 		Semaphore stateChanged;
 		private MasterState() {
-			
+
 		}
 
 		public void run() {
@@ -685,6 +696,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		public void stateChanged() {
 			stateChanged.release();
 		}
-	
+
 	}
 }

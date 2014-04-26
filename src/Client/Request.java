@@ -104,7 +104,9 @@ public class Request {
 	}
 
 	/**
-	 * Sets a boolean for 
+	 * Sets a boolean to control append and atomic append function in chunkserver
+	 * If true, chunkservers expect to append an array of bytes starting with the size of the payload
+	 * If false, chunkservers expect to append an array of bytes comprised of only the payload
 	 * @param withSize
 	 */
 	public void setWithSize(boolean withSize) {
