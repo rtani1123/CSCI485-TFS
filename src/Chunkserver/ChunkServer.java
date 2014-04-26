@@ -135,7 +135,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			 */
 
 		} catch(Exception re) {
-			System.out.println("Chunkserver failure to host");
+			System.out.println("Failed connection to Chunkserver " + index);
 		}
 	}
 	

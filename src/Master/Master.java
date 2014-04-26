@@ -409,7 +409,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 						chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 					}
 					catch(RemoteException re){
-						System.out.println("Error connecting to chunkserver " + CS);
+						System.out.println("createFileA: Error connecting to chunkserver " + CS);
 						chunkservers.get(CS).setStatus(CSStatus.DOWN);
 						downChunkservers++;
 					}
@@ -477,7 +477,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 				}
 				catch(RemoteException re){
-					System.out.println("Error connecting to chunkserver " + CS);
+					System.out.println("deleteFileMasterA: Error connecting to chunkserver " + CS);
 					chunkservers.get(CS).setStatus(CSStatus.DOWN);
 				}
 			}
@@ -536,7 +536,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 							entry.getValue().setLastGoodTime(System.currentTimeMillis());
 						}
 						catch(RemoteException re){
-							System.out.println("Error connecting to chunkserver " + entry.getKey());
+							System.out.println("createDirectoryA: Error connecting to chunkserver " + entry.getKey());
 							entry.getValue().setStatus(CSStatus.DOWN);
 						}
 					}
@@ -594,7 +594,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					chunkservers.get(CS).setLastGoodTime(System.currentTimeMillis());
 				}
 				catch(RemoteException re){
-					System.out.println("Error connecting to chunkserver " + CS);
+					System.out.println("deleteDirectoryA: Error connecting to chunkserver " + CS);
 					chunkservers.get(CS).setStatus(CSStatus.DOWN);
 				}
 			}
@@ -745,7 +745,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				chunkservers.get(randomCS).getCS().primaryLease(chunkhandle, secondaries);
 			}
 			catch(RemoteException re){
-				System.out.println("Error connecting to chunkserver " + 1);
+				System.out.println("atomicAppendA: Error connecting to chunkserver " + 1);
 				chunkservers.get(1).setStatus(CSStatus.DOWN);
 				primaryLeaseSuccess = false;
 			}
@@ -914,7 +914,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
-			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			System.out.println("createDirectoryRedo: Error connecting to chunkserver " + chunkserverID);
 			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
 			return false;
 		}
@@ -935,7 +935,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
-			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			System.out.println("createFileRedo: Error connecting to chunkserver " + chunkserverID);
 			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
 			return false;
 		}
@@ -956,7 +956,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
-			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			System.out.println("deleteFileRedo: Error connecting to chunkserver " + chunkserverID);
 			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
 			return false;
 		}
@@ -977,7 +977,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch (RemoteException re){
-			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			System.out.println("deleteDirectoryRedo: Error connecting to chunkserver " + chunkserverID);
 			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
 			return false;
 		}
@@ -1010,7 +1010,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
 		}
 		catch(RemoteException re){
-			System.out.println("Error connecting to chunkserver " + chunkserverID);
+			System.out.println("fetchAndRewrite: Error connecting to chunkserver " + chunkserverID);
 			chunkservers.get(chunkserverID).setStatus(CSStatus.DOWN);
 			return false;
 		}
