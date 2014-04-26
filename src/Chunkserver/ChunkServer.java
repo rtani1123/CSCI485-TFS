@@ -12,7 +12,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,13 +25,16 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	Map<String, ChunkserverMetadata> CSMetadata = Collections.synchronizedMap(new HashMap<String, ChunkserverMetadata>());
 	Map<Integer, ChunkserverInterface> chunkservers  = Collections.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
 	MasterInterface myMaster;
-//	ClientInterface myClient;
 	Map<Integer, ClientInterface> clients;
 	static Integer csIndex;
 	public static final long LEASETIME = 60000;
-
+	/**
+	 * It creates a new instance of chunkserver.
+	 * If there is an stored meta data, it restores that.
+	 */
 	public ChunkServer() throws RemoteException {
 		clients = Collections.synchronizedMap(new HashMap<Integer, ClientInterface>());
+		
 		try {
 			if(ChunkserverMetadata.getMetadata()!=null) {
 				CSMetadata = ChunkserverMetadata.getMetadata();
@@ -69,25 +71,22 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			}
 			System.out.println("Chunkserver " + csIndex + " Host Setup Success");
 		} catch (RemoteException e) {
-			System.out.println("Chunkserver unable to connect");
+			System.out.println("Chunkserver unable to connect to " +csIndex);
 		} catch (Exception e) {		}
 	}
 
 	/**
-	 * Connecting ChunkServer(csIndex) to Master, RMI.
+	 * Format for connection should be "rmi:DOMAIN/ChunkserverID".
+	 * ChunkserverID will be different for each instance of Chunkserver
+	 * one detail to mention is that CSMaster will not be the same as
+	 * MasterCS. There's actually a completely different callfor master
+	 * calling CS functions than CS calling master functions.
+	 * 
+	 * For this, the master is hosted on dblab-29.
 	 */
 	public void connectToMaster() {
 		try {
 			System.setSecurityManager(new RMISecurityManager());
-			/*
-			 * format for connection should be "rmi:DOMAIN/ChunkserverID".
-			 * ChunkserverID will be different for each instance of Chunkserver
-			 * one detail to mention is that CSMaster will not be the same as
-			 * MasterCS. There's actually a completely different callfor master
-			 * calling CS functions than CS calling master functions.
-			 * 
-			 * For this, the master is hosted on dblab-29.
-			 */
 			myMaster = (MasterInterface) Naming.lookup("rmi://dblab-18.vlab.usc.edu/MASTER");
 			System.out.println("Connection to Master Success");
 
@@ -109,7 +108,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Connection to Client " + id + " Success");
 
 		} catch(Exception re) {
-			System.out.println("Client failure to host");
+			System.out.println("Client "+id+  " failure to host");
 		}
 	}
 
@@ -138,20 +137,6 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Failed connection to Chunkserver " + id);
 		}
 	}
-	
-//	/
-//	@Override
-//	public Map<String, Long> refreshMetadata() throws RemoteException {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see Interfaces.ChunkserverInterface#primaryLease(java.lang.String,
-	 * java.util.ArrayList)
-	 */
 	/**
 	 * Sets CSMetadata primary lease times as well as appropriate secondary ChunkServers
 	 * @param chunkhandle
@@ -161,6 +146,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	@Override
 	public void primaryLease(String chunkhandle, List<Integer> CServers)
 			throws RemoteException {
+		System.out.println("Getting primary lease..");
 		CSMetadata.get(chunkhandle).setPrimaryLeaseTime(System.currentTimeMillis());
 		CSMetadata.get(chunkhandle).setSecondaries(CServers);
 	}
@@ -263,7 +249,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 		if (deleteFile(chunkhandle)) {
 
 		} else {
-			System.out.println("Delete unsuccessful. Item not found.");
+			System.out.println("Delete unsuccessful for "+chunkhandle+". Item not found.");
 			return false;
 		}
 		return true;
@@ -324,7 +310,6 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	/**
 	 * Appending to file at location chunkhandle.
 	 * Data: payload
-	 * Length and offset
 	 * @param chunkhandle
 	 * @param payload
 	 * @param length
@@ -355,7 +340,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 	/**
 	 * Atomic append to file at location chunkhandle.
 	 * Data: payload
-	 * Length, but no offset specified. (determined by TFS)
+	 * No offset specified. (determined by TFS)
 	 * @param chunkhandle
 	 * @param payload
 	 * @param length
