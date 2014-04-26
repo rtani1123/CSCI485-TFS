@@ -750,8 +750,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				}
 			}
 			catch(RemoteException re){
-				System.out.println("atomicAppendA: Error connecting to chunkserver " + 1);
-				chunkservers.get(1).setStatus(CSStatus.DOWN);
+				System.out.println("atomicAppendA: Error connecting to chunkserver " + randomCS);
+				chunkservers.get(randomCS).setStatus(CSStatus.DOWN);
 				primaryLeaseSuccess = false;
 			}
 			primaryLeaseSuccess = true;
