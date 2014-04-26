@@ -36,6 +36,8 @@ public class ClientMetaDataItem {
 	}
 	
 	public void setChunkservers(List<Integer> chunkserversList) {
+		System.out.println("before setCs in client meta data " + chunkserversList.toString());
+		chunkservers.clear();
 		for (int i = 0; i < chunkservers.size(); i++) {
 			chunkservers.remove(0);
 		}
@@ -43,6 +45,7 @@ public class ClientMetaDataItem {
 			int z = (int)  chunkserversList.get(i);
 			chunkservers.add(z);
 		}
+		System.out.println("after setCs in client meta data " + chunkserversList.toString());
 	}
 	
 	// getters
