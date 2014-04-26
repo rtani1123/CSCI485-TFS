@@ -44,6 +44,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	MasterInterface master; // master to contact
 	int count; // used to create unique request IDs
 	Semaphore countLock = new Semaphore(1, true); // semaphore for creating
+	MasterState masterState = new MasterState(); //class for checking existence of master.
 	// unique request IDs
 
 	// requestType strings
@@ -67,8 +68,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				.synchronizedMap(new HashMap<Integer, ChunkserverInterface>());
 
 		setupClientHost(clientID);
-		connectToMaster();
-		master.connectToClient(clientID);
+		masterState.start();
 	}
 
 	/**
@@ -181,6 +181,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			master.createFile(path, fileName, numReplicas, clientID);
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to create file.");
+			masterState.stateChanged();
 		}
 	}
 
@@ -197,6 +198,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 		catch(RemoteException e){
 			System.out.println("Could not connect to master to create directory.");
+			masterState.stateChanged();
 		}
 	}
 
@@ -211,6 +213,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			master.deleteFileMaster(chunkhandle, clientID);
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to delete file.");
+			masterState.stateChanged();
 		}
 	}
 
@@ -226,7 +229,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		} catch (RemoteException e) {
 
 			System.out.println("Could not connect to master to delete directory.");
-
+			masterState.stateChanged();
 		}
 	}
 
@@ -264,6 +267,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			countLock.release();
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to append.");
+			masterState.stateChanged();
 			// Remove request if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
@@ -307,6 +311,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			countLock.release();
 		} catch (RemoteException e) {
 			System.out.println("Could not connect to master to atomic append.");
+			masterState.stateChanged();
 			// Remove request if could not connect to master
 			int index = -1;
 			for (int x = 0; x < pendingRequests.size(); x++) {
@@ -372,6 +377,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				countLock.release();
 			} catch (RemoteException e) {
 				System.out.println("Could not connect to master to read.");
+				masterState.stateChanged();
 				// Remove request if could not connect to master
 				int ind = -1;
 				for (int x = 0; x < pendingRequests.size(); x++) {
@@ -416,6 +422,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				countLock.release();
 			} catch (RemoteException e) {
 				System.out.println("Could not connect to master to read completely.");
+				masterState.stateChanged();
 				// Remove request if could not connect to master
 				int ind = -1;
 				for (int x = 0; x < pendingRequests.size(); x++) {
@@ -642,5 +649,32 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 				pendingRequests.remove(r);
 			}			
 		}
+	}
+	
+	private class MasterState extends Thread{
+		Semaphore stateChanged;
+		private MasterState() {
+			
+		}
+
+		public void run() {
+			boolean goOn = true;
+			while(goOn) {
+				stateChanged = new Semaphore(1, true);
+				try {
+					stateChanged.acquire();
+					connectToMaster();
+					master.connectToClient(clientID);
+				} catch (InterruptedException e) {
+					System.out.println("Could not acquire semaphore in Master Check.");
+				} catch (RemoteException e) {
+					System.out.println("Master connection to Client Failed");
+				}
+			}
+		}
+		public void stateChanged() {
+			stateChanged.release();
+		}
+	
 	}
 }
