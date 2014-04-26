@@ -609,6 +609,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		System.out.println("contacting chunks... ");
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
+			if(r.getChunkservers().size()==0){
+				System.out.println("There is no available chunkserver to contact with, please try again in a few mintues.");
+				break;
+			}
+				
 			if (r.getReqID() == rID) {
 				if ((r.getRequestType()).equals(APPEND)) {
 					System.out.println("chunkservers for append in contactCS func: "+r.getChunkservers());
