@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 import java.rmi.RemoteException;
 
 import Client.Client;
-import Part1.Part1FS;
-import Utilities.Storage;
 
 /*
  * Test 7:  Count the number of logical files stored in a TFS file using Test6 and printout the results.
