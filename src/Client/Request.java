@@ -63,7 +63,10 @@ public class Request {
 	 * @param chunkserversList	list of replicas
 	 */
 	public void setCS (List<Integer> chunkserversList) {
+		System.out.println("before setCS in request " +chunkservers.toString());
 		// empty list of chunkservers if not empty
+		chunkservers.clear();
+		System.out.println("after clear setCS in request " +chunkservers.toString());
 		if(chunkservers.size() != 0){
 			for(int i = 0; i < chunkservers.size(); i++){
 				chunkservers.remove(i);
@@ -73,6 +76,7 @@ public class Request {
 		for (int i = 0; i < chunkserversList.size(); i++) {
 			chunkservers.add(chunkserversList.get(i));
 		}
+		System.out.println("After setCS in request: "+chunkservers.toString());
 	}
 
 	/**
