@@ -13,12 +13,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The ChunkserverMetadata class is used by the Chunkservers to store relevant information about 
- * files they have created.  It is used to maintain a connection to secondaries for an atomic
- * append.  There is one instance of this class for each file stored in a Chunkserver.  It holds
- * write timestamps in addition to serving as a node in the Chunkserver's directory structure.
- * This class may be stored on the disk to facilitate Chunkserver restoration after a failure
- * and it provides static methods to read and write String-ChunkserverMetadata maps to disk.
+ * Used by the Chunkservers to store relevant information about files they have created.  
+ * It is used to maintain a connection to secondaries for an atomic append. There is one 
+ * instance of this class for each file stored in a Chunkserver. It holds write timestamps 
+ * in addition to serving as a node in the Chunkserver's directory structure. This class 
+ * may be stored on the disk to facilitate Chunkserver restoration after a failure
+ * and it provides static methods to read and write chunkhandle-ChunkserverMetadata maps to disk.
+ * Each chunkhandle used in this class represents the full path for a given file.
  */
 public class ChunkserverMetadata implements Serializable {
 	long primaryLeaseTime;
@@ -27,8 +28,8 @@ public class ChunkserverMetadata implements Serializable {
 	String chunkhandle;
 
 	/**
-	 * Constructor, stores the full path and the current write time
-	 * @param chunkhandle	- full path for the file stored
+	 * Creates a new ChunkserverMetadata instance from a file's full path
+	 * @param chunkhandle	full path for the file stored
 	 */
 	public ChunkserverMetadata(String chunkhandle){
 		writeTime = System.currentTimeMillis();
@@ -38,7 +39,7 @@ public class ChunkserverMetadata implements Serializable {
 
 	/**
 	 * Updates the write timestamp for the file
-	 * @param time	- new write timestamp
+	 * @param time	new write timestamp
 	 */
 	public void setWriteTime(long time){
 		this.writeTime = time;
@@ -47,7 +48,7 @@ public class ChunkserverMetadata implements Serializable {
 	/**
 	 * Updates the primary lease timestamp for the file
 	 * Primary leases expire after a set period of time specified in the Chunkserver
-	 * @param time	- new primary lease timestamp
+	 * @param time	new primary lease timestamp
 	 */
 	public void setPrimaryLeaseTime(long time){
 		primaryLeaseTime = time;
@@ -55,7 +56,7 @@ public class ChunkserverMetadata implements Serializable {
 
 	/**
 	 * Updates the list of secondary Chunkserver IDs 
-	 * @param secondaries	- integer list of secondary Chunkserver IDs
+	 * @param secondaries	integer list of secondary Chunkserver IDs
 	 */
 	public void setSecondaries(List<Integer> secondaries){
 		this.secondaries = secondaries;
@@ -86,8 +87,8 @@ public class ChunkserverMetadata implements Serializable {
 	}
 
 	/**
-	 * Writes a map of chunkhandles to ChunkserverMetadata objects to disk
-	 * @param cm	- map of file full paths to ChunkserverMetadata objects
+	 * Writes a map of chunkhandles and ChunkserverMetadata objects to disk
+	 * @param cm	map of chunkhandle-ChunkserverMetadata object pairings
 	 */
 	static public void storeTree(Map<String, ChunkserverMetadata> cm) {
 		String filename = "csmetadata";
@@ -105,8 +106,8 @@ public class ChunkserverMetadata implements Serializable {
 	}
 	
 	/**
-	 * Returns the full map of all file full paths to ChunkserverMetadata objects stored on the disk
-	 * @return	Full map of all file full paths to ChunkserverMetadata objects
+	 * Returns the map of all chunkhandle-ChunkserverMetadata object pairings stored on the disk
+	 * @return	Map of chunkhandle-ChunkserverMetadata object pairings
 	 */
 	static public Map<String, ChunkserverMetadata> getMetadata() {
 		String filename = "csmetadata";
