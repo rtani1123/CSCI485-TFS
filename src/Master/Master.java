@@ -31,6 +31,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	final static long HEARTBEAT_DELAY = 5000;
 	public static Tree directory;
 	static Integer tempLock = -1;
+	boolean masterUp = false;
 	OperationsLog log;
 	Semaphore stateChange;
 	private MasterThread masterThread;
@@ -77,6 +78,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		}
 		catch(Exception e) {		}
 		//client.createDirectory("C:/1");
+		masterUp = true;
 	}
 
 	/**
@@ -139,7 +141,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					tempCS.connectToChunkserver(entry.getKey());
 				}
 			}
-			restoreChunkserver(id);
+			if(masterUp) {
+				restoreChunkserver(id);
+			}
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -263,7 +267,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Scheduler
-	 * @return
+	 * @return true after action performed; when no tasks need to be performed, the method
+	 *	returns false.  This stops the agent until a stateChanged() is called.
 	 */
 	protected boolean pickAndExecuteAnAction(){
 		// scheduler checks, return true if something to do
@@ -933,6 +938,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * @throws RemoteException
 	 */
 	public boolean createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
+		System.out.println("createDirectoryRedo on Chunkserver " + chunkserverID);
 		try{
 			chunkservers.get(chunkserverID).getCS().createDirectory(path);
 			chunkservers.get(chunkserverID).setLastGoodTime(System.currentTimeMillis());
@@ -1201,13 +1207,17 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 
 	/**
+	 * Enum for Chunkserver Status.
+	 */
+	public enum CSStatus {DOWN, OK, RECOVERING};
+	
+	/**
 	 * Class CSInfo is used by master to maintain metadata for connecting to various
 	 * chunkservers. It keeps track of the most recent heartbeat time received from
 	 * the chunkserver, the status of the chunkserver, and the chunkserver ID.
 	 * @author lazzarid
 	 *
 	 */
-	public enum CSStatus {DOWN, OK, RECOVERING};
 	private class CSInfo{
 		CSStatus status;
 		long lastHeartbeat;
