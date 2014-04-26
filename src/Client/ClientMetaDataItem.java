@@ -35,6 +35,16 @@ public class ClientMetaDataItem {
 		ID = id;
 	}
 	
+	public void setChunkservers(List<Integer> chunkserversList) {
+		for (int i = 0; i < chunkservers.size(); i++) {
+			chunkservers.remove(0);
+		}
+		for (int i = 0; i <  chunkserversList.size(); i++) {
+			int z = (int)  chunkserversList.get(i);
+			chunkservers.add(z);
+		}
+	}
+	
 	// getters
 	public List<Integer> getChunkservers() {
 		return chunkservers;
