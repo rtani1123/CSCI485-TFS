@@ -53,7 +53,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public static final String READ = "read";
 	public static final String READ_COMPLETELY = "readCompletely";
 
-	public static final long METADATA_LIFESPAN = 60000;
+	public static final long METADATA_LIFESPAN = 10000;
 	//	public static Client myClient=null;
 	public static void main(String[] args) throws RemoteException {
 
@@ -343,7 +343,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 			throws RemoteException {
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandlealready exists,otherwise it returns -1;
 		// metadata exists and has not expired; do not contact master
-		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) < System.currentTimeMillis()) { 
+		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) > System.currentTimeMillis()) { 
 			try {
 				countLock.acquire();
 				count++;
@@ -408,7 +408,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	public void readCompletely(String chunkhandle, String destination) throws RemoteException {
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
 		// metadata exists and has not expired; do not contact master
-		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) < System.currentTimeMillis()) { 
+		if (index > -1 && (clientMetaDataArray.get(index).getTimestamp() + METADATA_LIFESPAN) > System.currentTimeMillis()) { 
 			try {
 				countLock.acquire();
 				count++;
@@ -636,7 +636,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
 					System.out.println("Reading completely from chunkserver " + r.getChunkservers().get(randIndex));
 					try {
-						System.out.println("This are all chunkserver that client can read form: "+chunkservers.keySet());
+						System.out.println("This are all chunkserver that client can read form: "+r.getChunkservers().toString());
 						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).readCompletely(r.getFullPath());
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
