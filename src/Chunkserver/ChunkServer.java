@@ -270,7 +270,7 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			raf.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.err.println("File read exception");
+			System.err.println("File read completely exception for " +chunkhandle);
 			return new byte[0];
 		}
 		return b;
