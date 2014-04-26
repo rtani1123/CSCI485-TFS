@@ -393,6 +393,14 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 		}
 	}
 
+	/**
+	 * Application calls read file completely.  File is pulled from a chunkserver to the client, written
+	 * to a new file on Client local machine, specified by Application.
+	 * 
+	 * @param chunkhandle
+	 * @param destination
+	 * 
+	 */
 	public void readCompletely(String chunkhandle, String destination) throws RemoteException {
 		int index = alreadyInClientMetaData(chunkhandle); // method returns index of item if the chunkhandle already exists, otherwise it returns -1;
 		if (index > -1) { // if the index is found, do not contact master.

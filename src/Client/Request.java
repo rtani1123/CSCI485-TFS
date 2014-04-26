@@ -31,7 +31,6 @@ public class Request {
 	 * @param fp	full path or chunkhandle
 	 * @param rID	request ID
 	 */
-
 	public Request(String rq, String fp, int rID) {
 		requestType = rq;
 		fullPath = fp;
@@ -41,9 +40,8 @@ public class Request {
 	}
 
 	/**
-	 * Request constructor, used in the read and read completely methods
-	 * in Client when it already has the location of the requested 
-	 * chunkservers stored in its metadata 
+	 * Used in the read and read completely methods in Client when it already has the 
+	 * location of the requested chunkservers stored in its metadata 
 	 * @param rq	request type (read)
 	 * @param fp	full path or chunkhandle
 	 * @param rID	request ID
@@ -61,7 +59,7 @@ public class Request {
 	}
 
 	/**
-	 * Make a deep copy of a list of chunkserver IDs and store
+	 * Makes a deep copy of a list of chunkserver IDs and stores them
 	 * @param chunkserversList	list of replicas
 	 */
 	public void setCS (List<Integer> chunkserversList) {
@@ -78,7 +76,7 @@ public class Request {
 	}
 
 	/**
-	 * Create a shallow copy of the data byte array
+	 * Creates a shallow copy of the data byte array
 	 * @param data	byte array of data
 	 */
 	public void setData (byte [] data){
@@ -89,69 +87,149 @@ public class Request {
 		payload = data;
 	}
 
+	/**
+	 * Sets the length of a read or append
+	 * @param length
+	 */
 	public void setLength(int length) {
 		this.length = length;
 	}
 
+	/**
+	 * Sets the number of bytes to be offset for a read or append
+	 * @param offset
+	 */
 	public void setOffset(int offset) {
 		this.offset = offset;
 	}
 
+	/**
+	 * Sets a boolean for 
+	 * @param withSize
+	 */
 	public void setWithSize(boolean withSize) {
 		this.withSize = withSize;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isReceived() {
 		if (state == rState.ReceivedLocations) return true;
 		else return false;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isSentToChunk() {
 		if (state == rState.SentToChunk) return true;
 		else return false;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isComplete() {
 		if (state == rState.Completed) return true;
 		else return false;
 	}
 
+	/**
+	 * 
+	 */
 	public void setReceived() {
 		state = rState.ReceivedLocations;
 	}
 
+	/**
+	 * 
+	 * @param d
+	 */
 	public void setDestination (String d) {
 		destination = d;
 	}
 
+	/**
+	 * 
+	 * @param primaryID
+	 */
 	public void setPrimaryID(int primaryID) {
 		this.primaryID = primaryID;
 	}
 	
 	// getters
+	/**
+	 * 
+	 * @return
+	 */
 	public String getFullPath() {
 		return fullPath;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public int getPrimaryID() {
 		return primaryID;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public int getReqID() {
 		return reqID;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public int getLength() {
 		return length;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public int getOffset() {
 		return offset;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public String getRequestType() {
 		return requestType;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public byte[] getPayload() {
 		return payload;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public List<Integer> getChunkservers() {
 		return chunkservers;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean getWithSize(){
 		return withSize;
 	}
