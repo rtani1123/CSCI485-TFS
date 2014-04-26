@@ -12,9 +12,9 @@ import java.util.List;
 
 public class ClientMetaDataItem {
 	String chunkhandle;
-	int ID;
+	int ID; //ID of primary leased chunkserver
 	List<Integer> chunkservers;
-	long timestamp;
+	long timestamp; //timestamp of when metadata item was created.
 	
 	/**
 	 * ClientMetaDataItem constructor
@@ -41,6 +41,7 @@ public class ClientMetaDataItem {
 		ID = id;
 	}
 	
+	//update or set the list of available chunkservers
 	public void setChunkservers(List<Integer> chunkserversList) {
 		System.out.println("before setCs in client meta data " + chunkserversList.toString());
 		chunkservers.clear();

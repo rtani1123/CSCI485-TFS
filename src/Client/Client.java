@@ -608,19 +608,23 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 	 * Sends request to chunkservers for either Append, Atomic Append or Read requests.
 	 * @param rID
 	 */
-	// call this to contact chunkservers
+	// call this to contact chunkservers from available list
 	private void contactChunks(int rID) {
 		System.out.println("contacting chunks... ");
+		//for loop to parse through requests
 		for (int i = 0; i < pendingRequests.size(); i++) {
 			Request r = (Request) pendingRequests.get(i);
+			//if no chunkservers are available exit the loop
 			if(r.getChunkservers().size()==0){
 				System.out.println("There is no available chunkserver to contact with, please try again in a few mintues.");
 				break;
 			}
-				
+			//if the correct request is found, display them to the console and perform the request	
 			if (r.getReqID() == rID) {
+				//if the request is an APPEND, perform the append.
 				if ((r.getRequestType()).equals(APPEND)) {
 					System.out.println("chunkservers for append in contactCS func: "+r.getChunkservers());
+					//parse through the available chunkservers and append
 					for (int cs : r.getChunkservers()) {
 						System.out.println(cs);
 						try {
@@ -633,11 +637,14 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 							System.out.println("Failed to connect to chunkserver " +cs +" for append ");
 						}
 					}
+					//if the request is an atomic APPEND, perform the atomic append
 				} else if ((r.getRequestType()).equals(ATOMIC_APPEND)) {
 
 					for (int cs : r.getChunkservers()) {
+						//locate the primary
 						if(r.getPrimaryID() == cs){
 							try {
+								//print out the information of the atomic append and make the request
 								System.out.println("Trying to connect to chunkserver " + (cs));
 								System.out.println(r.getFullPath());
 								System.out.println(r.payload);
@@ -655,12 +662,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 							}
 						}
 					}
+				//if the request is a read, perform the request
 				} else if ((r.getRequestType()).equals(READ)) {
 					//for (int cs : r.getChunkservers()) {
 					Random rand = new Random();
+					//pick a random chunkserver from the available chunkservers using rand
 					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
 					System.out.println("Reading from chunkserver " + r.getChunkservers().get(randIndex));
 					try {
+						//print the information of the request and get the results.
 						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).read(r.getFullPath(), r.getOffset(),r.getLength());
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
@@ -670,6 +680,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 							System.err.println("Local file destination already exist for read.");
 						}
 						else{
+							//create the new file with which to put the data from the read.
 							localDest.createNewFile();
 							FileOutputStream fos = new FileOutputStream(localDest);
 							fos.write(result);
@@ -688,22 +699,26 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						pendingRequests.remove(r);
 
 					}
+				//READ COMPLETELY
 				} else if ((r.getRequestType()).equals(READ_COMPLETELY)) {
-					//for (int cs : r.getChunkservers()) {
 					Random rand = new Random();
+					//generate a random chunkserver from the list of chunkservers
 					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
 					System.out.println("Reading completely from chunkserver " + r.getChunkservers().get(randIndex));
 					try {
+						//print the information of the request
 						System.out.println("This are all chunkserver that client can read form: "+r.getChunkservers().toString());
 						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).readCompletely(r.getFullPath());
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
 						System.out.println(r.destination);
 						File localDest = new File(r.destination);
+						//if the file destination already exists print an error
 						if (localDest.exists()){
 							System.err.println("Local file destination already exist for read completely.");
 						}
 						else{
+							//create the file with which to put the read data.
 							localDest.createNewFile();
 							FileOutputStream fos = new FileOutputStream(localDest);
 							fos.write(result);
@@ -721,12 +736,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						System.err.println("Error creating or writing to local file for read completely ouput.");
 						pendingRequests.remove(r);
 					}
+				//get the number of files, TEST 7
 				}else if ((r.getRequestType()).equals(NUM_FILES)) {
 					//for (int cs : r.getChunkservers()) {
 					Random rand = new Random();
+					//pick a random chunkserver that has the file and is available
 					int randIndex = Math.abs((rand.nextInt() % r.getChunkservers().size()));
 					System.out.println("Reading number of files from chunkserver " + r.getChunkservers().get(randIndex));
 					try {
+						//print the information of the request
 						System.out.println("This are all chunkserver that client can get information form: "+r.getChunkservers().toString());
 						byte[] result = chunkservers.get(r.getChunkservers().get(randIndex)).numFiles(r.getFullPath());
 						System.out.println(r.reqID);
