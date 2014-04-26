@@ -18,52 +18,8 @@ import Client.Client;
 
  */
 public class UnitTest7 {
-	public static void unitTest7Func(String src, String dest, Client myClient)
-			throws RemoteException {
-		myClient.read(src, 0, 4, dest);
-		File f = new File(dest);
-		if (!f.exists()) {
-			System.out.println("Specified file does not exist on TFS server");
-			return;
-		} else if (f.length() < 4) {
-			System.out.println("File too small to contain a size");
-			return;
-		}
-		byte[] szb = new byte[(int) f.length()];
-		try {
-			RandomAccessFile raf = new RandomAccessFile(f, "r");
-			raf.readFully(szb);
-			raf.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.err.println("File read exception");
-		}
-		ByteBuffer wrapped = ByteBuffer.wrap(szb);
-		int sz = wrapped.getInt();
-		int offset = 4;
-		int count = 1;
-		while (offset < f.length()) {
-			System.out.println("Size of file " + count + " is " + sz + " bytes");
-			offset += sz;
-			// read the next file size in
-			if (offset < f.length()) {
-				f = new File(dest);
-				myClient.read(src, offset, 4, dest);
-				szb = new byte[(int) f.length()];
-				try {
-					RandomAccessFile raf = new RandomAccessFile(f, "r");
-					raf.readFully(szb);
-					raf.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-					System.err.println("File read exception");
-				}
-				ByteBuffer wrapped2 = ByteBuffer.wrap(szb);
-				sz = wrapped2.getInt();
-				offset += 4;
-				count++;
-			}
-		}
-		System.out.println(src + " contains " + count + " separate files");
+	public static void unitTest7Func(String src, Client myClient)
+			throws RemoteException{
+		myClient.numFiles(src);
 	}
 }
