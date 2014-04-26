@@ -12,26 +12,9 @@ public class Tree implements Serializable {
 	public static void main(String[] args) {
 		List<String> paths = Collections.synchronizedList(new ArrayList<String>());
 		Tree myTree= new Tree();
-//		ArrayList<Integer> chunkServersNum = new ArrayList<>();
-//		chunkServersNum.add(1);
-//		paths = myTree.pathTokenizer("C:/Users");
-//		myTree.addElement(paths,chunkServersNum );
-//		paths = myTree.pathTokenizer("C:/Users/Download");
-//		myTree.addElement(paths, chunkServersNum);
-//		paths = myTree.pathTokenizer("C:/Program");
-//		myTree.addElement(paths, chunkServersNum);
-//		System.out.println(x.getPath());
 		Storage ts = new Storage();
 		myTree = ts.getTree();
-//		ts.storeTree(myTree);
-//		myTree = ts.getTree();
-//		Node x = myTree.root.find(paths, 1);
-//		System.out.println(x.getPath());
 		myTree.getAllPath(myTree.root);
-//		myTree.removeElement(paths);
-//		
-//		Node y = myTree.root.find(paths, 1);
-//		System.out.println(y==null);
 	}
 	public static List<String> pathTokenizer(String path){
 		List<String> result = Collections.synchronizedList(new ArrayList<String>());
@@ -82,7 +65,6 @@ public class Tree implements Serializable {
 		return true;
 	}
 	public void getAllPath(Node node){
-		System.out.println(node.getPath());
 		Set<String> allKeys = Collections.synchronizedSet(node.children.keySet());
 		Iterator<String> it = allKeys.iterator();
 		while (it.hasNext()){
