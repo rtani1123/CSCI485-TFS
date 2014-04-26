@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.ByteBuffer;
 import java.rmi.Naming;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
@@ -720,7 +721,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 						System.out.println(r.reqID);
 						System.out.println(r.fullPath);
 						pendingRequests.remove(r);
-						System.out.println(result.toString());
+						ByteBuffer wrapped = ByteBuffer.wrap(result);
+						int resInt = wrapped.getInt();
+						System.out.println("Number of separate files are: " + resInt);
 					} catch (RemoteException e) {
 						System.out.println("Failed to connect to chunkserver for read completely");
 					}
