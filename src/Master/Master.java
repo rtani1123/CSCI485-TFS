@@ -46,6 +46,9 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	Semaphore stateChange;
 	private MasterThread masterThread;
 	List<Task> tasks;
+	/**
+	 * Task type enum.
+	 */
 	public enum TaskType {recoverCS, createF, deleteF, createD, deleteD, read, append, aAppend};
 	//ClientInterface client;
 	Map<Integer, ClientInterface> clients;
