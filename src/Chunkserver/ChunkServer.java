@@ -406,7 +406,6 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			return true;
 		} else {
 			System.out.println("Unable to append because not the primary");
-			clients.get(11).requestStatus("atomicAppend", chunkhandle, false, csIndex);
 			return false;
 		}
 	}
