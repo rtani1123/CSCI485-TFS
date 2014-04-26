@@ -139,7 +139,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 					tempCS.connectToChunkserver(entry.getKey());
 				}
 			}
-			
+			restoreChunkserver(id);
 			/*
 			 * ChunkServer FUNCTION HOST implementation
 			 */
@@ -249,6 +249,10 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		stateChanged();
 	}
 
+	/**
+	 * Sends heartbeat to chunkserver.  If the chunkserver is up, also set the last good time to current system timestamp.
+	 * @param CSID
+	 */
 	public void heartbeat(int CSID) throws RemoteException {
 		chunkservers.get(CSID).setLastHB(System.currentTimeMillis());
 		if(chunkservers.get(CSID).getStatus() == CSStatus.OK){
@@ -358,7 +362,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 				availableCS.add(entry.getKey());
 			}
 			
-			//don't allow requests that requests more cs than available.
+			//don't allow requests that requests more chunkservers than available.
 			if (numReplicas > availableCS.size()){
 				System.out.println("Error. Number of replicas exceeds number of chunkservers.");
 				try{
@@ -925,7 +929,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * a createDirectory to catch up with current version of data.
 	 * @param path
 	 * @param chunkserverID
-	 * @return
+	 * @return true if message sent to chunkserver; false if message send failed.
 	 * @throws RemoteException
 	 */
 	public boolean createDirectoryRedo(String path, int chunkserverID) throws RemoteException {
@@ -946,7 +950,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * create a file it should have.
 	 * @param chunkhandle
 	 * @param chunkserverID
-	 * @return
+	 * @return true if chunkserver(ID) is up for the message-pass; if not, return false.
 	 * @throws RemoteException
 	 */
 	public boolean createFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
@@ -967,7 +971,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * file that, according to the Master, should not exist in the namespace.
 	 * @param chunkhandle
 	 * @param chunkserverID
-	 * @return
+	 * @return true if chunkserver(ID) is up for the message-pass; if not, return false.
 	 * @throws RemoteException
 	 */
 	public boolean deleteFileRedo(String chunkhandle, int chunkserverID) throws RemoteException {
@@ -988,7 +992,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * directory that, according to the Master, should not exist in the namespace.
 	 * @param path
 	 * @param chunkserverID
-	 * @return
+	 * @return true if chunkserver(ID) is up for the message-pass; if not, 
+	 * error in connecting to chunkserver and return false.
 	 * @throws RemoteException
 	 */
 	public boolean deleteDirectoryRedo(String path, int chunkserverID) throws RemoteException {
@@ -1010,7 +1015,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	 * timestamps.
 	 * @param chunkhandle
 	 * @param chunkserverID
-	 * @return
+	 * @return true if chunkserver(ID) is up for the message-pass; if not, 
+	 * error in connecting to chunkserver and return false.
 	 * @throws RemoteException
 	 */
 	public boolean fetchAndRewrite(String chunkhandle, int chunkserverID) throws RemoteException {
@@ -1040,13 +1046,14 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 	/**
 	 * Returns a random chunkserver index when passed a list of Chunkservers.
 	 * @param chunkServersNum
-	 * @return
+	 * @return integer of random chunkserver, created by Random, indexed by
+	 * chunkServersNum.get(chosenIndex), referenced by chunkservers.get(chosenID)
 	 */
 	public int getRandomWorkingCS (List<Integer> chunkServersNum){
 		Random randInt = new Random();
 		int chosenIndex = Math.abs(randInt.nextInt() % chunkServersNum.size());
 		int chosenID = chunkServersNum.get(chosenIndex);
-		boolean working = false;
+		boolean working = false;  //working is true if selected chunkserver is up, false if down.
 		int attempts = 0;
 		if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
 			working = true;
@@ -1057,7 +1064,7 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 		while(!working){
 			chosenIndex = Math.abs(randInt.nextInt() % chunkServersNum.size());
 			chosenID = chunkServersNum.get(chosenIndex);
-			attempts++;
+			attempts++;  //will attempt to connect 10 times.
 			if(chunkservers.get(chosenID).getStatus() == CSStatus.OK){
 				working = true;
 			}
@@ -1083,7 +1090,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Internal class to handle the thread within master to run the scheduler.
-	 * 
+	 * Master utilizes an agent design for handling message-calling and action scheduling.
+	 * Binary Semaphore used to control access to the action functions.
 	 */
 	private class MasterThread extends Thread {
 		private volatile boolean goOn = false;
@@ -1213,19 +1221,35 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 			this.lastHeartbeat = System.currentTimeMillis();
 			this.status = CSStatus.OK;
 		}
-
+		
+		/**
+		 * Returns the status of the chunkserver.
+		 * @return
+		 */
 		public CSStatus getStatus(){
 			return status;
 		}
 
+		/**
+		 * Returns last good time;
+		 * @return
+		 */
 		public long getLastGoodTime(){
 			return lastGoodTime;
 		}
 
+		/**
+		 * Returns last heartbeat time.
+		 * @return long lastHeartbeat.
+		 */
 		public long getLastHB(){
 			return lastHeartbeat;
 		}
 
+		/**
+		 * Returns ChunkserverInterface object in the CSInfo class.
+		 * @return
+		 */
 		public ChunkserverInterface getCS(){
 			return remoteCS;
 		}
@@ -1252,7 +1276,8 @@ public class Master extends UnicastRemoteObject implements MasterInterface{
 
 	/**
 	 * Heartbeat class runs on its own Thread, and periodically messages chunkservers to determine
-	 * their status.
+	 * their status.  This class manages the state of the chunkservers and will appropriately send 
+	 * the right command to the chunkserver in the event of chunkserver downtime or other status change.
 	 */
 	private class Heartbeat extends Thread{
 		long lastHBTime;
