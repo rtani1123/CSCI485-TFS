@@ -2,6 +2,10 @@ package Interfaces;
 
 import java.rmi.*;
 
+/**
+ * Use this interface to connect to Master.
+ *
+ */
 public interface MasterInterface extends Remote {
 	//functions called by the client
 	public void setupMasterHost() throws RemoteException;

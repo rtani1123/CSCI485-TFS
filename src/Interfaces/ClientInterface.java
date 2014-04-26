@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Use this interface to connect to Client
+ *
+ */
 public interface ClientInterface extends Remote {
 	//functions called by master
 	public void setupClientHost(Integer i) throws RemoteException;
