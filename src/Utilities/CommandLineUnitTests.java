@@ -53,7 +53,7 @@ public class CommandLineUnitTests {
 				System.out.println(" UnitTest4 src dest numOfReplicas ");
 				System.out.println(" UnitTest5 src dest ");
 				System.out.println(" UnitTest6 src dest ");
-				System.out.println(" UnitTest7 src dest ");
+				System.out.println(" UnitTest7 src ");
 				System.out.println(" UnitTest8 ");
 			} else if (input.contains("UnitTest1")) {
 				String[] actuallArgs = getArgs(input);
@@ -100,10 +100,10 @@ public class CommandLineUnitTests {
 							myClient);
 			} else if (input.contains("UnitTest7")) {
 				String[] actuallArgs = getArgs(input);
-				if (actuallArgs == null || actuallArgs.length != 2)
+				if (actuallArgs == null || actuallArgs.length != 1)
 					System.out.println("Wrong number of arguments");
 				else
-					UnitTest7.unitTest7Func(actuallArgs[0], actuallArgs[1],
+					UnitTest7.unitTest7Func(actuallArgs[0],
 							myClient);
 			} else if (input.contains("UnitTest8")) {
 				// String[] actuallArgs = getArgs(input);

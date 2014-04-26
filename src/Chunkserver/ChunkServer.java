@@ -445,6 +445,43 @@ public class ChunkServer extends UnicastRemoteObject implements ChunkserverInter
 			System.out.println("Fetch and rewrite failure");
 		}
 	}
+	@Override
+	public byte [] numFiles(String fullPath) throws RemoteException{
+		
+		File f = new File(fullPath);
+		if (!f.exists())
+		{
+			System.out.println("Specified file does not exist on TFS server");
+			return new byte[0];		
+		}			
+		else if(f.length() <4)
+		{
+			System.out.println("File too small to contain a size");
+			return new byte[0];
+		}
+		byte[] szb = this.read(fullPath, 0, 4);
+		ByteBuffer wrapped = ByteBuffer.wrap(szb);
+		int sz = wrapped.getInt();
+		int offset = 4;
+		int count = 1;
+		while(offset < f.length())
+		{
+			System.out.println("Size of file " + count + " is " + sz + " bytes");
+			offset += sz;
+			if(offset < f.length())
+			{
+				szb = this.read(fullPath, offset, 4);
+				ByteBuffer wrapped2 = ByteBuffer.wrap(szb);
+				sz = wrapped2.getInt();
+				offset += 4;
+				count++;
+			}
+		}
+		ByteBuffer b = ByteBuffer.allocate(4);
+		b.putInt(count);
+		System.out.println(fullPath + " contains " + count + " separate files");
+		return b.array();
+	}
 
 	/**
 	 * Heartbeat message.
