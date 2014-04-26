@@ -23,14 +23,20 @@ import java.util.List;
  * </ul></td></tr>
  * <tr><td style="border-style:solid; border-width:1px;">Methods called by Clients:</td>
  * <td style="border-style:solid; border-width:1px;"><ul>
+ * <li>void connectToClient(Integer)</li>
  * <li>boolean atomicAppend(String, byte[], int, boolean)</li>
  * <li>byte[] read(String, int, int)</li>
+ * <li>byte[] readCompletely(String)</li>
  * <li>boolean append(String, byte[], int, int, boolean)</li>
+ * <li>byte[] numFiles(String)</li>
  * </ul></td></tr>
  * <tr><td style="border-style:solid; border-width:1px;">Methods called by Chunkservers:</td>
  * <td style="border-style:solid; border-width:1px;"><ul>
  * <li>void setupChunkserverHost()</li>
  * <li>void connectToMaser()</li>
+ * <li>boolean deleteFile(String)</li>
+ * <li>byte[] read(String, int, int)</li>
+ * <li>boolean append(String, byte[], int, int, boolean)</li>
  * <li>boolean atomicAppendSecondary(String, byte[], int, boolean, long)</li>
  * <li>byte[] readCompletely(String)</li>
  * </ul></td></tr></table>
@@ -82,7 +88,7 @@ public interface ChunkserverInterface extends Remote{
 	public boolean createDirectory(String chunkhandle) throws RemoteException;
 	/**
 	 * Deletes a file in the chunkserver and updates CSMetadata if successful
-	 * @param chunkhandle	full path of the file
+	 * @param chunkhandle	full path of the directory
 	 * @return	true if and only if the operation succeeded; false otherwise
 	 * @throws RemoteException
 	 */
@@ -96,7 +102,7 @@ public interface ChunkserverInterface extends Remote{
 	public boolean deleteDirectory(String chunkhandle) throws RemoteException;
 	/**
 	 * Updates file data from another Chunkserver
-	 * @param chunkhandle	full path of the file
+	 * @param chunkhandle	full path of the directory
 	 * @param sourceID	ID of the Chunkserver used to update the data
 	 * @throws RemoteException
 	 */
